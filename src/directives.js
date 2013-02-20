@@ -328,7 +328,8 @@ radian.directive('plot',
       else if (casp) { asp = casp; h = w / asp; }
     }
     scope.width = w; scope.height = h;
-    var svg = $(elm.children()[0]).children()[1];
+    console.log(elm);
+    var svg = elm.children()[1];
     d3.select(svg).style('width', w).style('height', h);
 
     // Set up plot queue and function for child elements to add plots.
@@ -344,7 +345,12 @@ radian.directive('plot',
                          scope:sc, enabled:true });
     };
 
-    transclude(scope.$new(), function (cl) { elm.children().append(cl); });
+    transclude(scope.$new(), function (cl) {
+      console.log("transclude...");
+      console.log(elm.children());
+      console.log(cl);
+      elm.append(cl);
+    });
   };
 
   // We do the actual plotting after the transcluded plot type
@@ -361,7 +367,7 @@ radian.directive('plot',
 
     // Set up plot areas (including zoomers).
     var popts = scope.plotOptions;
-    var svgelm = d3.select($(elm.children()[0]).children()[1]);
+    var svgelm = d3.select(elm.children()[1]);
     var mainsvg = svgelm.append('g')
       .attr('width', scope.width).attr('height', scope.height);
     var svgs = [mainsvg];
@@ -660,6 +666,7 @@ radian.directive('plot',
        '<radian-ui></radian-ui>',
        '<svg></svg>',
      '</div>'].join(""),
+    replace: true,
     transclude: true,
     scope: true,
     compile: function(elm, as, trans) {

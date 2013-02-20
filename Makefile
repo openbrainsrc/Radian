@@ -17,10 +17,14 @@ radian.min.js: radian.js Makefile
 
 radian%js: Makefile
 	@rm -f $@
-	@cat $(filter %.js,$^) > $@.tmp
-	$(JS_UGLIFY) -b -o $@ $@.tmp
-	@rm $@.tmp
-	@chmod a-w $@
+	@cat $(filter %.js,$^) > $@
+
+#radian%js: Makefile
+#	@rm -f $@
+#	@cat $(filter %.js,$^) > $@.tmp
+#	$(JS_UGLIFY) -b -o $@ $@.tmp
+#	@rm $@.tmp
+#	@chmod a-w $@
 
 examples: radian.js src/radian.css
 	@cp radian.js examples/js

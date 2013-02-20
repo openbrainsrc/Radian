@@ -277,14 +277,19 @@ radian.factory('parseExpr', function()
 
   function makePredicate(words) {
     words = words.split(" ");
-    var f = "", cats = [];
-    out: for (var i = 0; i < words.length; ++i) {
+    var f = "", cats = [], skip;
+//    out: for (var i = 0; i < words.length; ++i) {
+    for (var i = 0; i < words.length; ++i) {
+      skip = false;
       for (var j = 0; j < cats.length; ++j)
         if (cats[j][0].length == words[i].length) {
           cats[j].push(words[i]);
-          continue out;
+          skip = true;
+          break;
+//          continue out;
         }
-      cats.push([words[i]]);
+      if (!skip) cats.push([words[i]]);
+      skip = false;
     }
     function compareTo(arr) {
       if (arr.length == 1)
