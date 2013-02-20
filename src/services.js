@@ -26,11 +26,10 @@ radian.factory('evalPlotExpr',
   ['$rootScope', 'plotLib', 'parseExpr',
   function($rootScope, plotLib, parseExpr)
 {
-  return function(scope, expr) {
+  var evalPlotExpr = function(scope, expr) {
     // Parse data path as (slightly enhanced) JavaScript.  Any parse
     // failures are passed back unchanged (HTML colours, for
     // example).
-    console.log("eval: " + expr);
     var ast;
     try {
       ast = parseExpr(expr);
@@ -58,7 +57,6 @@ radian.factory('evalPlotExpr',
     estraverse.traverse(ast, { leave: function(n) {
       delete n.start; delete n.end;
     } });
-    console.log("      ast = " + JSON.stringify(ast));
     var astrepl = estraverse.replace(ast, {
       leave: function(n) {
         if (n.type == "BinaryExpression") {
@@ -136,7 +134,6 @@ radian.factory('evalPlotExpr',
              }]
           };
         }}});
-    console.log("  astrepl = " + JSON.stringify(astrepl));
 
     // Replace free variables in JS expression with calls to
     // "scope.$eval".  We do things this way rather than using
@@ -144,6 +141,7 @@ radian.factory('evalPlotExpr',
     // the Angular expression parser only deals with a relatively
     // small subset of JS (no anonymous functions, for instance).
     var exc = { "Math":1, "Date":1, "Object":1 }, excstack = [ ];
+    var fvs = [ ];
     Object.keys(plotLib).forEach(function(k) { exc[k] = 1; });
     astrepl = estraverse.replace(astrepl, {
       enter: function(v, w) {
@@ -160,6 +158,7 @@ radian.factory('evalPlotExpr',
                 (!((w.type == "MemberExpression" ||
                     w.type == "PluckExpression") && v == w.property) &&
                  !(w.type == "CallExpression" && v == w.callee))) {
+              fvs.push(v.name);
               return parseExpr("scope.$eval('" + v.name + "')");
             }
           }
@@ -175,10 +174,18 @@ radian.factory('evalPlotExpr',
       }
     });
 
+    // Evaluate any free variables that were defined as attributes to
+    // bring them into scope.
+    fvs.forEach(function(v) {
+      for (var s = scope; s; s = s.$parent)
+        if (s.evalVars && s.evalVars.hasOwnProperty(v)) {
+          if (!s.hasOwnProperty(v)) s[v] = evalPlotExpr(s, s.evalVars[v]);
+          break;
+        }
+    });
+
     // Generate JS code suitable for accessing data.
     var access = escodegen.generate(astrepl);
-    console.log("  access = " + access);
-    console.log("");
 
     var ret = [];
     try {
@@ -196,6 +203,8 @@ radian.factory('evalPlotExpr',
     }
     return ret;
   };
+
+  return evalPlotExpr;
 }]);
 
 
@@ -215,10 +224,7 @@ radian.factory('getStyle', function()
 });
 
 
-radian.factory('splitAttrs',
-  ['evalPlotExpr', '$timeout',
-  function(evalPlotExpr, $timeout)
-{
+radian.factory('splitAttrs', function() {
   'use strict';
 
   var plotas =
@@ -229,24 +235,27 @@ radian.factory('splitAttrs',
       "range", "rangeX", "rangeY", "rows", "selectX", "selectY", "separator",
       "src", "stroke", "strokeOpacity", "strokeSwitch", "strokeWidth", "tabs",
       "title", "type", "units", "width", "zoom2d", "zoomX", "zoomY" ];
+  var excas = { "class":1 };
   var allas = { };
   plotas.forEach(function(a) { allas[a] = 1; });
   return function(scope, as, okplotas, allowvs, dir) {
     scope.plotOptions = { };
+    scope.evalVars = { };
     Object.keys(as).forEach(function(k) {
+      if (excas[k] || k.substr(0, 3) == "ng-") return;
       if (okplotas.hasOwnProperty(k))
         scope.plotOptions[k] = as[k];
       else if (allas.hasOwnProperty(k))
         throw Error("invalid attribute in <" + dir + "> directive: " + k);
       else if (k.charAt(0) != '$') {
-        if (allowvs)
-          $timeout(function() { scope[k] = evalPlotExpr(scope, as[k]); }, 0);
-        else throw Error("extra variable attributes not allowed in <" +
-                         dir + ">");
+        if (allowvs) {
+          scope.evalVars[k] = as[k];
+        } else throw Error("extra variable attributes not allowed in <" +
+                           dir + ">");
       }
     });
   };
-}]);
+});
 
 
 radian.factory('plotOption', function()

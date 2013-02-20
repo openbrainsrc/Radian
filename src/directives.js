@@ -328,7 +328,6 @@ radian.directive('plot',
       else if (casp) { asp = casp; h = w / asp; }
     }
     scope.width = w; scope.height = h;
-    console.log(elm);
     var svg = elm.children()[1];
     d3.select(svg).style('width', w).style('height', h);
 
@@ -345,12 +344,7 @@ radian.directive('plot',
                          scope:sc, enabled:true });
     };
 
-    transclude(scope.$new(), function (cl) {
-      console.log("transclude...");
-      console.log(elm.children());
-      console.log(cl);
-      elm.append(cl);
-    });
+    transclude(scope.$new(), function (cl) { elm.append(cl); });
   };
 
   // We do the actual plotting after the transcluded plot type
@@ -503,7 +497,7 @@ radian.directive('plot',
     // Extract plot attributes.
     var po = scope.plotOptions;
     v.xaxis = !po.axisX || po.axisX != 'off';
-    v.yaxis = !po.axisY || po.axisX != 'off';
+    v.yaxis = !po.axisY || po.axisY != 'off';
     var showXAxisLabel = !po.axisXLabel || po.axisXLabel != 'off';
     var showYAxisLabel = !po.axisYLabel || po.axisYLabel != 'off';
     var xAxisLabelText = po.axisXLabel;
@@ -608,13 +602,20 @@ radian.directive('plot',
 
     // Draw D3 axes.
     // ===> TODO: may need to draw up to two x-axes and two y-axes
-    if (v.xaxis) {
+    if (v.xaxis && v.x) {
       var axis = d3.svg.axis()
         .scale(v.x).orient('bottom')
         .ticks(outsvg.attr('width') / 100);
-      if (ps[0].scope.x.metadata && ps[0].scope.x.metadata.format == 'date')
-        axis.tickFormat(d3.time.format
-                        (ps[0].scope.x.metadata.dateFormat || '%Y-%m-%d'));
+      var dformat = '%Y-%m-%d';
+      var has_date = ps.some(function(p) {
+        var x = p.scope.x;
+        if (x && x.metadata && x.metadata.format == 'date') {
+          if (x.metadata.dateFormat) dformat = x.metadata.dateFormat;
+          return true;
+        }
+        return false;
+      });
+      if (has_date) axis.tickFormat(d3.time.format(dformat));
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.realheight + 4) + ')').call(axis);
@@ -627,7 +628,7 @@ radian.directive('plot',
         .attr('x', 0).attr('y', 35)
         .attr('text-anchor', 'middle').text(v.xlabel);
     }
-    if (v.yaxis) {
+    if (v.yaxis && v.y) {
       var axis = d3.svg.axis()
         .scale(v.y).orient('left')
         .ticks(outsvg.attr('height') / 36);
@@ -647,7 +648,7 @@ radian.directive('plot',
 
     // Loop over plots, calling their draw functions one by one.
     ps.forEach(function(p) {
-      if (p.enabled) {
+      if (p.enabled && p.scope.x && p.scope.y) {
         // Append SVG group for this plot and draw the plot into it.
         var g = svg.append('g');
         var x = (p.scope.x[0] instanceof Array) ? p.scope.x[p.xidx] : p.scope.x;

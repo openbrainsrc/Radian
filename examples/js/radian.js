@@ -330,7 +330,6 @@ radian.directive('plot',
       else if (casp) { asp = casp; h = w / asp; }
     }
     scope.width = w; scope.height = h;
-    console.log(elm);
     var svg = elm.children()[1];
     d3.select(svg).style('width', w).style('height', h);
 
@@ -347,12 +346,7 @@ radian.directive('plot',
                          scope:sc, enabled:true });
     };
 
-    transclude(scope.$new(), function (cl) {
-      console.log("transclude...");
-      console.log(elm.children());
-      console.log(cl);
-      elm.append(cl);
-    });
+    transclude(scope.$new(), function (cl) { elm.append(cl); });
   };
 
   // We do the actual plotting after the transcluded plot type
@@ -505,7 +499,7 @@ radian.directive('plot',
     // Extract plot attributes.
     var po = scope.plotOptions;
     v.xaxis = !po.axisX || po.axisX != 'off';
-    v.yaxis = !po.axisY || po.axisX != 'off';
+    v.yaxis = !po.axisY || po.axisY != 'off';
     var showXAxisLabel = !po.axisXLabel || po.axisXLabel != 'off';
     var showYAxisLabel = !po.axisYLabel || po.axisYLabel != 'off';
     var xAxisLabelText = po.axisXLabel;
@@ -610,13 +604,20 @@ radian.directive('plot',
 
     // Draw D3 axes.
     // ===> TODO: may need to draw up to two x-axes and two y-axes
-    if (v.xaxis) {
+    if (v.xaxis && v.x) {
       var axis = d3.svg.axis()
         .scale(v.x).orient('bottom')
         .ticks(outsvg.attr('width') / 100);
-      if (ps[0].scope.x.metadata && ps[0].scope.x.metadata.format == 'date')
-        axis.tickFormat(d3.time.format
-                        (ps[0].scope.x.metadata.dateFormat || '%Y-%m-%d'));
+      var dformat = '%Y-%m-%d';
+      var has_date = ps.some(function(p) {
+        var x = p.scope.x;
+        if (x && x.metadata && x.metadata.format == 'date') {
+          if (x.metadata.dateFormat) dformat = x.metadata.dateFormat;
+          return true;
+        }
+        return false;
+      });
+      if (has_date) axis.tickFormat(d3.time.format(dformat));
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.realheight + 4) + ')').call(axis);
@@ -629,7 +630,7 @@ radian.directive('plot',
         .attr('x', 0).attr('y', 35)
         .attr('text-anchor', 'middle').text(v.xlabel);
     }
-    if (v.yaxis) {
+    if (v.yaxis && v.y) {
       var axis = d3.svg.axis()
         .scale(v.y).orient('left')
         .ticks(outsvg.attr('height') / 36);
@@ -649,7 +650,7 @@ radian.directive('plot',
 
     // Loop over plots, calling their draw functions one by one.
     ps.forEach(function(p) {
-      if (p.enabled) {
+      if (p.enabled && p.scope.x && p.scope.y) {
         // Append SVG group for this plot and draw the plot into it.
         var g = svg.append('g');
         var x = (p.scope.x[0] instanceof Array) ? p.scope.x[p.xidx] : p.scope.x;
@@ -782,11 +783,10 @@ radian.factory('evalPlotExpr',
   ['$rootScope', 'plotLib', 'parseExpr',
   function($rootScope, plotLib, parseExpr)
 {
-  return function(scope, expr) {
+  var evalPlotExpr = function(scope, expr) {
     // Parse data path as (slightly enhanced) JavaScript.  Any parse
     // failures are passed back unchanged (HTML colours, for
     // example).
-    console.log("eval: " + expr);
     var ast;
     try {
       ast = parseExpr(expr);
@@ -814,7 +814,6 @@ radian.factory('evalPlotExpr',
     estraverse.traverse(ast, { leave: function(n) {
       delete n.start; delete n.end;
     } });
-    console.log("      ast = " + JSON.stringify(ast));
     var astrepl = estraverse.replace(ast, {
       leave: function(n) {
         if (n.type == "BinaryExpression") {
@@ -892,7 +891,6 @@ radian.factory('evalPlotExpr',
              }]
           };
         }}});
-    console.log("  astrepl = " + JSON.stringify(astrepl));
 
     // Replace free variables in JS expression with calls to
     // "scope.$eval".  We do things this way rather than using
@@ -900,6 +898,7 @@ radian.factory('evalPlotExpr',
     // the Angular expression parser only deals with a relatively
     // small subset of JS (no anonymous functions, for instance).
     var exc = { "Math":1, "Date":1, "Object":1 }, excstack = [ ];
+    var fvs = [ ];
     Object.keys(plotLib).forEach(function(k) { exc[k] = 1; });
     astrepl = estraverse.replace(astrepl, {
       enter: function(v, w) {
@@ -916,6 +915,7 @@ radian.factory('evalPlotExpr',
                 (!((w.type == "MemberExpression" ||
                     w.type == "PluckExpression") && v == w.property) &&
                  !(w.type == "CallExpression" && v == w.callee))) {
+              fvs.push(v.name);
               return parseExpr("scope.$eval('" + v.name + "')");
             }
           }
@@ -931,10 +931,18 @@ radian.factory('evalPlotExpr',
       }
     });
 
+    // Evaluate any free variables that were defined as attributes to
+    // bring them into scope.
+    fvs.forEach(function(v) {
+      for (var s = scope; s; s = s.$parent)
+        if (s.evalVars && s.evalVars.hasOwnProperty(v)) {
+          if (!s.hasOwnProperty(v)) s[v] = evalPlotExpr(s, s.evalVars[v]);
+          break;
+        }
+    });
+
     // Generate JS code suitable for accessing data.
     var access = escodegen.generate(astrepl);
-    console.log("  access = " + access);
-    console.log("");
 
     var ret = [];
     try {
@@ -952,6 +960,8 @@ radian.factory('evalPlotExpr',
     }
     return ret;
   };
+
+  return evalPlotExpr;
 }]);
 
 
@@ -971,10 +981,7 @@ radian.factory('getStyle', function()
 });
 
 
-radian.factory('splitAttrs',
-  ['evalPlotExpr', '$timeout',
-  function(evalPlotExpr, $timeout)
-{
+radian.factory('splitAttrs', function() {
   'use strict';
 
   var plotas =
@@ -985,24 +992,27 @@ radian.factory('splitAttrs',
       "range", "rangeX", "rangeY", "rows", "selectX", "selectY", "separator",
       "src", "stroke", "strokeOpacity", "strokeSwitch", "strokeWidth", "tabs",
       "title", "type", "units", "width", "zoom2d", "zoomX", "zoomY" ];
+  var excas = { "class":1 };
   var allas = { };
   plotas.forEach(function(a) { allas[a] = 1; });
   return function(scope, as, okplotas, allowvs, dir) {
     scope.plotOptions = { };
+    scope.evalVars = { };
     Object.keys(as).forEach(function(k) {
+      if (excas[k] || k.substr(0, 3) == "ng-") return;
       if (okplotas.hasOwnProperty(k))
         scope.plotOptions[k] = as[k];
       else if (allas.hasOwnProperty(k))
         throw Error("invalid attribute in <" + dir + "> directive: " + k);
       else if (k.charAt(0) != '$') {
-        if (allowvs)
-          $timeout(function() { scope[k] = evalPlotExpr(scope, as[k]); }, 0);
-        else throw Error("extra variable attributes not allowed in <" +
-                         dir + ">");
+        if (allowvs) {
+          scope.evalVars[k] = as[k];
+        } else throw Error("extra variable attributes not allowed in <" +
+                           dir + ">");
       }
     });
   };
-}]);
+});
 
 
 radian.factory('plotOption', function()
