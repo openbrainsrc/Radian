@@ -1,7 +1,7 @@
-// This is a modified version of the Acorn parser, set up for easy use
-// with Angular, cut down to parse only expressions, and supporting
-// some extensions to normal JavaScript expression syntax.
-
+// This file contains a modified version of the Acorn parser, set up
+// for easy use with Angular, cut down to parse only expressions, and
+// supporting some extensions to normal JavaScript expression syntax.
+//
 // ORIGINAL LICENSE COMMENT:
 //
 // Acorn is a tiny, fast JavaScript parser written in JavaScript.
@@ -19,7 +19,221 @@
 //
 // [ghbt]: https://github.com/marijnh/acorn/issues
 
-radian.factory('parseExpr', function()
+radian.factory('radianEval',
+  ['$rootScope', 'plotLib', 'radianParse',
+  function($rootScope, plotLib, radianParse)
+{
+  // Top level JavaScript names that we don't want to treat as free
+  // variables in Radian expressions.
+  var excnames = ['Arguments', 'Array', 'Boolean', 'Date', 'Error', 'EvalError',
+                  'Function', 'Global', 'JSON', 'Math', 'Number', 'Object',
+                  'RangeError', 'ReferenceError', 'RegExp', 'String',
+                  'SyntaxError', 'TypeError', 'URIError'];
+  var exc = { };
+  excnames.forEach(function(n) { exc[n] = 1; });
+  Object.keys(plotLib).forEach(function(k) { exc[k] = 1; });
+
+  // We need to be able to call this recursively, so give it a name
+  // here.
+  var radianEval = function(scope, inexpr, returnfvs) {
+    // Pass-through anything that isn't in [[ ]] brackets.
+    if (typeof inexpr != "string" ||
+        inexpr.substr(0,2) != '[[' && inexpr.substr(-2) != ']]')
+      return returnfvs ? [inexpr, []] : inexpr;
+    var expr = inexpr.substr(2, inexpr.length-4);
+
+    // Parse data path as (slightly enhanced) JavaScript.
+    var ast = radianParse(expr);
+
+    // Determine metadata key, which is only possible for simple
+    // applications of member access and plucking.  (For example,
+    // for an expression of the form "vic2012#tmp", the metadata key
+    // is "tmp"; for the expression "vic2012#date#doy", the metadata
+    // key is "doy").
+    var metadatakey = null, dataset = null;
+    estraverse.traverse(ast, { enter: function(node) {
+      if (node.type != "PluckExpression" && node.type != "MemberExpression")
+        return estraverse.VisitorOption.Skip;
+      else if (node.property.type == "Identifier") {
+        metadatakey = node.property.name;
+        var o = node.object;
+        while (o.type != "Identifier") o = o.object;
+        dataset = o.name;
+        return estraverse.VisitorOption.Break;
+      }
+    }});
+
+    // Vectorise arithmetic expressions.
+    estraverse.traverse(ast, { leave: function(n) {
+      delete n.start; delete n.end;
+    } });
+    var astrepl = estraverse.replace(ast, {
+      leave: function(n) {
+        if (n.type == "BinaryExpression") {
+          var fn = "";
+          switch (n.operator) {
+            case "+": fn = "rad$$add"; break;
+            case "-": fn = "rad$$sub"; break;
+            case "*": fn = "rad$$mul"; break;
+            case "/": fn = "rad$$div"; break;
+            case "**": fn = "rad$$pow"; break;
+          }
+          return !fn ? n : {
+            "type":"CallExpression",
+            "callee":{ "type":"Identifier","name":fn },
+            "arguments": [n.left, n.right] };
+        } else if (n.type == "UnaryExpression" && n.operator == "-") {
+          return {
+            "type":"CallExpression",
+            "callee":{ "type":"Identifier","name":"rad$$neg" },
+            "arguments": [n.argument] };
+        } else
+          return n;
+      }
+    });
+
+    // Pluck expression transformations:
+    //
+    //  a#b     ->  a.map(function($$x) { return $$x.b; })
+    //  a#b(c)  ->  a.map(function($$x) { return $$x.b(c); })
+    //
+    astrepl = estraverse.replace(astrepl, {
+      enter: function(n) {
+        if (n.type == "CallExpression" && n.callee.type == "PluckExpression") {
+          return {
+            type:"CallExpression",
+            callee:{type:"MemberExpression", object:n.callee.object,
+                    property:{type:"Identifier", name:"map"},
+                    computed:false},
+            arguments:
+            [{type:"FunctionExpression",
+              id:null, params:[{type:"Identifier", name:"$$x"}],
+              body:{
+                type:"BlockStatement",
+                body:[{type:"ReturnStatement",
+                       argument:{type:"CallExpression",
+                                 callee:{type:"MemberExpression",
+                                         object:{type:"Identifier", name:"$$x"},
+                                         property:n.callee.property,
+                                         computed:false},
+                                 arguments:n.arguments}
+                      }]
+              }
+             }]
+          };
+        } else return n;
+      },
+      leave: function(n) {
+        if (n.type == "PluckExpression") {
+          return {
+            type:"CallExpression",
+            callee:{ type:"MemberExpression", object:n.object,
+                     property:{ type:"Identifier", name:"map" },
+                     computed:false },
+            arguments:
+            [{ type:"FunctionExpression",
+               id:null, params:[{ type:"Identifier", name:"$$x"}],
+               body:{
+                 type:"BlockStatement",
+                 body:[{ type:"ReturnStatement",
+                         argument:{ type:"MemberExpression",
+                                    object:{ type:"Identifier", name:"$$x" },
+                                    property:n.property, computed:false }
+                       }]
+               }
+             }]
+          };
+        }}});
+
+    // Replace free variables in JS expression with calls to
+    // "scope.$eval".  We do things this way rather than using
+    // Angular's "scope.$eval" on the whole JS expression because
+    // the Angular expression parser only deals with a relatively
+    // small subset of JS (no anonymous functions, for instance).
+    var excstack = [ ], fvs = [ ];
+    astrepl = estraverse.replace(astrepl, {
+      enter: function(v, w) {
+        switch (v.type) {
+        case "FunctionExpression":
+          // When we enter a function expression, we need to capture
+          // the parameter names so that we don't record them as free
+          // variables.  To deal with name shadowing, we use an
+          // integer counter for names excluded from consideration as
+          // free variables, rather than a simple boolean flag.
+          excstack.push(v.params.map(function(p) { return p.name; }));
+          v.params.forEach(function(p) {
+            if (exc[p.name]) ++exc[p.name]; else exc[p.name] = 1;
+          });
+          break;
+        case "Identifier":
+          if (!exc[v.name]) {
+            if (!w ||
+                (!((w.type == "MemberExpression" ||
+                    w.type == "PluckExpression") && v == w.property) &&
+                 !(w.type == "CallExpression" && v == w.callee))) {
+              // We have a free variable, so record it and replace the
+              // reference to it with a call to 'scope.$eval'.
+              fvs.push(v.name);
+              return {
+                type: "CallExpression",
+                callee: { type: "MemberExpression",
+                          object: { type: "Identifier", name: "scope" },
+                          property: { type: "Identifier", name: "$eval" },
+                          computed: false },
+                arguments: [{ type: "Literal", value: v.name,
+                              raw:"'" + v.name + "'" }]
+              };
+            }
+          }
+        }
+        return v;
+      },
+      leave: function(v) {
+        if (v.type == "FunctionExpression")
+          // Clear function parameters from our exclude stack as we
+          // leave the function expression.
+          excstack.pop().forEach(function(n) {
+            if (--exc[n] == 0) delete exc[n];
+          });
+        return v;
+      }
+    });
+
+    // // Evaluate any free variables that were defined as attributes to
+    // // bring them into scope.
+    // fvs.forEach(function(v) {
+    //   for (var s = scope; s; s = s.$parent)
+    //     if (s.evalVars && s.evalVars.hasOwnProperty(v)) {
+    //       if (!s.hasOwnProperty(v)) s[v] = radianEval(s, s.evalVars[v]);
+    //       break;
+    //     }
+    // });
+
+    // Generate JS code suitable for accessing data.
+    var access = escodegen.generate(astrepl);
+
+    var ret = [];
+    try {
+      // Bring plot function library names into scope.
+      with (plotLib) {
+        eval("ret = " + access);
+      }
+    } catch (e) {
+      console.log("radianEval failed on '" + expr + "' -- " + e.message);
+    }
+    if (dataset && metadatakey) {
+      if ($rootScope[dataset] && $rootScope[dataset].metadata &&
+          $rootScope[dataset].metadata[metadatakey])
+        ret.metadata = $rootScope[dataset].metadata[metadatakey];
+    }
+    return returnfvs ? [ret, fvs] : ret;
+  };
+
+  return radianEval;
+}]);
+
+
+radian.factory('radianParse', function()
 {
   'use strict';
 

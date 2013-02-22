@@ -1,310 +1,110 @@
 var radian = angular.module('radian', []);
 
-/* Directives */
+// Process attributes for plot directives.  All attributes, except for
+// a small number of special cases (ID, CLASS, NG-*) are added as
+// Angular scope variables, along with some extra information about
+// the free variables and the original expression for the attribute.
+// Changes to the attribute value are processed by re-evaluation using
+// $observe and changes to free variables in the Radian expression are
+// processed using a (slightly complicated) setup of scope.$watch
+// listeners.
 
-radian.directive('plotData',
- ['$rootScope', 'splitAttrs',
-  function($rootScope, splitAttrs)
-{
+//===> THERE MIGHT BE ONE NASTY THING HERE.  WE MIGHT NEED TO
+//     TRANSLATE "{{expr}}" INTO "scope.$eval(expr)" IN radianEval.
+//     I'M MEDIUM CONVINCED THAT THIS SHOULDN'T BE A PROBLEM.  HERE'S
+//     THE POSSIBLE CHAIN OF EVENTS CASING TROUBLE: YOU SET UP AN
+//     ATTRIBUTE WITH AN EXPRESSION CONTAINING BOTH A FREE VARIABLE
+//     AND A "{{expr}}" THING.  ANGULAR SHOULD IMMEDIATELY INTERPOLATE
+//     THE "{{expr}}" SO THAT WE NEVER SEE IT, IN WHICH CASE CHANGES
+//     TO THE "expr" SHOULD BE DEALT WITH BY A $observe.  CHANGES TO
+//     THE FREE VARIABLE (WHICH WILL REQUIRE A RE-EVALUATION OF THE
+//     EXPRESSION) SHOULD GO OFF O.K., SINCE THE STORED EXPRESSION HAS
+//     ALREADY HAD ITS "{{expr}}" BITS INTERPOLATED BY ANGULAR.
+//     THERE, I CONVINCED MYSELF IT WOULD ALL BE ALL RIGHT...
+
+radian.factory('processAttrs', ['radianEval', function(radianEval) {
   'use strict';
 
-  var okas = { };
-  [ 'cols', 'format', 'name', 'separator', 'src' ]
-    .forEach(function(a) { okas[a] = 1; });
+  return function(scope, as) {
+    scope.$$radianVars = { };
+    Object.keys(as).forEach(function(a) {
+      // Skip the specials.
+      if (a == "id" || a == "class" || a.charAt(0) == "$" ||
+          a.search(/^ng[A-Z]/) != -1) return;
 
-  function postLink(scope, elm, as) {
-    // The <plot-data> element is only there to carry data, so hide
-    // it right away.
-    elm.hide();
+      // Passing the true flag to radianEval gets us the free
+      // variables in the expression as well as the current expression
+      // value.
+      var val = radianEval(scope, as[a], true);
 
-    // Process attributes.
-    splitAttrs(scope, as, okas, false, 'plot-data');
-    var os = scope.plotOptions;
-    if (!os.name) throw Error('<plot-data> must had NAME attribute');
-    var dataset = os.name;
-    var format = os.format || 'json';
-    var sep = os.separator === '' ? ' ' : (os.separator || ',');
-    var cols = os.cols;
-    if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
-    var formats = ['json', 'csv'];
-    if (formats.indexOf(format) == -1)
-      throw Error('invalid FORMAT "' + format + '" in <plot-data>');
-    if (format == 'csv' && !cols)
-      throw Error('CSV <plot-data> must have COLS');
+      // Record the original expression and its free variables and set
+      // the value of the scope variable.
+      scope.$$radianVars[a] = { fvs: val[1], expr: as[a] };
+      scope[a] = val[0];
 
-    // Process content -- all text children are appended together
-    // for parsing.
-    var datatext = '';
-    elm.contents().each(function(i,n) {
-      if (n instanceof Text) datatext += n.textContent;
-    });
-
-    // Parse data.
-    var d;
-    var fpre = /^\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/;
-    switch (format) {
-    case 'json':
-      try { d = JSON.parse(datatext); }
-      catch (e) { throw Error('invalid JSON data in <plot-data>'); }
-      break;
-    case 'csv':
-      try {
-        d = $.csv.toArrays(datatext.replace(/^\s*\n/g, '').split('\n')
-                           .map(function(s) {
-                             return s.replace(/^\s+/, '');
-                           }).join('\n'),
-                           { separator: sep });
-        if (d.length > 0) {
-          if (d[0].length != cols.length)
-            throw Error('mismatch between COLS and' +
-                        ' CSV data in <plot-data>');
-          var tmp = { }, nums = [];
-          for (var c = 0; c < cols.length; ++c) {
-            tmp[cols[c]] = [];
-            nums.push(d[0][c].match(fpre));
-          }
-          for (var i = 0; i < d.length; ++i)
-            for (var c = 0; c < cols.length; ++c) {
-              if (nums[c])
-                tmp[cols[c]].push(parseFloat(d[i][c]));
-              else
-                tmp[cols[c]].push(d[i][c]);
-            }
-          d = tmp;
-        }
-      } catch (e) { throw Error('invalid CSV data in <plot-data>'); }
-    }
-
-    // Process any date fields.
-    function dateProcess(d, k, f) {
-      function go(x, active) {
-        if (x instanceof Array && x.length > 0) {
-          if (typeof x[0] == 'string' && active)
-            x.forEach(function(v, i) { x[i] = f(v); });
-          else
-            x.forEach(function(v) { go(v, false); });
-        } else if (typeof x == 'object')
-          Object.keys(x).forEach(function(xk) { go(x[xk], xk == k); });
-      }
-      go(d, false);
-    };
-    if (scope.$parent[dataset] && scope.$parent[dataset].metadata) {
-      for (var k in scope.$parent[dataset].metadata) {
-        var md = scope.$parent[dataset].metadata[k];
-        if (md.format == 'date') {
-          if (!md.dateParseFormat)
-            dateProcess(d, k, function(v) { return new Date(v); });
-          else {
-            var parse;
-            if (md.dateParseFormat == 'isodate')
-              parse = d3.time.format.iso.parse;
-            else
-              parse = d3.time.format(md.dateParseFormat).parse;
-            dateProcess(d, k, function(v) { return parse(v); });
-          }
-        }
-      }
-    }
-
-    // Install data in scope, preserving any metadata.
-    var md = scope.$parent[dataset] ? scope.$parent[dataset].metadata : null;
-    scope.$parent[dataset] = d;
-    if (md) scope.$parent[dataset].metadata = md;
-  };
-
-  return {
-    restrict: 'E',
-    scope: false,
-    compile: function(elm, as, trans) {
-      return { post: postLink };
-    }
-  };
-}]);
-
-
-radian.directive('metadata',
- ['$rootScope', 'splitAttrs',
-  function($rootScope, splitAttrs)
-{
-  'use strict';
-
-  var okas = { };
-  [ 'dateFormat', 'dateParseFormat', 'errorFor',
-    'format', 'label', 'name', 'units' ]
-    .forEach(function(a) { okas[a] = 1; });
-  return {
-    restrict: 'E',
-    scope: false,
-    link: function(scope, elm, as) {
-      // Identify the data set that we're metadata for.
-      if (!elm[0].parentNode || elm[0].parentNode.tagName != 'PLOT-DATA' ||
-          !$(elm[0].parentNode).attr('name'))
-        throw Error('<metadata> not properly nested inside <plot-data>');
-      var dataset = $(elm[0].parentNode).attr('name');
-
-      // Split attributes into standard plot attributes and all others
-      // (used as variables in data access expressions).
-      splitAttrs(scope, as, okas, false, 'metadata');
-      var os = scope.plotOptions;
-      delete scope.plotOptions;
-      if (!os.hasOwnProperty('name'))
-        throw Error('<metadata> without NAME attribute');
-      var name = os.name;
-      delete os.name;
-
-      // Set up metadata for this data set.
-      if (!scope.$parent[dataset]) scope.$parent[dataset] = { metadata: { } };
-      if (!scope.$parent[dataset].metadata)
-        scope.$parent[dataset].metadata = { };
-      scope.$parent[dataset].metadata[name] = os;
-    }
-  };
-}]);
-
-
-radian.directive('radianUi', [function()
-{
-  'use strict';
-
-  function setup(scope) {
-    var po = scope.plotOptions;
-
-    // Deal with switching between stroke types.
-    if (po.strokeSwitch !== undefined) {
-      var label = po.strokeSwitchLabel;
-      var switches = po.strokeSwitch.split(';');
-      if (switches.length == 1) {
-        // On/off UI.
-        scope.stroke = 0;
-        scope.swbut = switches[0];
-        scope.swbutlab = label;
-        scope.switchfn =
-          function() {
-            scope.stroke = 1 - scope.stroke;
-            scope.$emit('strokeSelChange', scope.stroke);
-          };
-      } else {
-        // Selector UI.
-        scope.stroke = switches[0];
-        scope.swsel = switches;
-        scope.swsellab = label;
-        scope.$watch('stroke', function(n, o) {
-          scope.$emit('strokeSelChange', n);
+      // Set up watchers for each of the free variables in the
+      // expression.  When these watchers are triggered, they just
+      // re-evaluate the expression for the attribute using its
+      // original textual form.  We keep track of the return values
+      // from the calls to scope.$watch so that we can cancel these
+      // watches later if the free variables change.
+      var entry = scope.$$radianVars[a];
+      entry.fvwatchers = { };
+      entry.fvs.forEach(function(v) {
+        entry.fvwatchers[v] = scope.$watch(v, function() {
+          scope[a] = radianEval(scope, entry.expr);
         });
-      }
-    }
+      });
 
-    // Deal with selection of X and Y variables.
-    if (po.selectX !== undefined) {
-      var xvars = po.selectX.split(',');
-      if (xvars.length > 1) {
-        // Selector UI.
-        scope.xv = xvars[0];
-        scope.xvs = xvars;
-        scope.xlab = po.selectXLabel;
-        scope.$watch('xv',
-          function(n, o) {
-            if (n == scope.yv) scope.yv = o;
-            scope.yvs = scope.xvs.filter(function(s) {
-              return s != scope.xv;
+      // Observe the value of the attribute: if the value (i.e. the
+      // expression) changes, we pull in the new expression,
+      // re-evaluate and rearrange the free variable watchers.
+      as.$observe(a, function(v) {
+        entry.expr = v;
+        var val = radianEval(scope, v, true);
+        scope[a] = val[0];
+        entry.fvs = val[1];
+        Object.keys(entry.fvwatchers).forEach(function(v) {
+          // The new free variables are already in entry.fvs.  If this
+          // one isn't in there, deregister the watch and remove it.
+          if (entry.fvs.indexOf(v) == -1) {
+            entry.fvwatchers[v]();
+            delete entry.fvwatchers[v];
+          }
+        });
+        // Add watchers for any new free variables.
+        entry.fvs.forEach(function(v) {
+          if (!entry.fvwatchers[v])
+            entry.fvwatchers[v] = scope.$watch(v, function() {
+              scope[a] = radianEval(scope, entry.expr);
             });
-            scope.$emit('xDataSelChange', scope.xvs.indexOf(n));
-          });
-      }
-    }
-    if (po.selectY !== undefined) {
-      var yvars = po.selectY.split(',');
-      if (yvars.length > 1) {
-        // Selector UI.
-        scope.yv = yvars[0];
-        scope.yvs = yvars;
-        scope.ylab = po.selectYLabel;
-        scope.allyvs = po.selectY.split(',');
-        if (scope.selectX == scope.selectY) {
-          scope.yvs = yvars.splice(1);
-          scope.yv = scope.allyvs[1];
-        }
-        scope.$watch('yv',
-          function(n, o) {
-            scope.$emit('yDataSelChange', scope.allyvs.indexOf(n));
-          });
-      }
-    }
-
-    // Set up plot data.
-    var xi = 0, yi = 0;
-    if (scope.xv) xi = scope.xvs.indexOf(scope.xv);
-    if (scope.yv) yi = scope.allyvs.indexOf(scope.yv);
-    scope.$emit('xDataSelChange', xi);
-    scope.$emit('yDataSelChange', yi);
-  };
-
-  return {
-    restrict: 'E',
-    scope: false,
-    template:
-    ['<div class="radian-ui">',
-       '<span class="form-inline">',
-         '<span ng-show="xvs">',
-           '<span>{{xlab}}</span>',
-           '<select ng-model="xv" class="span1" ng-options="v for v in xvs">',
-           '</select>',
-         '</span>',
-         '<span ng-show="xvs && yvs">',
-           '&nbsp;&nbsp;vs&nbsp;&nbsp;',
-         '</span>',
-         '<span ng-show="yvs">',
-           '<span>{{ylab}}</span>',
-           '<select ng-model="yv" class="span1" ng-options="v for v in yvs">',
-           '</select>',
-         '</span>',
-         '<span ng-show="yvs && (swbut || swsel)">',
-           '&nbsp;&nbsp;',
-         '</span>',
-         '<span ng-show="swbut">',
-           '<span>{{swbutlab}}</span>',
-           '<button class="btn" data-toggle="button" ng-click="switchfn()">',
-             '{{swbut}}',
-           '</button>',
-         '</span>',
-         '<span ng-show="swsel">',
-           '<label>{{swsellab}}&nbsp;</label>',
-           '<select ng-model="stroke" .span1 ng-options="o for o in swsel">',
-           '</select>',
-         '</span>',
-       '</span>',
-     '</div>'].join(""),
-    replace: true,
-    link: function(scope, elm, as) {
-      scope.$on('uiSetup', function() { setup(scope); });
-    }
+        });
+      });
+    });
   };
 }]);
 
+
+// Main plot directive.  Kind of complicated...
 
 radian.directive('plot',
- ['evalPlotExpr', 'plotOption', 'splitAttrs',
-  '$timeout', '$rootScope', 'dumpScope',
- function(evalPlotExpr, plotOption, splitAttrs,
-          $timeout, $rootScope, dumpScope)
+ ['radianEval', 'processAttrs', '$timeout', '$rootScope', 'dumpScope',
+  'dft', 'radianLegend',
+ function(radianEval, processAttrs, $timeout, $rootScope, dumpScope,
+          dft, radianLegend)
 {
   'use strict';
-
-  var okas = { };
-  [ 'aspect', 'axisX', 'axisXLabel', 'axisX2', 'axisY', 'axisYLabel',
-    'axisY2', 'fill', 'fillOpacity', 'height', 'id', 'label',
-    'legendSwitches', 'marker', 'markerSize', 'range', 'rangeX', 'rangeY',
-    'selectX', 'selectY', 'stroke', 'strokeOpacity', 'strokeSwitch',
-    'strokeWidth', 'title', 'width', 'zoom2d', 'zoomX', 'zoomY' ]
-    .forEach(function(a) { okas[a] = 1; });
 
   // We do setup work here so that we can organise things before the
   // transcluded plotting directives are linked.
   function preLink(scope, elm, as, transclude) {
-    // Split attributes into standard plot attributes and all others
-    // (used as variables in data access expressions).
-    splitAttrs(scope, as, okas, true, 'plot');
+    // Process attributes, bringing all but a few special cases into
+    // Angular scope as regular variables (to be use in data access
+    // expressions).
+    processAttrs(scope, as);
     scope.strokesel = 0;
+    scope.xidx = 0;
+    scope.yidx = 0;
 
     // Deal with plot dimension attributes: explicit attribute values
     // override CSS values.  Do sensible things with width, height and
@@ -330,46 +130,43 @@ radian.directive('plot',
       else if (casp) { asp = casp; h = w / asp; }
     }
     scope.width = w; scope.height = h;
-    var svg = elm.children()[1];
-    d3.select(svg).style('width', w).style('height', h);
+    scope.svg = elm.children()[1];
+    $(elm).css('width', w).css('height', h);
 
-    // Set up plot queue and function for child elements to add plots.
-    scope.plots = [];
+    // Set up view list and function for child elements to add plots.
     scope.views = [];
     scope.switchable = [];
-    scope.addPlot = function(draw, sc) {
-      if (sc.plotOptions && sc.plotOptions.hasOwnProperty('legendSwitches') ||
-          scope.plotOptions &&
-          scope.plotOptions.hasOwnProperty('legendSwitches'))
-        scope.switchable.push(scope.plots.length);
-      scope.plots.push({ xidx:0, yidx:0, draw:draw,
-                         scope:sc, enabled:true });
+    scope.addPlot = function(s) {
+      if (scope.hasOwnProperty('legendSwitches')) scope.switchable.push(s);
+      s.enabled = true;
     };
 
     transclude(scope.$new(), function (cl) { elm.append(cl); });
   };
 
   // We do the actual plotting after the transcluded plot type
-  // elements are linked -- each plot element puts a function on the
-  // plot queue plus information about data ranges and we process all
-  // the plots here.
+  // elements are linked.
   function postLink(scope, elm) {
     function redraw() {
-      scope.views.forEach(function(v) { draw(v, scope.plots); });
+      scope.views.forEach(function(v) { draw(v, scope); });
     };
     function reset() {
       scope.views = svgs.map(function(s) { return setup(scope, s); });
+      if (setupBrush) setupBrush();
+      redraw();
     };
 
     // Set up plot areas (including zoomers).
-    var popts = scope.plotOptions;
-    var svgelm = d3.select(elm.children()[1]);
+    var svgelm = d3.select(scope.svg);
+    if (scope.uivisible)
+      scope.height -= parseInt($(elm.children()[0]).css('height'));
+    svgelm.attr('width', scope.width).attr('height', scope.height);
     var mainsvg = svgelm.append('g')
       .attr('width', scope.width).attr('height', scope.height);
     var svgs = [mainsvg];
     var setupBrush = null;
-    if (popts.hasOwnProperty('zoomX')) {
-      var zfrac = plotOption(scope, 'zoom-fraction', 0.2);
+    if (scope.hasOwnProperty('zoomX')) {
+      var zfrac = scope.zoomFraction || 0.2;
       zfrac = Math.min(0.95, Math.max(0.05, zfrac));
       var zoomHeight = scope.height * zfrac;
       var mainHeight = scope.height * (1 - zfrac);
@@ -390,7 +187,7 @@ radian.directive('plot',
         brush.on('brush', function() {
           scope.views[0].x.domain(brush.empty() ?
                                   scope.views[1].x.domain() : brush.extent());
-          draw(scope.views[0], scope.plots, scope.ui);
+          draw(scope.views[0], scope);
         });
         scope.views[1].post = function(svg) {
           svg.append('g')
@@ -406,43 +203,16 @@ radian.directive('plot',
     $timeout(function() {
       // Draw plots.
       reset();
-      if (setupBrush) setupBrush();
-      redraw();
-      legend(svgelm, scope);
+      radianLegend(svgelm, scope);
 
       // Register plot data change handlers.
-      scope.$on('paintChange', function(e) { redraw(); });
-      scope.$on('dataChange', function(e, i) {
-        reset();
-        if (setupBrush) setupBrush();
-        redraw();
-      });
+      scope.$on('paintChange', redraw);
+      scope.$on('dataChange', reset);
 
       // Register UI event handlers.
-      scope.$on('strokeSelChange', function(e, i) {
-        scope.strokesel = i;
-        redraw();
-      });
-      scope.$on('xDataSelChange', function(e, i) {
-        scope.plots.forEach(function(p) {
-          if (p.scope.x && p.scope.x[0] instanceof Array)
-            p.xidx = i % p.scope.x.length;
-        });
-        reset();
-        if (setupBrush) setupBrush();
-        redraw();
-      });
-      scope.$on('yDataSelChange', function(e, i) {
-        scope.plots.forEach(function(p) {
-          if (p.scope.y && p.scope.y[0] instanceof Array)
-            p.yidx = i % p.scope.y.length;
-        });
-        reset();
-        if (setupBrush) setupBrush();
-        redraw();
-      });
-
-      scope.$broadcast('uiSetup');
+      scope.$watch('strokesel', redraw);
+      scope.$watch('xidx', reset);
+      scope.$watch('yidx', reset);
     }, 0);
 
     // Set up interactivity.
@@ -452,60 +222,17 @@ radian.directive('plot',
     // ===> TODO: styling changes
   };
 
-  function legend(svgelm, scope) {
-    // Render interactive legend.
-    var nswitch = scope.switchable.length;
-    if (nswitch > 0) {
-      var legendps = scope.plots.filter(function(d,i) {
-        return scope.switchable.indexOf(i) != -1;
-      });
-      var leggs = svgelm.append('g').selectAll('g')
-        .data(legendps).enter().append('g');
-      var legcs = leggs.append('circle').style('stroke-width', 1).attr('r', 5)
-        .attr('fill', function(d,i) {
-          return d.scope.plotOptions.stroke.split(';')[0] || '#000';
-        })
-        .attr('stroke', function(d,i) {
-          return d.scope.plotOptions.stroke.split(';')[0] || '#000';
-        });
-      var clickHandler = function(d,i) {
-        d.enabled = !d.enabled;
-        d3.select(this).select('circle')
-          .attr('fill', d.enabled ?
-                (d.scope.plotOptions.stroke.split(';')[0] || '#000') : '#fff');
-        scope.views.forEach(function(v) { draw(v, scope.plots, scope.ui); });
-      };
-      leggs.on('click', clickHandler);
-      var legts = leggs.append('text')
-        .attr('text-anchor', 'start').attr('dy', '.32em').attr('dx', '8')
-        .text(function(d,i) {
-          return d.scope.plotOptions.label || ('data' + i);
-        });
-      var widths = [];
-      legts.each(function(d,i) { widths.push(d3.select(this).node().
-                                             getComputedTextLength() + 10); });
-      var mwidth = d3.max(widths), spacing = 15;
-      var sep = mwidth + spacing;
-      var len = nswitch * mwidth + (nswitch - 1) * spacing;
-      leggs.attr('transform', function(d,i) {
-        return 'translate(' + (scope.width - len + sep*i) + ',10)';
-      });
-    }
-  };
 
-  function setup(scope, svgelm) {
-    var v = { svg:svgelm };
+  function setup(scope, topgroup) {
+    var v = { svg: topgroup };
 
     // Extract plot attributes.
-    var po = scope.plotOptions;
-    v.xaxis = !po.axisX || po.axisX != 'off';
-    v.yaxis = !po.axisY || po.axisY != 'off';
-    var showXAxisLabel = !po.axisXLabel || po.axisXLabel != 'off';
-    var showYAxisLabel = !po.axisYLabel || po.axisYLabel != 'off';
-    var xAxisLabelText = po.axisXLabel;
-    var yAxisLabelText = po.axisYLabel;
-    v.margin = { top: po.topMargin || 2, right: po.rightMargin || 10,
-                 bottom: po.bottomMargin || 2, left: po.leftMargin || 2 };
+    v.xaxis = !scope.axisX || scope.axisX != 'off';
+    v.yaxis = !scope.axisY || scope.axisY != 'off';
+    var showXAxisLabel = !scope.axisXLabel || scope.axisXLabel != 'off';
+    var showYAxisLabel = !scope.axisYLabel || scope.axisYLabel != 'off';
+    v.margin = { top: scope.topMargin || 2, right: scope.rightMargin || 10,
+                 bottom: scope.bottomMargin || 2, left: scope.leftMargin || 2 };
 
     // Set up plot margins.
     if (v.xaxis) v.margin.bottom += 20 + (showXAxisLabel ? 15 : 0);
@@ -521,27 +248,25 @@ radian.directive('plot',
     // ===> TODO: <plot> range attributes
     // ===> TODO: management of linear/log/etc. axis type
     // ===> TODO: deal with x1/x2, y1/y2 axes
-    var ps = scope.plots;
     function aext(d) {
       if (d[0] instanceof Array) {
         return d3.merge(d.map(function(a) { return d3.extent(a); }));
       } else
         return d3.extent(d);
     };
-    var xextent =
-      d3.extent(d3.merge(ps.filter(function(p) { return p.enabled; })
-                         .map(function(p) { return aext(p.scope.x); })));
-    var yextent =
-      d3.extent(d3.merge(ps.filter(function(p) { return p.enabled; })
-                         .map(function(p) { return aext(p.scope.y); })));
+    var xexts = [], yexts = [], hasdate = false;
+    dft(scope, function(s) {
+      if (s.enabled && s.x) xexts = xexts.concat(aext(s.x));
+      if (s.enabled && s.y) yexts = yexts.concat(aext(s.y));
+      if (s.x && s.x.metadata && s.x.metadata.format == 'date')
+        hasdate = true;
+    });
+    var xextent = d3.extent(xexts), yextent = d3.extent(yexts);
 
     // Set up D3 data ranges.
     // ===> TODO: deal with x1/x2, y1/y2 axes -- check for conflicts
     //            in data types and figure out what axes need to be
     //            drawn
-    var hasdate = ps.some(function(p) {
-      return p.scope.x.metadata && p.scope.x.metadata.format == 'date';
-    });
     if (hasdate)
       v.x = d3.time.scale().range([0, v.realwidth]).domain(xextent);
     else
@@ -549,51 +274,37 @@ radian.directive('plot',
     v.y = d3.scale.linear().range([v.realheight, 0]).domain(yextent);
 
     // Figure out axis labels.
-    if (showXAxisLabel) {
-      if (!xAxisLabelText) {
-        for (var i = 0; i < ps.length; ++i) {
-          var px = ps[i].scope.x;
-          if (px.metadata && px.metadata.label) {
-            xAxisLabelText = px.metadata.label;
-            if (px.metadata.units)
-              xAxisLabelText += ' (' + px.metadata.units + ')';
-            break;
-          }
+    function axisLabel(labelText, idxvar, selectvar, def) {
+      var idx0 = null;
+      if (!labelText) {
+        dft(scope, function(s) {
+          if (!labelText)
+            if (s.x && s.x.metadata && s.x.metadata.label) {
+              labelText = s.x.metadata.label;
+              if (s.x.metadata.units)
+                labelText += ' (' + s.x.metadata.units + ')';
+            }
+          idx0 = idx0 || s[idxvar];
+        });
+        if (!labelText && scope[selectvar]) {
+          var labs = scope[selectvar].split(',');
+          labelText = labs[idx0];
         }
-        if (!xAxisLabelText && po.selectX) {
-          var labs = po.selectX.split(',');
-          xAxisLabelText = labs[ps[0].xidx];
-        }
-        if (!xAxisLabelText) xAxisLabelText = 'X Axis';
+        if (!labelText) labelText = def;
       }
-      v.xlabel = xAxisLabelText;
-    }
-    if (showYAxisLabel) {
-      if (!yAxisLabelText) {
-        for (var i = 0; i < ps.length; ++i) {
-          var py = ps[i].scope.y;
-          if (py.metadata && py.metadata.label) {
-            yAxisLabelText = py.metadata.label;
-            if (py.metadata.units)
-              yAxisLabelText += ' (' + py.metadata.units + ')';
-            break;
-          }
-        }
-        if (!yAxisLabelText && po.selectY) {
-          var labs = po.selectY.split(',');
-          yAxisLabelText = labs[ps[0].yidx];
-        }
-        if (!yAxisLabelText) yAxisLabelText = 'Y Axis';
-      }
-      v.ylabel = yAxisLabelText;
-    }
+      return labelText;
+    };
+    if (showXAxisLabel)
+      v.xlabel = axisLabel(scope.axisXLabel, 'xidx', 'selectX', 'X Axis');
+    if (showYAxisLabel)
+      v.ylabel = axisLabel(scope.axisYLabel, 'yidx', 'selectY', 'Y Axis');
 
     return v;
   };
 
-  function draw(v, ps, ui) {
+  function draw(v, scope) {
     // Clean out any pre-existing plots.
-    v.svg.selectAll('g').remove();
+    $(v.svg[0]).empty();
 
     // Set up plot margins.
     var outsvg = v.svg.append('g').attr('width', v.outw).attr('height', v.outh);
@@ -609,35 +320,37 @@ radian.directive('plot',
         .scale(v.x).orient('bottom')
         .ticks(outsvg.attr('width') / 100);
       var dformat = '%Y-%m-%d';
-      var has_date = ps.some(function(p) {
-        var x = p.scope.x;
+      var has_date = false;
+      dft(scope, function(s) {
+        var x = s.x;
         if (x && x.metadata && x.metadata.format == 'date') {
           if (x.metadata.dateFormat) dformat = x.metadata.dateFormat;
-          return true;
+          has_date = true;
         }
-        return false;
+        has_date = false;
       });
       if (has_date) axis.tickFormat(d3.time.format(dformat));
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
-              (+v.realheight + 4) + ')').call(axis);
+              (+v.realheight + 4) + ')')
+        .call(axis);
       if (v.xlabel)
+        var xpos = 0, ypos = 35;
         outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
               (+v.margin.left + v.realwidth / 2) +
               ',' + v.realheight + ')')
         .append('text')
-        .attr('x', 0).attr('y', 35)
+        .attr('x', xpos).attr('y', ypos)
         .attr('text-anchor', 'middle').text(v.xlabel);
     }
     if (v.yaxis && v.y) {
       var axis = d3.svg.axis()
         .scale(v.y).orient('left')
         .ticks(outsvg.attr('height') / 36);
-      var axsvg = outsvg.append('g').attr('class', 'axis');
-      axsvg = axsvg
-        .attr('transform', 'translate(' + (+v.margin.left - 4) + ',0)');
-      axsvg.call(axis);
+      outsvg.append('g').attr('class', 'axis')
+        .attr('transform', 'translate(' + (+v.margin.left - 4) + ',0)')
+        .call(axis);
       if (v.ylabel) {
         var xpos = 12, ypos = v.realheight / 2;
         outsvg.append('g').attr('class', 'axis-label')
@@ -649,17 +362,18 @@ radian.directive('plot',
     }
 
     // Loop over plots, calling their draw functions one by one.
-    ps.forEach(function(p) {
-      if (p.enabled && p.scope.x && p.scope.y) {
-        // Append SVG group for this plot and draw the plot into it.
-        var g = svg.append('g');
-        var x = (p.scope.x[0] instanceof Array) ? p.scope.x[p.xidx] : p.scope.x;
-        var y = (p.scope.y[0] instanceof Array) ? p.scope.y[p.yidx] : p.scope.y;
-        p.draw(g, x, v.x, y, v.y, p.scope);
-      }
-    });
-
-    if (v.post) v.post(svg);
+    if (v.x && v.y) {
+      dft(scope, function(s) {
+        if (s.draw && s.enabled && s.x && s.y) {
+          // Append SVG group for this plot and draw the plot into it.
+          var g = svg.append('g');
+          var x = (s.x[0] instanceof Array) ? s.x[s.xidx] : s.x;
+          var y = (s.y[0] instanceof Array) ? s.y[s.yidx] : s.y;
+          s.draw(g, x, v.x, y, v.y, s);
+        }
+      });
+      if (v.post) v.post(v.svg);
+    }
   };
 
   return {
@@ -680,117 +394,71 @@ radian.directive('plot',
 }]);
 
 
-radian.directive('lines',
- ['getStyle', 'splitAttrs', 'evalPlotExpr', '$rootScope', 'dumpScope',
- function(getStyle, splitAttrs, evalPlotExpr, $rootScope, dumpScope)
+radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
 {
-  'use strict';
+  var paintas = [ 'fill', 'fillOpacity', 'label', 'marker', 'markerSize',
+                  'stroke', 'strokeOpacity', 'strokeWidth' ];
 
-  var as = [ 'fill', 'fillOpacity', 'label', 'legendSwitches', 'marker',
-             'markerSize', 'selectX', 'selectY', 'stroke', 'strokeOpacity',
-             'strokeWidth' ];
-  var plotas = { };
-  as.forEach(function(a) { plotas[a] = 1; });
+  return function(scope, elm, as, draw) {
+    processAttrs(scope, as);
+    elm.hide();
+    scope.draw = draw;
+    scope.$parent.addPlot(scope);
 
-  function draw(svg, x, xs, y, ys, sc) {
-    var width   = getStyle('strokeWidth',   sc, 1);
-    var opacity = getStyle('strokeOpacity', sc, 1.0);
-
-    // Deal with stroke selection.
-    var sopts = getStyle('stroke', sc, '#000').split(';');
-    var s;
-    if (sopts.length == 1 || !sc.strokesel)
-      s = sopts[0];
-    else if (!isNaN(parseInt(sc.strokesel)))
-      s = sopts[sc.strokesel % sopts.length];
-    else
-      s = sopts[Math.max(0, sc.swsel.indexOf(sc.strokesel)) % sopts.length];
-
-    // Switch on type of stroke...
-    if (s.indexOf(':') == -1) {
-      // Normal single-colour line.
-      var line = d3.svg.line()
-        .x(function (d) { return xs(d[0]); })
-        .y(function (d) { return ys(d[1]); });
-      svg.append('path').datum(d3.zip(x, y))
-        .attr('class', 'line').attr('d', line)
-        .style('fill', 'none')
-        .style('stroke-width', width)
-        .style('stroke-opacity', opacity)
-        .style('stroke', s);
-    } else {
-      // Fading stroke.
-      var strokes = s.split(':');
-      var sc = function(dx) { return 1 - Math.exp(-20*dx/(3*x.length)); };
-      var ihsl = d3.interpolateHsl(strokes[0], strokes[1]);
-      var based = d3.zip(x, y);
-      var lined = d3.zip(based, based.slice(1));
-      svg.selectAll('path').data(lined).enter().append('path')
-        .attr('class', 'line')
-        .style('stroke-width', width)
-        .style('stroke-opacity', opacity)
-        .style('stroke', function(d,i) { return ihsl(sc(i)); })
-        .attr('d', d3.svg.line()
-              .x(function (d) { return xs(d[0]); })
-              .y(function (d) { return ys(d[1]); }));
-    }
-  };
-
-  return {
-    restrict: 'E',
-    scope: true,
-    link: function(scope, elm, as) {
-      splitAttrs(scope, as, plotas, true, 'lines');
-      elm.hide();
-      scope.$parent.addPlot(draw, scope);
-      as.$observe('x', function(newx) {
-        scope.x = evalPlotExpr(scope, newx);
-        scope.$emit('dataChange');
-      });
-      as.$observe('y', function(newy) {
-        scope.y = evalPlotExpr(scope, newy);
-        scope.$emit('dataChange');
-      });
-      as.$observe('stroke', function() { scope.$emit('paintChange'); });
-    }
+    scope.$watch('x', function() { scope.$emit('dataChange', scope); });
+    scope.$watch('y', function() { scope.$emit('dataChange', scope); });
+    paintas.forEach(function(a) {
+      if (scope.hasOwnProperty(a))
+        scope.$watch(a, function() { scope.$emit('paintChange', scope); });
+    });
   };
 }]);
-// Naughty.  Need to use "with" in evalPlotExpr...
-// 'use strict';
+// This file contains a modified version of the Acorn parser, set up
+// for easy use with Angular, cut down to parse only expressions, and
+// supporting some extensions to normal JavaScript expression syntax.
+//
+// ORIGINAL LICENSE COMMENT:
+//
+// Acorn is a tiny, fast JavaScript parser written in JavaScript.
+//
+// Acorn was written by Marijn Haverbeke and released under an MIT
+// license. The Unicode regexps (for identifiers and whitespace) were
+// taken from [Esprima](http://esprima.org) by Ariya Hidayat.
+//
+// Git repositories for Acorn are available at
+//
+//     http://marijnhaverbeke.nl/git/acorn
+//     https://github.com/marijnh/acorn.git
+//
+// Please use the [github bug tracker][ghbt] to report issues.
+//
+// [ghbt]: https://github.com/marijnh/acorn/issues
 
-/* Services */
-
-radian.factory('dumpScope', function()
+radian.factory('radianEval',
+  ['$rootScope', 'plotLib', 'radianParse',
+  function($rootScope, plotLib, radianParse)
 {
-  'use strict';
+  // Top level JavaScript names that we don't want to treat as free
+  // variables in Radian expressions.
+  var excnames = ['Arguments', 'Array', 'Boolean', 'Date', 'Error', 'EvalError',
+                  'Function', 'Global', 'JSON', 'Math', 'Number', 'Object',
+                  'RangeError', 'ReferenceError', 'RegExp', 'String',
+                  'SyntaxError', 'TypeError', 'URIError'];
+  var exc = { };
+  excnames.forEach(function(n) { exc[n] = 1; });
+  Object.keys(plotLib).forEach(function(k) { exc[k] = 1; });
 
-  var go = function(scope, indent) {
-    var indentstr = "";
-    for (var i = 0; i < indent; ++i)
-      indentstr = indentstr.concat(" ");
-    console.log(indentstr + scope.$id + ": " +
-                Object.keys(scope).filter(function(k) {
-                  return k.charAt(0) != "$" && k != "this";
-                }));
-    for (var ch = scope.$$childHead; ch; ch = ch.$$nextSibling)
-      go(ch, indent + 2);
-  };
-  return function(scope) { go(scope, 0); };
-});
+  // We need to be able to call this recursively, so give it a name
+  // here.
+  var radianEval = function(scope, inexpr, returnfvs) {
+    // Pass-through anything that isn't in [[ ]] brackets.
+    if (typeof inexpr != "string" ||
+        inexpr.substr(0,2) != '[[' && inexpr.substr(-2) != ']]')
+      return returnfvs ? [inexpr, []] : inexpr;
+    var expr = inexpr.substr(2, inexpr.length-4);
 
-
-radian.factory('evalPlotExpr',
-  ['$rootScope', 'plotLib', 'parseExpr',
-  function($rootScope, plotLib, parseExpr)
-{
-  var evalPlotExpr = function(scope, expr) {
-    // Parse data path as (slightly enhanced) JavaScript.  Any parse
-    // failures are passed back unchanged (HTML colours, for
-    // example).
-    var ast;
-    try {
-      ast = parseExpr(expr);
-    } catch (e) { return expr; }
+    // Parse data path as (slightly enhanced) JavaScript.
+    var ast = radianParse(expr);
 
     // Determine metadata key, which is only possible for simple
     // applications of member access and plucking.  (For example,
@@ -897,13 +565,16 @@ radian.factory('evalPlotExpr',
     // Angular's "scope.$eval" on the whole JS expression because
     // the Angular expression parser only deals with a relatively
     // small subset of JS (no anonymous functions, for instance).
-    var exc = { "Math":1, "Date":1, "Object":1 }, excstack = [ ];
-    var fvs = [ ];
-    Object.keys(plotLib).forEach(function(k) { exc[k] = 1; });
+    var excstack = [ ], fvs = [ ];
     astrepl = estraverse.replace(astrepl, {
       enter: function(v, w) {
         switch (v.type) {
         case "FunctionExpression":
+          // When we enter a function expression, we need to capture
+          // the parameter names so that we don't record them as free
+          // variables.  To deal with name shadowing, we use an
+          // integer counter for names excluded from consideration as
+          // free variables, rather than a simple boolean flag.
           excstack.push(v.params.map(function(p) { return p.name; }));
           v.params.forEach(function(p) {
             if (exc[p.name]) ++exc[p.name]; else exc[p.name] = 1;
@@ -915,8 +586,18 @@ radian.factory('evalPlotExpr',
                 (!((w.type == "MemberExpression" ||
                     w.type == "PluckExpression") && v == w.property) &&
                  !(w.type == "CallExpression" && v == w.callee))) {
+              // We have a free variable, so record it and replace the
+              // reference to it with a call to 'scope.$eval'.
               fvs.push(v.name);
-              return parseExpr("scope.$eval('" + v.name + "')");
+              return {
+                type: "CallExpression",
+                callee: { type: "MemberExpression",
+                          object: { type: "Identifier", name: "scope" },
+                          property: { type: "Identifier", name: "$eval" },
+                          computed: false },
+                arguments: [{ type: "Literal", value: v.name,
+                              raw:"'" + v.name + "'" }]
+              };
             }
           }
         }
@@ -924,6 +605,8 @@ radian.factory('evalPlotExpr',
       },
       leave: function(v) {
         if (v.type == "FunctionExpression")
+          // Clear function parameters from our exclude stack as we
+          // leave the function expression.
           excstack.pop().forEach(function(n) {
             if (--exc[n] == 0) delete exc[n];
           });
@@ -931,15 +614,15 @@ radian.factory('evalPlotExpr',
       }
     });
 
-    // Evaluate any free variables that were defined as attributes to
-    // bring them into scope.
-    fvs.forEach(function(v) {
-      for (var s = scope; s; s = s.$parent)
-        if (s.evalVars && s.evalVars.hasOwnProperty(v)) {
-          if (!s.hasOwnProperty(v)) s[v] = evalPlotExpr(s, s.evalVars[v]);
-          break;
-        }
-    });
+    // // Evaluate any free variables that were defined as attributes to
+    // // bring them into scope.
+    // fvs.forEach(function(v) {
+    //   for (var s = scope; s; s = s.$parent)
+    //     if (s.evalVars && s.evalVars.hasOwnProperty(v)) {
+    //       if (!s.hasOwnProperty(v)) s[v] = radianEval(s, s.evalVars[v]);
+    //       break;
+    //     }
+    // });
 
     // Generate JS code suitable for accessing data.
     var access = escodegen.generate(astrepl);
@@ -951,254 +634,21 @@ radian.factory('evalPlotExpr',
         eval("ret = " + access);
       }
     } catch (e) {
-      console.log("evalPlotExpr failed on '" + expr + "' -- " + e.message);
+      console.log("radianEval failed on '" + expr + "' -- " + e.message);
     }
     if (dataset && metadatakey) {
       if ($rootScope[dataset] && $rootScope[dataset].metadata &&
           $rootScope[dataset].metadata[metadatakey])
         ret.metadata = $rootScope[dataset].metadata[metadatakey];
     }
-    return ret;
+    return returnfvs ? [ret, fvs] : ret;
   };
 
-  return evalPlotExpr;
+  return radianEval;
 }]);
 
 
-radian.factory('getStyle', function()
-{
-  'use strict';
-
-  return function(n, scope, defval) {
-    var s = scope;
-    if (s.plotOptions && s.plotOptions[n]) return s.plotOptions[n];
-    while (s.$parent) {
-      s = s.$parent;
-      if (s.plotOptions && s.plotOptions[n]) return s.plotOptions[n];
-    }
-    return defval;
-  };
-});
-
-
-radian.factory('splitAttrs', function() {
-  'use strict';
-
-  var plotas =
-    [ "aspect", "axisX", "axisXLabel", "axisX2", "axisY", "axisYLabel",
-      "axisY2", "banded", "clipX", "clipY", "cols", "dateFormat",
-      "dateParseFormat", "errorFor", "fill", "fillOpacity", "format", "height",
-      "id", "interp", "label", "legendSwitches", "marker", "markerSize", "name",
-      "range", "rangeX", "rangeY", "rows", "selectX", "selectY", "separator",
-      "src", "stroke", "strokeOpacity", "strokeSwitch", "strokeWidth", "tabs",
-      "title", "type", "units", "width", "zoom2d", "zoomX", "zoomY" ];
-  var excas = { "class":1 };
-  var allas = { };
-  plotas.forEach(function(a) { allas[a] = 1; });
-  return function(scope, as, okplotas, allowvs, dir) {
-    scope.plotOptions = { };
-    scope.evalVars = { };
-    Object.keys(as).forEach(function(k) {
-      if (excas[k] || k.substr(0, 3) == "ng-") return;
-      if (okplotas.hasOwnProperty(k))
-        scope.plotOptions[k] = as[k];
-      else if (allas.hasOwnProperty(k))
-        throw Error("invalid attribute in <" + dir + "> directive: " + k);
-      else if (k.charAt(0) != '$') {
-        if (allowvs) {
-          scope.evalVars[k] = as[k];
-        } else throw Error("extra variable attributes not allowed in <" +
-                           dir + ">");
-      }
-    });
-  };
-});
-
-
-radian.factory('plotOption', function()
-{
-  'use strict';
-
-  return function(scope, opt, def) {
-    while (scope) {
-      if (scope.plotOptions && scope.plotOptions[opt])
-        return scope.plotOptions[opt];
-      scope = scope.$parent;
-    }
-    return def;
-  };
-});
-
-
-// Plotting function library.
-radian.factory('plotLib', function()
-{
-  'use strict';
-
-  // Vectorise scalar function.
-  function vect(f) {
-    return function(x) {
-      return (x instanceof Array) ? x.map(f) : f(x);
-    };
-  };
-
-  // Vectorise binary operator.
-  function vectOp(f) {
-    return function(x, y) {
-      var xa = x instanceof Array, ya = y instanceof Array;
-      if (!xa && !ya) return f(x, y);
-      var xlen = xa ? x.length : 0, ylen = ya ? y.length : 0;
-      var rlen = xa && ya ? Math.min(xlen, ylen) : Math.max(xlen, ylen);
-      var res = new Array(rlen);
-      var ff;
-      if (xa && ya) ff = function(i) { return f(x[i], y[i]); };
-      else if (xa)  ff = function(i) { return f(x[i], y   ); };
-      else          ff = function(i) { return f(x,    y[i]); };
-      for (var i = 0; i < rlen; ++i) res[i] = ff(i);
-      return res;
-    }
-  };
-
-  // Construct grouping function.
-  function by(f) {
-    return function(x, c) {
-      var cs = { }, ord = [];
-      x.forEach(function(e, i) {
-        if (cs[c[i]])
-          cs[c[i]].push(e);
-        else { ord.push(c[i]); cs[c[i]] = [e]; }
-      });
-      var ret = [];
-      ord.forEach(function(e) { ret.push(f(cs[e])); });
-      return ret;
-    };
-  };
-
-  // Basic functions.
-  function seq(s, e, n) { return d3.range(s, e, (e - s) / (n - 1)); };
-  function seqStep(s, e, delta) { return d3.range(s, e, delta); };
-  function sdev(x) {
-    var m = d3.mean(x), m2 = d3.mean(x, function(a) { return a*a; });
-    return Math.sqrt(m2 - m * m);
-  };
-  function unique(x) {
-    var ret = [], check = { };
-    x.forEach(function(e) { if (!check[e]) { ret.push(e); check[e] = 1; } });
-    return ret;
-  };
-
-  // log(Gamma(x))
-  function gammaln(x) {
-    var cof = [76.18009172947146,-86.50532032941677,24.01409824083091,
-               -1.231739572450155,0.001208650973866179,-0.000005395239384953];
-    var ser = 1.000000000190015;
-    var tmp = (x + 5.5) - (x + 0.5) * Math.log(x + 5.5);
-    var ser1 = ser + sumArr(cof.map(function(c,y) { return c/(x+y+1); }));
-    return (-tmp + Math.log(2.5066282746310005 * ser1 / x));
-  };
-
-  // Probability distributions.
-  function normal(x, mu, sigma) {
-    var c1 = 1 / (sigma * Math.sqrt(2 * Math.PI)), c2 = 2*sigma*sigma;
-    return vect(function(x) { return c1 * Math.exp(-(x-mu)*(x-mu)/c2); })(x);
-  };
-  function lognormal(x, mu, sigma) {
-    var c1 = 1 / (sigma * Math.sqrt(2 * Math.PI)), c2 = 2*sigma*sigma;
-    return vect(function(x) {
-      return x <= 0 ? 0 :
-        c1/x * Math.exp(-(Math.log(x)-mu)*(Math.log(x)-mu)/c2);
-    })(x);
-  };
-  function gamma(x, k, theta) {
-    var c = k * Math.log(theta) + gammaln(k);
-    return vect(function(x) {
-      return x <= 0 ? 0 : Math.exp((k - 1) * Math.log(x) - x / theta - c);
-    })(x);
-  };
-  function invgamma(x, alpha, beta) {
-    var c = alpha * Math.log(beta) - gammaln(alpha);
-    return vect(function(x) {
-      return x<=0 ? 0 : Math.exp(cval - beta / x - (alpha + 1) * Math.log(x));
-    })(x);
-  };
-
-
-  // Library -- used for bringing useful names into scope for
-  // plotting data access expressions.
-  return { E: Math.E,
-           LN10: Math.LN10,
-           LN2: Math.LN2,
-           LOG10E: Math.LOG10E,
-           LOG2E: Math.LOG2E,
-           PI: Math.PI,
-           SQRT1_2: Math.SQRT1_2,
-           SQRT2: Math.SQRT2,
-           abs: vect(Math.abs),
-           acos: vect(Math.acos),
-           asin: vect(Math.asin),
-           atan: vect(Math.atan),
-           ceil: vect(Math.ceil),
-           cos: vect(Math.cos),
-           exp: vect(Math.exp),
-           floor: vect(Math.floor),
-           log: vect(Math.log),
-           round: vect(Math.round),
-           sin: vect(Math.sin),
-           sqrt: vect(Math.sqrt),
-           tan: vect(Math.tan),
-           atan2: Math.atan2,
-           pow: Math.pow,
-           min: d3.min,
-           max: d3.max,
-           extent: d3.extent,
-           sum: d3.sum,
-           mean: d3.mean,
-           median: d3.median,
-           quantile: d3.quantile,
-           zip: d3.zip,
-           seq: seq,
-           seqStep: seqStep,
-           sdev: sdev,
-           unique: unique,
-           minBy: by(d3.min),
-           maxBy: by(d3.max),
-           sumBy: by(d3.sum),
-           meanBy: by(d3.mean),
-           sdevBy: by(sdev),
-           normal: normal,
-           lognormal: lognormal,
-           gamma: gamma,
-           invgamma: invgamma,
-           rad$$neg: vect(function(a) { return -a; }),
-           rad$$add: vectOp(function(a, b) { return a + b; }),
-           rad$$sub: vectOp(function(a, b) { return a - b; }),
-           rad$$mul: vectOp(function(a, b) { return a * b; }),
-           rad$$div: vectOp(function(a, b) { return a / b; }),
-           rad$$pow: vectOp(function(a, b) { return Math.pow(a, b); }),
-         };
-});
-// This is a modified version of the Acorn parser, set up for easy use
-// with Angular, cut down to parse only expressions, and supporting
-// some extensions to normal JavaScript expression syntax.
-
-// ORIGINAL LICENSE COMMENT:
-//
-// Acorn is a tiny, fast JavaScript parser written in JavaScript.
-//
-// Acorn was written by Marijn Haverbeke and released under an MIT
-// license. The Unicode regexps (for identifiers and whitespace) were
-// taken from [Esprima](http://esprima.org) by Ariya Hidayat.
-//
-// Git repositories for Acorn are available at
-//
-//     http://marijnhaverbeke.nl/git/acorn
-//     https://github.com/marijnh/acorn.git
-//
-// Please use the [github bug tracker][ghbt] to report issues.
-//
-// [ghbt]: https://github.com/marijnh/acorn/issues
-
-radian.factory('parseExpr', function()
+radian.factory('radianParse', function()
 {
   'use strict';
 
@@ -2799,4 +2249,545 @@ radian.factory('parseExpr', function()
   }
 
   return mainfn;
+});
+// Bring plot data into Angular scope by parsing <plot-data> directive
+// body.
+
+radian.directive('plotData', [function()
+{
+  'use strict';
+
+  // We use a post-link function here so that any enclosed <metadata>
+  // directives will have been linked by the time we get here.
+  function postLink(scope, elm, as) {
+    // The <plot-data> element is only there to carry data, so hide
+    // it right away.
+    elm.hide();
+
+    // Process attributes.
+    if (!as.name) throw Error('<plot-data> must have NAME attribute');
+    var dataset = as.name;
+    var format = as.format || 'json';
+    var sep = as.separator === '' ? ' ' : (as.separator || ',');
+    var cols = as.cols;
+    if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
+    var formats = ['json', 'csv'];
+    if (formats.indexOf(format) == -1)
+      throw Error('invalid FORMAT "' + format + '" in <plot-data>');
+    if (format == 'csv' && !cols)
+      throw Error('CSV <plot-data> must have COLS');
+
+    // Process content -- all text children are appended together
+    // for parsing.
+    var datatext = '';
+    elm.contents().each(function(i,n) {
+      if (n instanceof Text) datatext += n.textContent;
+    });
+
+    // Parse data.
+    var d;
+    var fpre = /^\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/;
+    switch (format) {
+    case 'json':
+      try { d = JSON.parse(datatext); }
+      catch (e) { throw Error('invalid JSON data in <plot-data>'); }
+      break;
+    case 'csv':
+      try {
+        d = $.csv.toArrays(datatext.replace(/^\s*\n/g, '').split('\n')
+                           .map(function(s) {
+                             return s.replace(/^\s+/, '');
+                           }).join('\n'),
+                           { separator: sep });
+        if (d.length > 0) {
+          if (d[0].length != cols.length)
+            throw Error('mismatch between COLS and' +
+                        ' CSV data in <plot-data>');
+          var tmp = { }, nums = [];
+          for (var c = 0; c < cols.length; ++c) {
+            tmp[cols[c]] = [];
+            nums.push(d[0][c].match(fpre));
+          }
+          for (var i = 0; i < d.length; ++i)
+            for (var c = 0; c < cols.length; ++c) {
+              if (nums[c])
+                tmp[cols[c]].push(parseFloat(d[i][c]));
+              else
+                tmp[cols[c]].push(d[i][c]);
+            }
+          d = tmp;
+        }
+      } catch (e) { throw Error('invalid CSV data in <plot-data>'); }
+    }
+
+    // Process any date fields.
+    function dateProcess(d, k, f) {
+      function go(x, active) {
+        if (x instanceof Array && x.length > 0) {
+          if (typeof x[0] == 'string' && active)
+            x.forEach(function(v, i) { x[i] = f(v); });
+          else
+            x.forEach(function(v) { go(v, false); });
+        } else if (typeof x == 'object')
+          Object.keys(x).forEach(function(xk) { go(x[xk], xk == k); });
+      }
+      go(d, false);
+    };
+    if (scope.$parent[dataset] && scope.$parent[dataset].metadata) {
+      for (var k in scope.$parent[dataset].metadata) {
+        var md = scope.$parent[dataset].metadata[k];
+        if (md.format == 'date') {
+          if (!md.dateParseFormat)
+            dateProcess(d, k, function(v) { return new Date(v); });
+          else {
+            var parse;
+            if (md.dateParseFormat == 'isodate')
+              parse = d3.time.format.iso.parse;
+            else
+              parse = d3.time.format(md.dateParseFormat).parse;
+            dateProcess(d, k, function(v) { return parse(v); });
+          }
+        }
+      }
+    }
+
+    // Install data in scope, preserving any metadata.
+    var md = scope.$parent[dataset] ? scope.$parent[dataset].metadata : null;
+    scope.$parent[dataset] = d;
+    if (md) scope.$parent[dataset].metadata = md;
+  };
+
+  return {
+    restrict: 'E',
+    scope: false,
+    compile: function(elm, as, trans) {
+      return { post: postLink };
+    }
+  };
+}]);
+
+
+radian.directive('metadata', [function()
+{
+  'use strict';
+
+  [ 'dateFormat', 'dateParseFormat', 'errorFor',
+    'format', 'label', 'units' ]
+
+  return {
+    restrict: 'E',
+    scope: false,
+    link: function(scope, elm, as) {
+      // Identify the data set that we're metadata for.
+      if (!elm[0].parentNode || elm[0].parentNode.tagName != 'PLOT-DATA' ||
+          !$(elm[0].parentNode).attr('name'))
+        throw Error('<metadata> not properly nested inside <plot-data>');
+      var dataset = $(elm[0].parentNode).attr('name');
+
+      // Copy metadata attributes into a new object.
+      if (!as.name) throw Error('<metadata> without NAME attribute');
+      var name = as.name;
+      var md = { };
+      [ 'dateFormat', 'dateParseFormat', 'errorFor',
+        'format', 'label', 'units' ].forEach(function(a) {
+          if (as.hasOwnProperty(a)) md[a] = as[a];
+        });
+
+      // Set up metadata for this data set.
+      if (!scope.$parent[dataset]) scope.$parent[dataset] = { metadata: { } };
+      if (!scope.$parent[dataset].metadata)
+        scope.$parent[dataset].metadata = { };
+      scope.$parent[dataset].metadata[name] = md;
+    }
+  };
+}]);
+// Line plots.
+
+radian.directive('lines',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s) {
+    var width   = s.strokeWidth || 1;
+    var opacity = s.strokeOpacity || 1.0;
+    var sopts = (s.stroke || '#000').split(';');
+    var str = (sopts.length == 1 || !s.strokesel) ?
+      sopts[0] : sopts[s.strokesel % sopts.length];
+
+    // Switch on type of stroke...
+    if (str.indexOf(':') == -1) {
+      // Normal single-colour line.
+      var line = d3.svg.line()
+        .x(function (d) { return xs(d[0]); })
+        .y(function (d) { return ys(d[1]); });
+      svg.append('path').datum(d3.zip(x, y))
+        .attr('class', 'line').attr('d', line)
+        .style('fill', 'none')
+        .style('stroke-width', width)
+        .style('stroke-opacity', opacity)
+        .style('stroke', str);
+    } else {
+      // Fading stroke.
+      var strokes = str.split(':');
+      var interp = function(dx) { return 1 - Math.exp(-20*dx/(3*x.length)); };
+      var ihsl = d3.interpolateHsl(strokes[0], strokes[1]);
+      var based = d3.zip(x, y);
+      var lined = d3.zip(based, based.slice(1));
+      svg.selectAll('path').data(lined).enter().append('path')
+        .attr('class', 'line')
+        .style('stroke-width', width)
+        .style('stroke-opacity', opacity)
+        .style('stroke', function(d,i) { return ihsl(interp(i)); })
+        .attr('d', d3.svg.line()
+              .x(function (d) { return xs(d[0]); })
+              .y(function (d) { return ys(d[1]); }));
+    }
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) { plotTypeLink(scope, elm, as, draw); }
+  };
+}]);
+// Plotting function library.
+
+radian.factory('plotLib', function()
+{
+  'use strict';
+
+  // Vectorise scalar function.
+  function vect(f) {
+    return function(x) {
+      return (x instanceof Array) ? x.map(f) : f(x);
+    };
+  };
+
+  // Vectorise binary operator.
+  function vectOp(f) {
+    return function(x, y) {
+      var xa = x instanceof Array, ya = y instanceof Array;
+      if (!xa && !ya) return f(x, y);
+      var xlen = xa ? x.length : 0, ylen = ya ? y.length : 0;
+      var rlen = xa && ya ? Math.min(xlen, ylen) : Math.max(xlen, ylen);
+      var res = new Array(rlen);
+      var ff;
+      if (xa && ya) ff = function(i) { return f(x[i], y[i]); };
+      else if (xa)  ff = function(i) { return f(x[i], y   ); };
+      else          ff = function(i) { return f(x,    y[i]); };
+      for (var i = 0; i < rlen; ++i) res[i] = ff(i);
+      return res;
+    }
+  };
+
+  // Construct grouping function.
+  function by(f) {
+    return function(x, c) {
+      var cs = { }, ord = [];
+      x.forEach(function(e, i) {
+        if (cs[c[i]])
+          cs[c[i]].push(e);
+        else { ord.push(c[i]); cs[c[i]] = [e]; }
+      });
+      var ret = [];
+      ord.forEach(function(e) { ret.push(f(cs[e])); });
+      return ret;
+    };
+  };
+
+  // Basic functions.
+  function seq(s, e, n) { return d3.range(s, e, (e - s) / (n - 1)); };
+  function seqStep(s, e, delta) { return d3.range(s, e, delta); };
+  function sdev(x) {
+    var m = d3.mean(x), m2 = d3.mean(x, function(a) { return a*a; });
+    return Math.sqrt(m2 - m * m);
+  };
+  function unique(x) {
+    var ret = [], check = { };
+    x.forEach(function(e) { if (!check[e]) { ret.push(e); check[e] = 1; } });
+    return ret;
+  };
+
+  // log(Gamma(x))
+  function gammaln(x) {
+    var cof = [76.18009172947146,-86.50532032941677,24.01409824083091,
+               -1.231739572450155,0.001208650973866179,-0.000005395239384953];
+    var ser = 1.000000000190015;
+    var tmp = (x + 5.5) - (x + 0.5) * Math.log(x + 5.5);
+    var ser1 = ser + sumArr(cof.map(function(c,y) { return c/(x+y+1); }));
+    return (-tmp + Math.log(2.5066282746310005 * ser1 / x));
+  };
+
+  // Probability distributions.
+  function normal(x, mu, sigma) {
+    var c1 = 1 / (sigma * Math.sqrt(2 * Math.PI)), c2 = 2*sigma*sigma;
+    return vect(function(x) { return c1 * Math.exp(-(x-mu)*(x-mu)/c2); })(x);
+  };
+  function lognormal(x, mu, sigma) {
+    var c1 = 1 / (sigma * Math.sqrt(2 * Math.PI)), c2 = 2*sigma*sigma;
+    return vect(function(x) {
+      return x <= 0 ? 0 :
+        c1/x * Math.exp(-(Math.log(x)-mu)*(Math.log(x)-mu)/c2);
+    })(x);
+  };
+  function gamma(x, k, theta) {
+    var c = k * Math.log(theta) + gammaln(k);
+    return vect(function(x) {
+      return x <= 0 ? 0 : Math.exp((k - 1) * Math.log(x) - x / theta - c);
+    })(x);
+  };
+  function invgamma(x, alpha, beta) {
+    var c = alpha * Math.log(beta) - gammaln(alpha);
+    return vect(function(x) {
+      return x<=0 ? 0 : Math.exp(cval - beta / x - (alpha + 1) * Math.log(x));
+    })(x);
+  };
+
+
+  // Library -- used for bringing useful names into scope for
+  // plotting data access expressions.
+  return { E: Math.E,
+           LN10: Math.LN10,
+           LN2: Math.LN2,
+           LOG10E: Math.LOG10E,
+           LOG2E: Math.LOG2E,
+           PI: Math.PI,
+           SQRT1_2: Math.SQRT1_2,
+           SQRT2: Math.SQRT2,
+           abs: vect(Math.abs),
+           acos: vect(Math.acos),
+           asin: vect(Math.asin),
+           atan: vect(Math.atan),
+           ceil: vect(Math.ceil),
+           cos: vect(Math.cos),
+           exp: vect(Math.exp),
+           floor: vect(Math.floor),
+           log: vect(Math.log),
+           round: vect(Math.round),
+           sin: vect(Math.sin),
+           sqrt: vect(Math.sqrt),
+           tan: vect(Math.tan),
+           atan2: Math.atan2,
+           pow: Math.pow,
+           min: d3.min,
+           max: d3.max,
+           extent: d3.extent,
+           sum: d3.sum,
+           mean: d3.mean,
+           median: d3.median,
+           quantile: d3.quantile,
+           zip: d3.zip,
+           seq: seq,
+           seqStep: seqStep,
+           sdev: sdev,
+           unique: unique,
+           minBy: by(d3.min),
+           maxBy: by(d3.max),
+           sumBy: by(d3.sum),
+           meanBy: by(d3.mean),
+           sdevBy: by(sdev),
+           normal: normal,
+           lognormal: lognormal,
+           gamma: gamma,
+           invgamma: invgamma,
+           rad$$neg: vect(function(a) { return -a; }),
+           rad$$add: vectOp(function(a, b) { return a + b; }),
+           rad$$sub: vectOp(function(a, b) { return a - b; }),
+           rad$$mul: vectOp(function(a, b) { return a * b; }),
+           rad$$div: vectOp(function(a, b) { return a / b; }),
+           rad$$pow: vectOp(function(a, b) { return Math.pow(a, b); }),
+         };
+});
+radian.directive('radianUi', ['$timeout', function($timeout)
+{
+  'use strict';
+
+  return {
+    restrict: 'E',
+    scope: false,
+    template:
+    ['<div class="radian-ui" ng-show="uivisible">',
+       '<span class="form-inline">',
+         '<span ng-show="xvs">',
+           '<span>{{xlab}}</span>',
+           '<select ng-model="xidx" class="span1" ',
+                   'ng-options="v[0] as v[1] for v in xvs">',
+           '</select>',
+         '</span>',
+         '<span ng-show="xvs && yvs">',
+           '&nbsp;&nbsp;vs&nbsp;&nbsp;',
+         '</span>',
+         '<span ng-show="yvs">',
+           '<span>{{ylab}}</span>',
+           '<select ng-model="yidx" class="span1" ',
+                   'ng-options="v[0] as v[1] for v in yvs">',
+           '</select>',
+         '</span>',
+         '<span ng-show="yvs && (swbut || swsel)">',
+           '&nbsp;&nbsp;',
+         '</span>',
+         '<span ng-show="swbut">',
+           '<span>{{swbutlab}}</span>',
+           '<button class="btn" data-toggle="button" ',
+                   'ng-click="strokesel=1-strokesel">',
+             '{{swbut}}',
+           '</button>',
+         '</span>',
+         '<span ng-show="swsel">',
+           '<label>{{swsellab}}&nbsp;</label>',
+           '<select ng-model="strokesel" .span1 ',
+                   'ng-options="o[0] as o[1] for o in swsel">',
+           '</select>',
+         '</span>',
+       '</span>',
+     '</div>'].join(""),
+    replace: true,
+    link: function(scope, elm, as) {
+      scope.uivisible = false;
+      // Deal with switching between stroke types.
+      if (scope.strokeSwitch !== undefined) {
+        scope.uivisible = true;
+        var label = scope.strokeSwitchLabel;
+        var switches = scope.strokeSwitch.split(';');
+        if (switches.length == 1) {
+          // On/off UI.
+          scope.swbut = switches[0];
+          scope.swbutlab = label;
+        } else {
+          // Selector UI.
+          scope.swsel = switches.map(function(sw, i) { return [i, sw]; });
+          scope.swsellab = label;
+        }
+      }
+
+      // Deal with selection of X and Y variables.
+      if (scope.selectX !== undefined) {
+        scope.uivisible = true;
+        var xvars = scope.selectX.split(',');
+        if (xvars.length > 1) {
+          // Selector UI.
+          scope.xidx = 0;
+          scope.xvs = xvars.map(function(v, i) { return [i, v]; });
+          scope.xlab = scope.selectXLabel;
+          if (scope.selectX == scope.selectY)
+            scope.$watch('xidx',
+                         function(n, o) {
+                           if (n == scope.yidx) scope.yidx = o;
+                           scope.yvs = [].concat(scope.xvs);
+                           scope.yvs.splice(n, 1);
+                         });
+        }
+      }
+      if (scope.selectY !== undefined) {
+        scope.uivisible = true;
+        var yvars = scope.selectY.split(',');
+        if (yvars.length > 1) {
+          // Selector UI.
+          scope.yidx = 0;
+          scope.yvs = yvars.map(function(v, i) { return [i, v]; });
+          scope.ylab = scope.selectYLabel;
+          if (scope.selectX == scope.selectY) {
+            scope.yvs.splice(1);
+            scope.yidx = 1;
+          }
+        }
+      }
+    }
+  };
+}]);
+
+radian.factory('radianLegend', function()
+{
+  return function(svgelm, scope) {
+    // Render interactive legend.
+    var nswitch = scope.switchable.length;
+    console.log("legend: n = " + nswitch);
+    console.log(scope);
+    if (nswitch > 0) {
+      var legendps = scope.switchable;
+      var leggs = svgelm.append('g').selectAll('g')
+        .data(legendps).enter().append('g');
+      var legcs = leggs.append('circle').style('stroke-width', 1).attr('r', 5)
+        .attr('fill', function(d,i) {
+          return d.stroke.split(';')[0] || '#000';
+        })
+        .attr('stroke', function(d,i) {
+          return d.stroke.split(';')[0] || '#000';
+        });
+      var clickHandler = function(d,i) {
+        d.enabled = !d.enabled;
+        d3.select(this).select('circle')
+          .attr('fill', d.enabled ?
+                (d.stroke.split(';')[0] || '#000') : '#fff');
+        scope.$emit('paintChange');
+      };
+      leggs.on('click', clickHandler);
+      var legts = leggs.append('text')
+        .attr('text-anchor', 'start').attr('dy', '.32em').attr('dx', '8')
+        .text(function(d,i) {
+          return d.label || ('data' + i);
+        });
+      var widths = [];
+      legts.each(function(d,i) { widths.push(d3.select(this).node().
+                                             getComputedTextLength() + 10); });
+      var mwidth = d3.max(widths), spacing = 15;
+      var sep = mwidth + spacing;
+      var len = nswitch * mwidth + (nswitch - 1) * spacing;
+      leggs.attr('transform', function(d,i) {
+        return 'translate(' + (scope.width - len + sep*i) + ',10)';
+      });
+    }
+  };
+});
+// Depth-first traversal of Angular scopes.  Much like Angular's
+// scope.$broadcast capability, but with operations at each level
+// driven by the caller, rather than an event receiver.
+
+radian.factory('dft', function() {
+  'use strict';
+  return function(scope, f) {
+    function go(s) {
+      f(s);
+      for (var c = s.$$childHead; c; c = c.$$nextSibling) go(c);
+    };
+    go(scope);
+  };
+});
+
+
+// More flexible depth-first traversal of Angular scopes, allowing for
+// pruning and skipping of the top level.  The function f should
+// return false if it doesn't want the traversal to continue into the
+// current scope's children and true if it does.
+
+radian.factory('dftEsc', function() {
+  'use strict';
+  return function(scope, f, dotop) {
+    function go(s, doit) {
+      if (doit) { if (!f(s)) return; }
+      for (var c = s.$$childHead; c; c = c.$$nextSibling) go(c, true);
+    };
+    go(scope, dotop);
+  };
+});
+// Dump tree of Angular scopes to console: useful for making sure that
+// scopes have been set up properly in complicated transclusion cases.
+
+radian.factory('dumpScope', function()
+{
+  'use strict';
+
+  var go = function(scope, indent) {
+    var indentstr = "";
+    for (var i = 0; i < indent; ++i)
+      indentstr = indentstr.concat(" ");
+    console.log(indentstr + scope.$id + ": " +
+                Object.keys(scope).filter(function(k) {
+                  return k.charAt(0) != "$" && k != "this";
+                }));
+    for (var ch = scope.$$childHead; ch; ch = ch.$$nextSibling)
+      go(ch, indent + 2);
+  };
+  return function(scope) { go(scope, 0); };
 });

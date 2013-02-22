@@ -1,9 +1,9 @@
 <h3>Example 10 (data aggregation functions)</h3>
 
 <plot height=300 aspect=3 stroke-width=2>
-  <lines x="vic2012ooa.date" y="vic2012ooa.tmp" stroke="red"/>
-  <lines x="midMonths(unique(vic2012ooa.date#getMonth()), 2012)"
-         y="meanBy(vic2012ooa.prc,vic2012ooa.date#getMonth())"
+  <lines x="[[vic2012ooa.date]]" y="[[vic2012ooa.tmp]]" stroke="red"/>
+  <lines x="[[midMonths(unique(vic2012ooa.date#getMonth()), 2012)]]"
+         y="[[meanBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]"
          stroke="blue"/>
 </plot>
 

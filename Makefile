@@ -6,9 +6,14 @@ all: radian.js radian.min.js examples
 
 .INTERMEDIATE radian.js: \
 	src/start.js \
-	src/directives.js \
-	src/services.js \
-	src/parser.js \
+	src/core.js \
+	src/expressions.js \
+	src/data.js \
+	src/plots.js \
+	src/lib.js \
+	src/ui.js \
+	src/utils.js \
+	src/debug.js \
 	src/end.js
 
 radian.min.js: radian.js Makefile

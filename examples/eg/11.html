@@ -2,10 +2,10 @@
 
 <plot height=300 aspect=3>
   <bars stroke-width=2 fill="lightblue" stroke="blue"
-        x="vic2012ooa.date#getMonth()"
-        y="vic2012ooa.prc.meanBy(vic2012ooa.date#getMonth())"/>
+        x="[[vic2012ooa.date#getMonth()]]"
+        y="[[vic2012ooa.prc.meanBy(vic2012ooa.date#getMonth())]]"/>
   <lines stroke-width=2 stroke="red"
-         x="vic2012ooa.date#dayOfYear()" y="vic2012ooa.tmp"/>
+         x="[[vic2012ooa.date#dayOfYear()]]" y="[[vic2012ooa.tmp]]"/>
 </plot>
 
 <plot-data name="vic2012ooa" format="csv" cols="date,tmp,prc">

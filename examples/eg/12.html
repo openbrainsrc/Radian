@@ -1,7 +1,7 @@
 <h3>Example 12 (functional plots)</h3>
 
-<plot height=300 aspect=3 stroke-width=2 xs="seq(0,4*PI,101)"
+<plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
       axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
-  <lines x="xs" y="sin(x)" stroke="red"/>
-  <lines x="xs" y="cos(x)" stroke="blue"/>
+  <lines y="[[sin(x)]]" stroke="red"/>
+  <lines y="[[cos(x)]]" stroke="blue"/>
 </plot>

@@ -3,9 +3,9 @@
 <plot width=900 aspect=2 zoom-x title="Time series"
       axis-x-label="Time" axis-y-label="off"
       stroke-switch="Fade" stroke-width=2 legend-switches>
-  <lines x="sim1.t" y="sim1.x" stroke="orange;orange:grey" label="x"/>
-  <lines x="sim1.t" y="sim1.y" stroke="blue;blue:grey"     label="y"/>
-  <lines x="sim1.t" y="sim1.z" stroke="green;green:grey"   label="z"/>
+  <lines x="[[sim1.t]]" y="[[sim1.x]]" stroke="orange;orange:grey" label="x"/>
+  <lines x="[[sim1.t]]" y="[[sim1.y]]" stroke="blue;blue:grey"     label="y"/>
+  <lines x="[[sim1.t]]" y="[[sim1.z]]" stroke="green;green:grey"   label="z"/>
 </plot>
 
 <plot-data name="sim1" format="csv" separator=" " cols="t,x,y,z">

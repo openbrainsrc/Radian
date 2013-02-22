@@ -2,13 +2,13 @@
 
 <plot-grid tabs>
   <plot zoom-x title="Time series" thickness=2 legend-switches>
-    <lines x="sim1.t" y="sim1.x" stroke="orange;orange:grey" label="x"/>
-    <lines x="sim1.t" y="sim1.y" stroke="blue;blue:grey"     label="y"/>
-    <lines x="sim1.t" y="sim1.z" stroke="green;green:grey"   label="z"/>
+    <lines x="[[sim1.t]]" y="[[sim1.x]]" stroke="orange;orange:grey" label="x"/>
+    <lines x="[[sim1.t]]" y="[[sim1.y]]" stroke="blue;blue:grey"     label="y"/>
+    <lines x="[[sim1.t]]" y="[[sim1.z]]" stroke="green;green:grey"   label="z"/>
   </plot>
   <plot title="Trajectories" select-x="x,y,z" select-y="x,y,z"
         stroke-switch="Fade" stroke="blue;red:grey">
-    <lines x="[sim1.x,sim1.y,sim1.z]" y="[sim1.x,sim1.y,sim1.z]"/>
+    <lines x="[[[sim1.x,sim1.y,sim1.z]]]" y="[[[sim1.x,sim1.y,sim1.z]]]"/>
   </plot>
 </plot-grid>
 
