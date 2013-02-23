@@ -53,7 +53,7 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
       entry.fvs.forEach(function(v) {
         entry.fvwatchers[v] = scope.$watch(v, function() {
           scope[a] = radianEval(scope, entry.expr);
-        });
+        }, true);
       });
 
       // Observe the value of the attribute: if the value (i.e. the
@@ -77,7 +77,7 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
           if (!entry.fvwatchers[v])
             entry.fvwatchers[v] = scope.$watch(v, function() {
               scope[a] = radianEval(scope, entry.expr);
-            });
+            }, true);
         });
       });
     });
@@ -88,10 +88,8 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
 // Main plot directive.  Kind of complicated...
 
 radian.directive('plot',
- ['radianEval', 'processAttrs', '$timeout', '$rootScope', 'dumpScope',
-  'dft', 'radianLegend',
- function(radianEval, processAttrs, $timeout, $rootScope, dumpScope,
-          dft, radianLegend)
+ ['processAttrs', '$timeout', '$rootScope', 'dumpScope', 'dft', 'radianLegend',
+ function(processAttrs, $timeout, $rootScope, dumpScope, dft, radianLegend)
 {
   'use strict';
 
@@ -102,33 +100,38 @@ radian.directive('plot',
     // Angular scope as regular variables (to be use in data access
     // expressions).
     processAttrs(scope, as);
-    scope.strokesel = 0;
-    scope.xidx = 0;
-    scope.yidx = 0;
 
     // Deal with plot dimension attributes: explicit attribute values
     // override CSS values.  Do sensible things with width, height and
     // aspect ratio...
     var h = 300, asp = 1.618, w = asp * h;
     var aw = as.width, ah = as.height, aasp = as.aspect;
-    if (aw && ah && aasp) aasp = null;
-    if (ah && aw) { h = ah; w = aw; asp = w / h; }
+    var cw = elm.width(), ch = elm.height();
+    var casp = elm.css('aspect') ? parseFloat(elm.css('aspect')) : null;
+    if (aw && ah && aasp || ah && aw) { h = ah; w = aw; asp = w / h; }
     else if (ah && aasp) { h = ah; asp = aasp; w = h * asp; }
     else if (aw && aasp) { w = aw; asp = aasp; h = w / asp; }
-    else if (ah) { h = ah; w = h * asp; }
-    else if (aw) { w = aw; h = w / asp; }
-    else if (aasp) { asp = aasp; h = w / asp; }
-    else {
-      var cw = elm.width(), ch = elm.height();
-      var casp = elm.css('aspect') ? parseFloat(elm.css('aspect')) : null;
-      if (cw && ch && casp) casp = null;
-      if (ch && cw) { h = ch; w = cw; asp = w / h; }
-      else if (ch && casp) { h = ch; asp = casp; w = h * asp; }
-      else if (cw && casp) { w = cw; asp = casp; h = w / asp; }
-      else if (ch) { h = ch; w = h * asp; }
-      else if (cw) { w = cw; h = w / asp; }
+    else if (ah) {
+      h = ah;
+      if (cw) { w = cw; asp = w / h; }
+      else if (casp) { asp = casp; w = h * asp; }
+      else { w = h * asp; }
+    } else if (aw) {
+      w = aw;
+      if (ch) { h = ch; asp = w / h; }
       else if (casp) { asp = casp; h = w / asp; }
-    }
+      else { h = w / asp; }
+    } else if (aasp) {
+      asp = aasp;
+      if (cw) { w = cw; h = w / asp; }
+      else if (ch) { h = ch; w = h * asp; }
+      else { w = h * asp; }
+    } else if (ch && cw) { h = ch; w = cw; asp = w / h; }
+    else if (ch && casp) { h = ch; asp = casp; w = h * asp; }
+    else if (cw && casp) { w = cw; asp = casp; h = w / asp; }
+    else if (ch) { h = ch; w = h * asp; }
+    else if (cw) { w = cw; h = w / asp; }
+    else if (casp) { asp = casp; h = w / asp; }
     scope.width = w; scope.height = h;
     scope.svg = elm.children()[1];
     $(elm).css('width', w).css('height', h);
@@ -151,7 +154,9 @@ radian.directive('plot',
       scope.views.forEach(function(v) { draw(v, scope); });
     };
     function reset() {
-      scope.views = svgs.map(function(s) { return setup(scope, s); });
+      scope.views = svgs.map(function(s, i) {
+        return setup(scope, s, i, svgs.length);
+      });
       if (setupBrush) setupBrush();
       redraw();
     };
@@ -168,13 +173,13 @@ radian.directive('plot',
     if (scope.hasOwnProperty('zoomX')) {
       var zfrac = scope.zoomFraction || 0.2;
       zfrac = Math.min(0.95, Math.max(0.05, zfrac));
-      var zoomHeight = scope.height * zfrac;
-      var mainHeight = scope.height * (1 - zfrac);
+      var zoomHeight = (scope.height - 6) * zfrac;
+      var mainHeight = (scope.height - 6) * (1 - zfrac);
       var zoomsvg = svgelm.append('g')
-        .attr('transform', 'translate(0,' + mainHeight + ')')
-        .attr('width', scope.width).attr('height', scope.height * zfrac);
+        .attr('transform', 'translate(0,' + (mainHeight + 6) + ')')
+        .attr('width', scope.width).attr('height', zoomHeight);
       svgs.push(zoomsvg);
-      svgs[0].attr('height', scope.height * (1 - zfrac));
+      svgs[0].attr('height', mainHeight);
 
       setupBrush = function() {
         svgelm.append('defs').append('clipPath')
@@ -201,7 +206,7 @@ radian.directive('plot',
     }
 
     $timeout(function() {
-      // Draw plots.
+      // Draw plots and legend.
       reset();
       radianLegend(svgelm, scope);
 
@@ -223,13 +228,14 @@ radian.directive('plot',
   };
 
 
-  function setup(scope, topgroup) {
+  function setup(scope, topgroup, idx, nviews) {
     var v = { svg: topgroup };
 
     // Extract plot attributes.
     v.xaxis = !scope.axisX || scope.axisX != 'off';
     v.yaxis = !scope.axisY || scope.axisY != 'off';
-    var showXAxisLabel = !scope.axisXLabel || scope.axisXLabel != 'off';
+    var showXAxisLabel = (nviews == 1 || nviews == 2 && idx == 1) &&
+      (!scope.axisXLabel || scope.axisXLabel != 'off');
     var showYAxisLabel = !scope.axisYLabel || scope.axisYLabel != 'off';
     v.margin = { top: scope.topMargin || 2, right: scope.rightMargin || 10,
                  bottom: scope.bottomMargin || 2, left: scope.leftMargin || 2 };
@@ -311,6 +317,7 @@ radian.directive('plot',
     var svg = outsvg.append('g')
       .attr('transform', 'translate(' + v.margin.left + ',' +
                                         v.margin.top + ')');
+    v.innersvg = svg;
     if (v.clip) svg.attr('clip-path', 'url(#' + v.clip + ')');
 
     // Draw D3 axes.
@@ -367,12 +374,13 @@ radian.directive('plot',
         if (s.draw && s.enabled && s.x && s.y) {
           // Append SVG group for this plot and draw the plot into it.
           var g = svg.append('g');
-          var x = (s.x[0] instanceof Array) ? s.x[s.xidx] : s.x;
-          var y = (s.y[0] instanceof Array) ? s.y[s.yidx] : s.y;
+          var x = (s.x[0] instanceof Array) ? s.x[s.xidx ? s.xidx : 0] : s.x;
+          var y = (s.y[0] instanceof Array) ? s.y[s.yidx ? s.yidx : 0] : s.y;
           s.draw(g, x, v.x, y, v.y, s);
+          s.$on('$destroy', function() { g.remove(); });
         }
       });
-      if (v.post) v.post(v.svg);
+      if (v.post) v.post(v.innersvg);
     }
   };
 
@@ -456,15 +464,19 @@ radian.factory('radianEval',
         inexpr.substr(0,2) != '[[' && inexpr.substr(-2) != ']]')
       return returnfvs ? [inexpr, []] : inexpr;
     var expr = inexpr.substr(2, inexpr.length-4);
+    if (expr == "") return returnfvs ? [0, []] : 0;
 
     // Parse data path as (slightly enhanced) JavaScript.
     var ast = radianParse(expr);
+    estraverse.traverse(ast, { leave: function(n) {
+      delete n.start; delete n.end;
+    } });
 
     // Determine metadata key, which is only possible for simple
-    // applications of member access and plucking.  (For example,
-    // for an expression of the form "vic2012#tmp", the metadata key
-    // is "tmp"; for the expression "vic2012#date#doy", the metadata
-    // key is "doy").
+    // applications of member access and plucking.  (For example, for
+    // an expression of the form "vic2012#tmp", the metadata key is
+    // "tmp"; for the expression "vic2012#date#doy", the metadata key
+    // is "doy").
     var metadatakey = null, dataset = null;
     estraverse.traverse(ast, { enter: function(node) {
       if (node.type != "PluckExpression" && node.type != "MemberExpression")
@@ -478,10 +490,44 @@ radian.factory('radianEval',
       }
     }});
 
+    // Find free variables in JS expression for later processing.
+    var excstack = [ ], fvs = { };
+    estraverse.traverse(ast, {
+      enter: function(v, w) {
+        switch (v.type) {
+        case "FunctionExpression":
+          // When we enter a function expression, we need to capture
+          // the parameter names so that we don't record them as free
+          // variables.  To deal with name shadowing, we use an
+          // integer counter for names excluded from consideration as
+          // free variables, rather than a simple boolean flag.
+          excstack.push(v.params.map(function(p) { return p.name; }));
+          v.params.forEach(function(p) {
+            if (exc[p.name]) ++exc[p.name]; else exc[p.name] = 1;
+          });
+          break;
+        case "Identifier":
+          // We have a free variable, so record it.
+          if (!exc[v.name]) {
+            var free = false;
+            if (w.type == "MemberExpression" && v == w.object) free = true;
+            if (w.type == "MemberExpression" && v == w.property &&
+                w.computed) free = true;
+            if (free) fvs[v.name] = 1;
+          }
+        }
+      },
+      leave: function(v) {
+        if (v.type == "FunctionExpression")
+          // Clear function parameters from our exclude stack as we
+          // leave the function expression.
+          excstack.pop().forEach(function(n) {
+            if (--exc[n] == 0) delete exc[n];
+          });
+      }
+    });
+
     // Vectorise arithmetic expressions.
-    estraverse.traverse(ast, { leave: function(n) {
-      delete n.start; delete n.end;
-    } });
     var astrepl = estraverse.replace(ast, {
       leave: function(n) {
         if (n.type == "BinaryExpression") {
@@ -560,12 +606,11 @@ radian.factory('radianEval',
           };
         }}});
 
-    // Replace free variables in JS expression with calls to
-    // "scope.$eval".  We do things this way rather than using
-    // Angular's "scope.$eval" on the whole JS expression because
-    // the Angular expression parser only deals with a relatively
-    // small subset of JS (no anonymous functions, for instance).
-    var excstack = [ ], fvs = [ ];
+    // Replace free variables in JS expression by calls to"scope.$eval".
+    // We do things this way rather than using Angular's"scope.$eval" on
+    // the whole JS expression because the Angular expression parser only
+    // deals with a relatively small subset of JS (no anonymous functions,
+    // for instance).
     astrepl = estraverse.replace(astrepl, {
       enter: function(v, w) {
         switch (v.type) {
@@ -581,24 +626,18 @@ radian.factory('radianEval',
           });
           break;
         case "Identifier":
-          if (!exc[v.name]) {
-            if (!w ||
-                (!((w.type == "MemberExpression" ||
-                    w.type == "PluckExpression") && v == w.property) &&
-                 !(w.type == "CallExpression" && v == w.callee))) {
-              // We have a free variable, so record it and replace the
-              // reference to it with a call to 'scope.$eval'.
-              fvs.push(v.name);
-              return {
-                type: "CallExpression",
-                callee: { type: "MemberExpression",
-                          object: { type: "Identifier", name: "scope" },
-                          property: { type: "Identifier", name: "$eval" },
-                          computed: false },
-                arguments: [{ type: "Literal", value: v.name,
-                              raw:"'" + v.name + "'" }]
-              };
-            }
+          if (!exc[v.name] && fvs[v.name]) {
+            // We have a free variable, so replace the reference to it
+            // with a call to 'scope.$eval'.
+            return {
+              type: "CallExpression",
+              callee: { type: "MemberExpression",
+                        object: { type: "Identifier", name: "scope" },
+                        property: { type: "Identifier", name: "$eval" },
+                        computed: false },
+              arguments: [{ type: "Literal", value: v.name,
+                            raw:"'" + v.name + "'" }]
+            };
           }
         }
         return v;
@@ -613,16 +652,6 @@ radian.factory('radianEval',
         return v;
       }
     });
-
-    // // Evaluate any free variables that were defined as attributes to
-    // // bring them into scope.
-    // fvs.forEach(function(v) {
-    //   for (var s = scope; s; s = s.$parent)
-    //     if (s.evalVars && s.evalVars.hasOwnProperty(v)) {
-    //       if (!s.hasOwnProperty(v)) s[v] = radianEval(s, s.evalVars[v]);
-    //       break;
-    //     }
-    // });
 
     // Generate JS code suitable for accessing data.
     var access = escodegen.generate(astrepl);
@@ -641,7 +670,7 @@ radian.factory('radianEval',
           $rootScope[dataset].metadata[metadatakey])
         ret.metadata = $rootScope[dataset].metadata[metadatakey];
     }
-    return returnfvs ? [ret, fvs] : ret;
+    return returnfvs ? [ret, Object.keys(fvs)] : ret;
   };
 
   return radianEval;
@@ -2702,9 +2731,7 @@ radian.factory('radianLegend', function()
   return function(svgelm, scope) {
     // Render interactive legend.
     var nswitch = scope.switchable.length;
-    console.log("legend: n = " + nswitch);
-    console.log(scope);
-    if (nswitch > 0) {
+    if (nswitch > 1) {
       var legendps = scope.switchable;
       var leggs = svgelm.append('g').selectAll('g')
         .data(legendps).enter().append('g');
@@ -2719,7 +2746,7 @@ radian.factory('radianLegend', function()
         d.enabled = !d.enabled;
         d3.select(this).select('circle')
           .attr('fill', d.enabled ?
-                (d.stroke.split(';')[0] || '#000') : '#fff');
+                (d.stroke.split(';')[0] || '#000') : '#f5f5f5');
         scope.$emit('paintChange');
       };
       leggs.on('click', clickHandler);

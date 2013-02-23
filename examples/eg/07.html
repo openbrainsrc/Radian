@@ -1,11 +1,12 @@
 <h3>Example 7 (X/Y variable selector UI)</h3>
 
-<plot aspect=2 title="Trajectories" stroke-switch="Fade" stroke="blue;red:grey"
+<plot height=400 aspect=1.2 title="Trajectories"
+      stroke-switch="Fade" stroke="blue;red:grey"
       select-x="x,y,z" select-y="x,y,z">
   <lines x="[[[sim1.x,sim1.y,sim1.z]]]" y="[[[sim1.x,sim1.y,sim1.z]]]"/>
 </plot>
 
-<plot aspect=2 zoom-x title="Time series"
+<plot height=300 aspect=2 zoom-x title="Time series"
       axis-x-label="Time" axis-y-label="off"
       stroke-switch="Fade" stroke-width=2 legend-switches>
   <lines x="[[sim1.t]]" y="[[sim1.x]]" stroke="orange;orange:grey" label="x"/>

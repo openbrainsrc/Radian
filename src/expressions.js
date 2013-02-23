@@ -41,15 +41,19 @@ radian.factory('radianEval',
         inexpr.substr(0,2) != '[[' && inexpr.substr(-2) != ']]')
       return returnfvs ? [inexpr, []] : inexpr;
     var expr = inexpr.substr(2, inexpr.length-4);
+    if (expr == "") return returnfvs ? [0, []] : 0;
 
     // Parse data path as (slightly enhanced) JavaScript.
     var ast = radianParse(expr);
+    estraverse.traverse(ast, { leave: function(n) {
+      delete n.start; delete n.end;
+    } });
 
     // Determine metadata key, which is only possible for simple
-    // applications of member access and plucking.  (For example,
-    // for an expression of the form "vic2012#tmp", the metadata key
-    // is "tmp"; for the expression "vic2012#date#doy", the metadata
-    // key is "doy").
+    // applications of member access and plucking.  (For example, for
+    // an expression of the form "vic2012#tmp", the metadata key is
+    // "tmp"; for the expression "vic2012#date#doy", the metadata key
+    // is "doy").
     var metadatakey = null, dataset = null;
     estraverse.traverse(ast, { enter: function(node) {
       if (node.type != "PluckExpression" && node.type != "MemberExpression")
@@ -63,10 +67,44 @@ radian.factory('radianEval',
       }
     }});
 
+    // Find free variables in JS expression for later processing.
+    var excstack = [ ], fvs = { };
+    estraverse.traverse(ast, {
+      enter: function(v, w) {
+        switch (v.type) {
+        case "FunctionExpression":
+          // When we enter a function expression, we need to capture
+          // the parameter names so that we don't record them as free
+          // variables.  To deal with name shadowing, we use an
+          // integer counter for names excluded from consideration as
+          // free variables, rather than a simple boolean flag.
+          excstack.push(v.params.map(function(p) { return p.name; }));
+          v.params.forEach(function(p) {
+            if (exc[p.name]) ++exc[p.name]; else exc[p.name] = 1;
+          });
+          break;
+        case "Identifier":
+          // We have a free variable, so record it.
+          if (!exc[v.name]) {
+            var free = false;
+            if (w.type == "MemberExpression" && v == w.object) free = true;
+            if (w.type == "MemberExpression" && v == w.property &&
+                w.computed) free = true;
+            if (free) fvs[v.name] = 1;
+          }
+        }
+      },
+      leave: function(v) {
+        if (v.type == "FunctionExpression")
+          // Clear function parameters from our exclude stack as we
+          // leave the function expression.
+          excstack.pop().forEach(function(n) {
+            if (--exc[n] == 0) delete exc[n];
+          });
+      }
+    });
+
     // Vectorise arithmetic expressions.
-    estraverse.traverse(ast, { leave: function(n) {
-      delete n.start; delete n.end;
-    } });
     var astrepl = estraverse.replace(ast, {
       leave: function(n) {
         if (n.type == "BinaryExpression") {
@@ -145,12 +183,11 @@ radian.factory('radianEval',
           };
         }}});
 
-    // Replace free variables in JS expression with calls to
-    // "scope.$eval".  We do things this way rather than using
-    // Angular's "scope.$eval" on the whole JS expression because
-    // the Angular expression parser only deals with a relatively
-    // small subset of JS (no anonymous functions, for instance).
-    var excstack = [ ], fvs = [ ];
+    // Replace free variables in JS expression by calls to"scope.$eval".
+    // We do things this way rather than using Angular's"scope.$eval" on
+    // the whole JS expression because the Angular expression parser only
+    // deals with a relatively small subset of JS (no anonymous functions,
+    // for instance).
     astrepl = estraverse.replace(astrepl, {
       enter: function(v, w) {
         switch (v.type) {
@@ -166,24 +203,18 @@ radian.factory('radianEval',
           });
           break;
         case "Identifier":
-          if (!exc[v.name]) {
-            if (!w ||
-                (!((w.type == "MemberExpression" ||
-                    w.type == "PluckExpression") && v == w.property) &&
-                 !(w.type == "CallExpression" && v == w.callee))) {
-              // We have a free variable, so record it and replace the
-              // reference to it with a call to 'scope.$eval'.
-              fvs.push(v.name);
-              return {
-                type: "CallExpression",
-                callee: { type: "MemberExpression",
-                          object: { type: "Identifier", name: "scope" },
-                          property: { type: "Identifier", name: "$eval" },
-                          computed: false },
-                arguments: [{ type: "Literal", value: v.name,
-                              raw:"'" + v.name + "'" }]
-              };
-            }
+          if (!exc[v.name] && fvs[v.name]) {
+            // We have a free variable, so replace the reference to it
+            // with a call to 'scope.$eval'.
+            return {
+              type: "CallExpression",
+              callee: { type: "MemberExpression",
+                        object: { type: "Identifier", name: "scope" },
+                        property: { type: "Identifier", name: "$eval" },
+                        computed: false },
+              arguments: [{ type: "Literal", value: v.name,
+                            raw:"'" + v.name + "'" }]
+            };
           }
         }
         return v;
@@ -198,16 +229,6 @@ radian.factory('radianEval',
         return v;
       }
     });
-
-    // // Evaluate any free variables that were defined as attributes to
-    // // bring them into scope.
-    // fvs.forEach(function(v) {
-    //   for (var s = scope; s; s = s.$parent)
-    //     if (s.evalVars && s.evalVars.hasOwnProperty(v)) {
-    //       if (!s.hasOwnProperty(v)) s[v] = radianEval(s, s.evalVars[v]);
-    //       break;
-    //     }
-    // });
 
     // Generate JS code suitable for accessing data.
     var access = escodegen.generate(astrepl);
@@ -226,7 +247,7 @@ radian.factory('radianEval',
           $rootScope[dataset].metadata[metadatakey])
         ret.metadata = $rootScope[dataset].metadata[metadatakey];
     }
-    return returnfvs ? [ret, fvs] : ret;
+    return returnfvs ? [ret, Object.keys(fvs)] : ret;
   };
 
   return radianEval;

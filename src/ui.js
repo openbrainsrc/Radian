@@ -101,9 +101,7 @@ radian.factory('radianLegend', function()
   return function(svgelm, scope) {
     // Render interactive legend.
     var nswitch = scope.switchable.length;
-    console.log("legend: n = " + nswitch);
-    console.log(scope);
-    if (nswitch > 0) {
+    if (nswitch > 1) {
       var legendps = scope.switchable;
       var leggs = svgelm.append('g').selectAll('g')
         .data(legendps).enter().append('g');
@@ -118,7 +116,7 @@ radian.factory('radianLegend', function()
         d.enabled = !d.enabled;
         d3.select(this).select('circle')
           .attr('fill', d.enabled ?
-                (d.stroke.split(';')[0] || '#000') : '#fff');
+                (d.stroke.split(';')[0] || '#000') : '#f5f5f5');
         scope.$emit('paintChange');
       };
       leggs.on('click', clickHandler);
