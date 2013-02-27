@@ -50,3 +50,46 @@ radian.directive('lines',
     }
   };
 }]);
+
+
+// Scatter/bubble plots.
+
+radian.directive('points',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s) {
+    var marker = s.marker || "circle";
+    var markerSize = s.markerSize || 1;
+    var stroke = s.stroke || '#000';
+    var strokeWidth = s.strokeWidth || 1.0;
+    var strokeOpacity = s.strokeOpacity || 1.0;
+    var fill = s.fill || '#000';
+    var fillOpacity = s.fillOpacity || 1.0;
+    var orientation = s.orientation || 0.0;
+
+    // Single-colour points.
+    var points = d3.svg.symbol()
+      .type(marker).size(markerSize);
+    svg.selectAll('path').data(d3.zip(x, y))
+      .enter().append('path')
+      .attr('transform', function(d) {
+        return 'translate(' + xs(d[0]) + ',' + ys(d[1]) + ')';
+      })
+      .attr('d', points)
+      .style('fill', fill)
+      .style('fillOpacity', fillOpacity)
+      .style('stroke-width', strokeWidth)
+      .style('stroke-opacity', strokeOpacity)
+      .style('stroke', stroke);
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      plotTypeLink(scope, elm, as, draw);
+    }
+  };
+}]);

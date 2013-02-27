@@ -408,8 +408,9 @@ radian.directive('plot',
 
 radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
 {
-  var paintas = [ 'fill', 'fillOpacity', 'label', 'marker', 'markerSize',
-                  'stroke', 'strokeOpacity', 'strokeWidth' ];
+  var paintas = [ 'orientation', 'fill', 'fillOpacity', 'label',
+                  'marker', 'markerSize', 'stroke', 'strokeOpacity',
+                  'strokeWidth' ];
 
   return function(scope, elm, as, draw) {
     processAttrs(scope, as);
@@ -2495,6 +2496,49 @@ radian.directive('lines',
               .x(function (d) { return xs(d[0]); })
               .y(function (d) { return ys(d[1]); }));
     }
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      plotTypeLink(scope, elm, as, draw);
+    }
+  };
+}]);
+
+
+// Scatter/bubble plots.
+
+radian.directive('points',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s) {
+    var marker = s.marker || "circle";
+    var markerSize = s.markerSize || 1;
+    var stroke = s.stroke || '#000';
+    var strokeWidth = s.strokeWidth || 1.0;
+    var strokeOpacity = s.strokeOpacity || 1.0;
+    var fill = s.fill || '#000';
+    var fillOpacity = s.fillOpacity || 1.0;
+    var orientation = s.orientation || 0.0;
+
+    // Single-colour points.
+    var points = d3.svg.symbol()
+      .type(marker).size(markerSize);
+    svg.selectAll('path').data(d3.zip(x, y))
+      .enter().append('path')
+      .attr('transform', function(d) {
+        return 'translate(' + xs(d[0]) + ',' + ys(d[1]) + ')';
+      })
+      .attr('d', points)
+      .style('fill', fill)
+      .style('fillOpacity', fillOpacity)
+      .style('stroke-width', strokeWidth)
+      .style('stroke-opacity', strokeOpacity)
+      .style('stroke', stroke);
   };
 
   return {

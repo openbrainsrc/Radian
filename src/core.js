@@ -406,8 +406,9 @@ radian.directive('plot',
 
 radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
 {
-  var paintas = [ 'fill', 'fillOpacity', 'label', 'marker', 'markerSize',
-                  'stroke', 'strokeOpacity', 'strokeWidth' ];
+  var paintas = [ 'orientation', 'fill', 'fillOpacity', 'label',
+                  'marker', 'markerSize', 'stroke', 'strokeOpacity',
+                  'strokeWidth' ];
 
   return function(scope, elm, as, draw) {
     processAttrs(scope, as);
