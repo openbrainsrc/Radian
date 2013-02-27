@@ -509,10 +509,14 @@ radian.factory('radianEval',
         case "Identifier":
           // We have a free variable, so record it.
           if (!exc[v.name]) {
-            var free = false;
-            if (w.type == "MemberExpression" && v == w.object) free = true;
-            if (w.type == "MemberExpression" && v == w.property &&
-                w.computed) free = true;
+            var free = true;
+            // if ((w.type == "MemberExpression" ||
+            //      w.type == "PluckExpression") &&
+            //     v == w.object) free = true;
+            // if (w.type == "MemberExpression" && v == w.property &&
+            //     w.computed) free = true;
+            if ((w.type == "MemberExpression" || w.type == "PluckExpression") &&
+                v == w.property && !w.computed) free = false;
             if (free) fvs[v.name] = 1;
           }
         }
