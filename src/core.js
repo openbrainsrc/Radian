@@ -400,6 +400,10 @@ radian.directive('plot',
 }]);
 
 
+// Link function shared by most simple plotting directives.  Does
+// attribute processing, hides HTML element, sets up drawing function
+// and sets up event emitters for data and paint changes.
+
 radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
 {
   var paintas = [ 'fill', 'fillOpacity', 'label', 'marker', 'markerSize',
@@ -417,5 +421,24 @@ radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
       if (scope.hasOwnProperty(a))
         scope.$watch(a, function() { scope.$emit('paintChange', scope); });
     });
+  };
+}]);
+
+
+// Simple directive just to wrap inner plotting directives that share
+// options.  Brings any attributes into scope and transcludes inner
+// plot directives.
+
+radian.directive('plotOptions', ['processAttrs', function(processAttrs)
+{
+  'use strict';
+
+  return {
+    restrict: 'E',
+    template: '<div ng-transclude></div>',
+    replace: true,
+    transclude: true,
+    scope: false,
+    link: function(scope, elm, as) { processAttrs(scope, as); }
   };
 }]);

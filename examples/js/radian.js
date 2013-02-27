@@ -402,15 +402,16 @@ radian.directive('plot',
 }]);
 
 
+// Link function shared by most simple plotting directives.  Does
+// attribute processing, hides HTML element, sets up drawing function
+// and sets up event emitters for data and paint changes.
+
 radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
 {
   var paintas = [ 'fill', 'fillOpacity', 'label', 'marker', 'markerSize',
                   'stroke', 'strokeOpacity', 'strokeWidth' ];
 
   return function(scope, elm, as, draw) {
-    console.log("plotTypeLink");
-    console.log(scope);
-    console.log(as);
     processAttrs(scope, as);
     elm.hide();
     scope.draw = draw;
@@ -426,6 +427,10 @@ radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
 }]);
 
 
+// Simple directive just to wrap inner plotting directives that share
+// options.  Brings any attributes into scope and transcludes inner
+// plot directives.
+
 radian.directive('plotOptions', ['processAttrs', function(processAttrs)
 {
   'use strict';
@@ -436,11 +441,7 @@ radian.directive('plotOptions', ['processAttrs', function(processAttrs)
     replace: true,
     transclude: true,
     scope: false,
-    link: function(scope, elm, as) {
-      processAttrs(scope, as);
-      console.log("<plot-options> link");
-      console.log(scope);
-    }
+    link: function(scope, elm, as) { processAttrs(scope, as); }
   };
 }]);
 // This file contains a modified version of the Acorn parser, set up
@@ -2500,8 +2501,6 @@ radian.directive('lines',
     restrict: 'E',
     scope: true,
     link: function(scope, elm, as) {
-      console.log("<lines> link");
-      console.log(scope);
       plotTypeLink(scope, elm, as, draw);
     }
   };

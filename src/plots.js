@@ -45,6 +45,8 @@ radian.directive('lines',
   return {
     restrict: 'E',
     scope: true,
-    link: function(scope, elm, as) { plotTypeLink(scope, elm, as, draw); }
+    link: function(scope, elm, as) {
+      plotTypeLink(scope, elm, as, draw);
+    }
   };
 }]);
