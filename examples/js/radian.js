@@ -408,6 +408,9 @@ radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
                   'stroke', 'strokeOpacity', 'strokeWidth' ];
 
   return function(scope, elm, as, draw) {
+    console.log("plotTypeLink");
+    console.log(scope);
+    console.log(as);
     processAttrs(scope, as);
     elm.hide();
     scope.draw = draw;
@@ -419,6 +422,25 @@ radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
       if (scope.hasOwnProperty(a))
         scope.$watch(a, function() { scope.$emit('paintChange', scope); });
     });
+  };
+}]);
+
+
+radian.directive('plotOptions', ['processAttrs', function(processAttrs)
+{
+  'use strict';
+
+  return {
+    restrict: 'E',
+    template: '<div ng-transclude></div>',
+    replace: true,
+    transclude: true,
+    scope: false,
+    link: function(scope, elm, as) {
+      processAttrs(scope, as);
+      console.log("<plot-options> link");
+      console.log(scope);
+    }
   };
 }]);
 // This file contains a modified version of the Acorn parser, set up
@@ -510,12 +532,8 @@ radian.factory('radianEval',
           // We have a free variable, so record it.
           if (!exc[v.name]) {
             var free = true;
-            // if ((w.type == "MemberExpression" ||
-            //      w.type == "PluckExpression") &&
-            //     v == w.object) free = true;
-            // if (w.type == "MemberExpression" && v == w.property &&
-            //     w.computed) free = true;
-            if ((w.type == "MemberExpression" || w.type == "PluckExpression") &&
+            if (w &&
+                (w.type == "MemberExpression" || w.type == "PluckExpression") &&
                 v == w.property && !w.computed) free = false;
             if (free) fvs[v.name] = 1;
           }
@@ -2481,7 +2499,11 @@ radian.directive('lines',
   return {
     restrict: 'E',
     scope: true,
-    link: function(scope, elm, as) { plotTypeLink(scope, elm, as, draw); }
+    link: function(scope, elm, as) {
+      console.log("<lines> link");
+      console.log(scope);
+      plotTypeLink(scope, elm, as, draw);
+    }
   };
 }]);
 // Plotting function library.

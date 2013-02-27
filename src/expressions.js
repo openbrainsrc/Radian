@@ -87,7 +87,8 @@ radian.factory('radianEval',
           // We have a free variable, so record it.
           if (!exc[v.name]) {
             var free = true;
-            if ((w.type == "MemberExpression" || w.type == "PluckExpression") &&
+            if (w &&
+                (w.type == "MemberExpression" || w.type == "PluckExpression") &&
                 v == w.property && !w.computed) free = false;
             if (free) fvs[v.name] = 1;
           }
