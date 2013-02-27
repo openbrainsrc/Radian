@@ -1,0 +1,8 @@
+<h3>Example 16 (&lt;plot-options&gt; directive)</h3>
+
+<plot height=300 aspect=3 xs="[[seq(-1,1,100)]]">
+  <plot-options stroke-width=2 stroke="red">
+    <lines x="[[xs]]" y="[[-x**3+x+1]]"/>
+    <lines x="[[xs]]" y="[[x**2]]" stroke="blue"/>
+  </plot-options>
+</plot>
