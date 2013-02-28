@@ -25,7 +25,7 @@ EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
 angular.module('myApp', ['radian']).
   config(['$routeProvider', function($routeProvider) {
-    for (var eg = 1; eg <= 18; ++eg) {
+    for (var eg = 1; eg <= 19; ++eg) {
       var n = (eg < 10 ? '0' : '') + eg;
       $routeProvider.when('/'+n, {templateUrl: 'eg/'+n+'.html',
                                   controller: EgCtrl});

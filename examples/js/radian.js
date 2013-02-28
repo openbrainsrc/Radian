@@ -221,7 +221,6 @@ radian.directive('plot',
     }, 0);
 
     // Set up interactivity.
-    // ===> TODO: axis type control (linear, log, etc.)
     // ===> TODO: zoom and pan
     // ===> TODO: "layer" visibility
     // ===> TODO: styling changes
@@ -239,6 +238,8 @@ radian.directive('plot',
     var showYAxisLabel = !scope.axisYLabel || scope.axisYLabel != 'off';
     v.margin = { top: scope.topMargin || 2, right: scope.rightMargin || 10,
                  bottom: scope.bottomMargin || 2, left: scope.leftMargin || 2 };
+    var xAxisTransform = scope.axisXTransform || "linear";
+    var yAxisTransform = scope.axisYTransform || "linear";
 
     // Set up plot margins.
     if (v.xaxis) v.margin.bottom += 20 + (showXAxisLabel ? 15 : 0);
@@ -251,7 +252,6 @@ radian.directive('plot',
     // Determine data ranges to use for plot -- either as specified in
     // X-RANGE, Y-RANGE or RANGE attributes on the plot element, or
     // the union of the data ranges for all plots.
-    // ===> TODO: management of linear/log/etc. axis type
     // ===> TODO: deal with x1/x2, y1/y2 axes
     if (scope.hasOwnProperty("range") ||
         scope.hasOwnProperty("rangeX") || scope.hasOwnProperty("rangeY")) {
@@ -320,13 +320,38 @@ radian.directive('plot',
     // ===> TODO: deal with x1/x2, y1/y2 axes -- check for conflicts
     //            in data types and figure out what axes need to be
     //            drawn
-    if (hasdate)
-      v.x = d3.time.scale().range([0, v.realwidth]).domain(scope.xextent);
-    else
-      v.x = d3.scale.linear().range([0, v.realwidth])
-      .domain(scope.xextent).clamp(true);
-    v.y = d3.scale.linear().range([v.realheight, 0])
-      .domain(scope.yextent).clamp(true);
+    function makeXScaler() {
+      if (hasdate)
+        v.x = d3.time.scale().range([0, v.realwidth]).domain(scope.xextent);
+      else if (xAxisTransform == "log")
+        v.x = d3.scale.log().range([0, v.realwidth])
+          .domain(scope.xextent).clamp(true);
+      else
+        v.x = d3.scale.linear().range([0, v.realwidth])
+          .domain(scope.xextent).clamp(true);
+    }
+    function makeYScaler() {
+      if (yAxisTransform == "log")
+        v.y = d3.scale.log().range([v.realheight, 0])
+          .domain(scope.yextent).clamp(true);
+      else
+        v.y = d3.scale.linear().range([v.realheight, 0])
+          .domain(scope.yextent).clamp(true);
+    };
+    makeXScaler();
+    makeYScaler();
+    if (scope.hasOwnProperty("axisXTransform"))
+      scope.$watch('axisXTransform', function(n, o) {
+        xAxisTransform = n || "linear";
+        makeXScaler();
+        scope.views.forEach(function(v) { draw(v, scope); });
+      });
+    if (scope.hasOwnProperty("axisYTransform"))
+      scope.$watch('axisYTransform', function(n, o) {
+        yAxisTransform = n || "linear";
+        makeYScaler();
+        scope.views.forEach(function(v) { draw(v, scope); });
+      });
 
     // Figure out axis labels.
     function axisLabel(labelText, idxvar, selectvar, def) {
@@ -425,14 +450,6 @@ radian.directive('plot',
           var g = svg.append('g');
           var x = (s.x[0] instanceof Array) ? s.x[s.xidx ? s.xidx : 0] : s.x;
           var y = (s.y[0] instanceof Array) ? s.y[s.yidx ? s.yidx : 0] : s.y;
-//          if (scope.hasXRange) {
-//            var xmin = scope.xextent[0], xmax = scope.xextent[1];
-//            x = x.filter(function(x) { return x >= xmin && x <= xmax; });
-//          }
-//          if (scope.hasYRange) {
-//            var ymin = scope.yextent[0], ymax = scope.yextent[1];
-//            y = y.filter(function(y) { return y >= ymin && y <= ymax; });
-//          }
           s.draw(g, x, v.x, y, v.y, s);
           s.$on('$destroy', function() { g.remove(); });
         }

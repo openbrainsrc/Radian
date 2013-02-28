@@ -1,0 +1,13 @@
+<h3>Example 19 (log axes)</h3>
+
+<div class="form-inline"
+     ng-init="axis='linear'; axes=[{name:'Linear',val:'linear'},{name:'Log',val:'log'}]">
+  <label>Axis type</label>
+  <select ng-model="axis" ng-options="a.val as a.name for a in axes">
+  </select>
+</div>
+<br>
+
+<plot height=300 aspect=3 stroke-width=1 zoom-x axis-y-transform="{{axis}}">
+  <lines x="[[seq(0.01,1,10001)]]" y="[[1.1 + sin(1/x)]]" stroke="red"/>
+</plot>
