@@ -249,35 +249,84 @@ radian.directive('plot',
     v.outh = v.realheight + v.margin.top + v.margin.bottom;
 
     // Determine data ranges to use for plot -- either as specified in
-    // X-RANGE, Y-RANGE or COORD-RANGE attributes on the plot element,
-    // or the union of the data ranges for all plots.
-    // ===> TODO: <plot> range attributes
+    // X-RANGE, Y-RANGE or RANGE attributes on the plot element, or
+    // the union of the data ranges for all plots.
     // ===> TODO: management of linear/log/etc. axis type
     // ===> TODO: deal with x1/x2, y1/y2 axes
+    if (scope.hasOwnProperty("range") ||
+        scope.hasOwnProperty("rangeX") || scope.hasOwnProperty("rangeY")) {
+      var xrange, yrange;
+      if (scope.hasOwnProperty("range")) {
+        var ranges = scope.range.split(";");
+        if (ranges.length == 2) {
+          xrange = ranges[0];
+          yrange = ranges[1];
+        }
+      }
+      if (scope.hasOwnProperty("rangeX")) xrange = scope.rangeX;
+      if (scope.hasOwnProperty("rangeY")) yrange = scope.rangeY;
+      if (xrange) {
+        var xs = xrange.split(",");
+        var xmin = parseFloat(xs[0]), xmax = parseFloat(xs[1]);
+        if (!isNaN(xmin) && !isNaN(xmax)) {
+          scope.hasXRange = true;
+          scope.xextent = [xmin, xmax];
+        }
+      }
+      if (yrange) {
+        var ys = yrange.split(",");
+        var ymin = parseFloat(ys[0]), ymax = parseFloat(ys[1]);
+        if (!isNaN(ymin) && !isNaN(ymax)) {
+          scope.hasYRange = true;
+          scope.yextent = [ymin, ymax];
+        }
+      }
+    }
     function aext(d) {
       if (d[0] instanceof Array) {
         return d3.merge(d.map(function(a) { return d3.extent(a); }));
       } else
         return d3.extent(d);
     };
+    function aext2(d, d2, d2min, d2max) {
+      if (d[0] instanceof Array) {
+        return d3.merge(d.map(function(a) {
+          return d3.extent(a.filter(function(x, i) {
+            return d2[i] >= d2min && d2[i] <= d2max;
+          }));
+        }));
+      } else
+        return d3.extent(d.filter(function(x, i) {
+          return d2[i] >= d2min && d2[i] <= d2max;
+        }));
+    };
     var xexts = [], yexts = [], hasdate = false;
     dft(scope, function(s) {
-      if (s.enabled && s.x) xexts = xexts.concat(aext(s.x));
-      if (s.enabled && s.y) yexts = yexts.concat(aext(s.y));
+      if (!scope.xextent && s.enabled && s.x) xexts = xexts.concat(aext(s.x));
+      if (!scope.yextent && s.enabled && s.y) {
+        if (scope.xextent)
+          yexts = yexts.concat(aext2(s.y, s.x,
+                                     scope.xextent[0], scope.xextent[1]));
+        else
+          yexts = yexts.concat(aext(s.y));
+      }
       if (s.x && s.x.metadata && s.x.metadata.format == 'date')
         hasdate = true;
     });
-    var xextent = d3.extent(xexts), yextent = d3.extent(yexts);
+    if (!scope.xextent) scope.xextent = d3.extent(xexts);
+    if (!scope.yextent) scope.yextent = d3.extent(yexts);
 
     // Set up D3 data ranges.
     // ===> TODO: deal with x1/x2, y1/y2 axes -- check for conflicts
     //            in data types and figure out what axes need to be
     //            drawn
     if (hasdate)
-      v.x = d3.time.scale().range([0, v.realwidth]).domain(xextent);
+      v.x = d3.time.scale().range([0, v.realwidth]).domain(scope.xextent);
     else
-      v.x = d3.scale.linear().range([0, v.realwidth]).domain(xextent);
-    v.y = d3.scale.linear().range([v.realheight, 0]).domain(yextent);
+      v.x = d3.scale.linear().range([0, v.realwidth])
+      .domain(scope.xextent).clamp(true);
+    v.y = d3.scale.linear().range([v.realheight, 0])
+      .domain(scope.yextent).clamp(true);
 
     // Figure out axis labels.
     function axisLabel(labelText, idxvar, selectvar, def) {
@@ -376,6 +425,14 @@ radian.directive('plot',
           var g = svg.append('g');
           var x = (s.x[0] instanceof Array) ? s.x[s.xidx ? s.xidx : 0] : s.x;
           var y = (s.y[0] instanceof Array) ? s.y[s.yidx ? s.yidx : 0] : s.y;
+//          if (scope.hasXRange) {
+//            var xmin = scope.xextent[0], xmax = scope.xextent[1];
+//            x = x.filter(function(x) { return x >= xmin && x <= xmax; });
+//          }
+//          if (scope.hasYRange) {
+//            var ymin = scope.yextent[0], ymax = scope.yextent[1];
+//            y = y.filter(function(y) { return y >= ymin && y <= ymax; });
+//          }
           s.draw(g, x, v.x, y, v.y, s);
           s.$on('$destroy', function() { g.remove(); });
         }
