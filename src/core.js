@@ -33,7 +33,7 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
       // Passing the true flag to radianEval gets us the free
       // variables in the expression as well as the current expression
       // value.
-      var val = radianEval(scope, as[a], true);
+      var val = radianEval(scope, as[a], true, true);
 
       // Record the original expression and its free variables and set
       // the value of the scope variable.
@@ -228,29 +228,9 @@ radian.directive('plot',
   function setup(scope, topgroup, idx, nviews) {
     var v = { svg: topgroup };
 
-    // Extract plot attributes.
-    v.xaxis = !scope.axisX || scope.axisX != 'off';
-    v.yaxis = !scope.axisY || scope.axisY != 'off';
-    var showXAxisLabel = (nviews == 1 || nviews == 2 && idx == 1) &&
-      (!scope.axisXLabel || scope.axisXLabel != 'off');
-    var showYAxisLabel = !scope.axisYLabel || scope.axisYLabel != 'off';
-    v.margin = { top: scope.topMargin || 2, right: scope.rightMargin || 10,
-                 bottom: scope.bottomMargin || 2, left: scope.leftMargin || 2 };
-    var xAxisTransform = scope.axisXTransform || "linear";
-    var yAxisTransform = scope.axisYTransform || "linear";
-
-    // Set up plot margins.
-    if (v.xaxis) v.margin.bottom += 20 + (showXAxisLabel ? 15 : 0);
-    if (v.yaxis) v.margin.left += 30 + (showYAxisLabel ? 22 : 0);
-    v.realwidth = v.svg.attr('width') - v.margin.left - v.margin.right;
-    v.realheight = v.svg.attr('height') - v.margin.top - v.margin.bottom;
-    v.outw = v.realwidth + v.margin.left + v.margin.right;
-    v.outh = v.realheight + v.margin.top + v.margin.bottom;
-
     // Determine data ranges to use for plot -- either as specified in
     // X-RANGE, Y-RANGE or RANGE attributes on the plot element, or
     // the union of the data ranges for all plots.
-    // ===> TODO: deal with x1/x2, y1/y2 axes
     if (scope.hasOwnProperty("range") ||
         scope.hasOwnProperty("rangeX") || scope.hasOwnProperty("rangeY")) {
       var xrange, yrange;
@@ -299,8 +279,11 @@ radian.directive('plot',
         }));
     };
     var xexts = [], yexts = [], hasdate = false;
+    var x2exts = [], y2exts = [], hasdate2 = false;
     dft(scope, function(s) {
       if (!scope.xextent && s.enabled && s.x) xexts = xexts.concat(aext(s.x));
+      if (!scope.x2extent && s.enabled && s.x2)
+        x2exts = x2exts.concat(aext(s.x2));
       if (!scope.yextent && s.enabled && s.y) {
         if (scope.xextent)
           yexts = yexts.concat(aext2(s.y, s.x,
@@ -308,16 +291,54 @@ radian.directive('plot',
         else
           yexts = yexts.concat(aext(s.y));
       }
+      if (!scope.y2extent && s.enabled && s.y2) {
+        if (scope.xextent)
+          y2exts = y2exts.concat(aext2(s.y2, s.x,
+                                       scope.xextent[0], scope.xextent[1]));
+        else
+          y2exts = y2exts.concat(aext(s.y2));
+      }
       if (s.x && s.x.metadata && s.x.metadata.format == 'date')
         hasdate = true;
+      if (s.x2 && s.x2.metadata && s.x2.metadata.format == 'date')
+        hasdate2 = true;
     });
-    if (!scope.xextent) scope.xextent = d3.extent(xexts);
-    if (!scope.yextent) scope.yextent = d3.extent(yexts);
+    if (!scope.xextent && xexts.length > 0)
+      scope.xextent = d3.extent(xexts);
+    if (!scope.yextent && yexts.length > 0)
+      scope.yextent = d3.extent(yexts);
+    if (!scope.x2extent && x2exts.length > 0)
+      scope.x2extent = d3.extent(x2exts);
+    if (!scope.y2extent && y2exts.length > 0)
+      scope.y2extent = d3.extent(y2exts);
+
+    // Extract plot attributes.
+    v.xaxis = !scope.axisX || scope.axisX != 'off';
+    v.yaxis = !scope.axisY || scope.axisY != 'off';
+    v.x2axis = scope.x2extent && (!scope.axisX2 || scope.axisX2 != 'off');
+    v.y2axis = scope.y2extent && (!scope.axisY2 || scope.axisY2 != 'off');
+    var showXAxisLabel = (nviews == 1 || nviews == 2 && idx == 1) &&
+      (!scope.axisXLabel || scope.axisXLabel != 'off');
+    var showYAxisLabel = !scope.axisYLabel || scope.axisYLabel != 'off';
+    var showX2AxisLabel = (nviews == 1 || nviews == 2 && idx == 1) &&
+      (!scope.axisX2Label || scope.axisX2Label != 'off');
+    var showY2AxisLabel = !scope.axisY2Label || scope.axisY2Label != 'off';
+    v.margin = { top: scope.topMargin || 2, right: scope.rightMargin || 10,
+                 bottom: scope.bottomMargin || 2, left: scope.leftMargin || 2 };
+    var xAxisTransform = scope.axisXTransform || "linear";
+    var yAxisTransform = scope.axisYTransform || "linear";
+
+    // Set up plot margins.
+    if (v.xaxis) v.margin.bottom += 20 + (showXAxisLabel ? 15 : 0);
+    if (v.yaxis) v.margin.left += 30 + (showYAxisLabel ? 22 : 0);
+    if (v.x2axis) v.margin.top += 20 + (showX2AxisLabel ? 15 : 0);
+    if (v.y2axis) v.margin.right += 30 + (showY2AxisLabel ? 22 : 0);
+    v.realwidth = v.svg.attr('width') - v.margin.left - v.margin.right;
+    v.realheight = v.svg.attr('height') - v.margin.top - v.margin.bottom;
+    v.outw = v.realwidth + v.margin.left + v.margin.right;
+    v.outh = v.realheight + v.margin.top + v.margin.bottom;
 
     // Set up D3 data ranges.
-    // ===> TODO: deal with x1/x2, y1/y2 axes -- check for conflicts
-    //            in data types and figure out what axes need to be
-    //            drawn
     function makeXScaler() {
       if (hasdate)
         v.x = d3.time.scale().range([0, v.realwidth]).domain(scope.xextent);
@@ -328,6 +349,16 @@ radian.directive('plot',
         v.x = d3.scale.linear().range([0, v.realwidth])
           .domain(scope.xextent).clamp(true);
     }
+    function makeX2Scaler() {
+      if (hasdate2)
+        v.x2 = d3.time.scale().range([0, v.realwidth]).domain(scope.x2extent);
+      else if (xAxisTransform == "log")
+        v.x2 = d3.scale.log().range([0, v.realwidth])
+          .domain(scope.x2extent).clamp(true);
+      else
+        v.x2 = d3.scale.linear().range([0, v.realwidth])
+          .domain(scope.x2extent).clamp(true);
+    }
     function makeYScaler() {
       if (yAxisTransform == "log")
         v.y = d3.scale.log().range([v.realheight, 0])
@@ -336,31 +367,43 @@ radian.directive('plot',
         v.y = d3.scale.linear().range([v.realheight, 0])
           .domain(scope.yextent).clamp(true);
     };
+    function makeY2Scaler() {
+      if (yAxisTransform == "log")
+        v.y2 = d3.scale.log().range([v.realheight, 0])
+          .domain(scope.y2extent).clamp(true);
+      else
+        v.y2 = d3.scale.linear().range([v.realheight, 0])
+          .domain(scope.y2extent).clamp(true);
+    };
     makeXScaler();
     makeYScaler();
+    if (scope.x2extent) makeX2Scaler();
+    if (scope.y2extent) makeY2Scaler();
     if (scope.hasOwnProperty("axisXTransform"))
       scope.$watch('axisXTransform', function(n, o) {
         xAxisTransform = n || "linear";
         makeXScaler();
+        if (scope.x2) makeX2Scaler();
         scope.views.forEach(function(v) { draw(v, scope); });
       });
     if (scope.hasOwnProperty("axisYTransform"))
       scope.$watch('axisYTransform', function(n, o) {
         yAxisTransform = n || "linear";
         makeYScaler();
+        if (scope.y2) makeY2Scaler();
         scope.views.forEach(function(v) { draw(v, scope); });
       });
 
     // Figure out axis labels.
-    function axisLabel(labelText, idxvar, selectvar, def) {
+    function axisLabel(labelText, v, idxvar, selectvar, def) {
       var idx0 = null;
       if (!labelText) {
         dft(scope, function(s) {
           if (!labelText)
-            if (s.x && s.x.metadata && s.x.metadata.label) {
-              labelText = s.x.metadata.label;
-              if (s.x.metadata.units)
-                labelText += ' (' + s.x.metadata.units + ')';
+            if (s[v] && s[v].metadata && s[v].metadata.label) {
+              labelText = s[v].metadata.label;
+              if (s[v].metadata.units)
+                labelText += ' (' + s[v].metadata.units + ')';
             }
           idx0 = idx0 || s[idxvar];
         });
@@ -373,9 +416,15 @@ radian.directive('plot',
       return labelText;
     };
     if (showXAxisLabel)
-      v.xlabel = axisLabel(scope.axisXLabel, 'xidx', 'selectX', 'X Axis');
+      v.xlabel = axisLabel(scope.axisXLabel, 'x', 'xidx', 'selectX', 'X Axis');
     if (showYAxisLabel)
-      v.ylabel = axisLabel(scope.axisYLabel, 'yidx', 'selectY', 'Y Axis');
+      v.ylabel = axisLabel(scope.axisYLabel, 'y', 'yidx', 'selectY', 'Y Axis');
+    if (showX2AxisLabel)
+      v.x2label = axisLabel(scope.axisX2Label, 'x2',
+                            'xidx', 'selectX2', 'X2 Axis');
+    if (showY2AxisLabel)
+      v.y2label = axisLabel(scope.axisY2Label, 'y2',
+                            'yidx', 'selectY2', 'Y2 Axis');
 
     return v;
   };
@@ -393,7 +442,6 @@ radian.directive('plot',
     if (v.clip) svg.attr('clip-path', 'url(#' + v.clip + ')');
 
     // Draw D3 axes.
-    // ===> TODO: may need to draw up to two x-axes and two y-axes
     if (v.xaxis && v.x) {
       var axis = d3.svg.axis()
         .scale(v.x).orient('bottom')
@@ -423,6 +471,33 @@ radian.directive('plot',
         .attr('x', xpos).attr('y', ypos)
         .attr('text-anchor', 'middle').text(v.xlabel);
     }
+    if (v.x2axis && v.x2) {
+      var axis = d3.svg.axis()
+        .scale(v.x2).orient('top')
+        .ticks(outsvg.attr('width') / 100);
+      var dformat = '%Y-%m-%d';
+      var has_date = false;
+      dft(scope, function(s) {
+        var x = s.x2;
+        if (x && x.metadata && x.metadata.format == 'date') {
+          if (x.metadata.dateFormat) dformat = x.metadata.dateFormat;
+          has_date = true;
+        }
+        has_date = false;
+      });
+      if (has_date) axis.tickFormat(d3.time.format(dformat));
+      outsvg.append('g').attr('class', 'axis')
+        .attr('transform', 'translate(' + v.margin.left + ',4)')
+        .call(axis);
+      if (v.x2label)
+        var xpos = 0, ypos = 35;
+        outsvg.append('g').attr('class', 'axis-label')
+        .attr('transform', 'translate(' +
+              (+v.margin.left + v.realwidth / 2) + ',0)')
+        .append('text')
+        .attr('x', xpos).attr('y', ypos)
+        .attr('text-anchor', 'middle').text(v.x2label);
+    }
     if (v.yaxis && v.y) {
       var axis = d3.svg.axis()
         .scale(v.y).orient('left')
@@ -439,17 +514,45 @@ radian.directive('plot',
         .attr('text-anchor', 'middle').text(v.ylabel);
       }
     }
+    if (v.y2axis && v.y2) {
+      var axis = d3.svg.axis()
+        .scale(v.y2).orient('right')
+        .ticks(outsvg.attr('height') / 36);
+      outsvg.append('g').attr('class', 'axis')
+        .attr('transform', 'translate(' +
+              (+v.realwidth + v.margin.left) + ',0)')
+        .call(axis);
+      if (v.y2label) {
+        var xpos = v.realwidth + v.margin.left + 40, ypos = v.realheight / 2;
+        outsvg.append('g').attr('class', 'axis-label')
+        .append('text')
+        .attr('x', xpos).attr('y', ypos)
+        .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
+        .attr('text-anchor', 'middle').text(v.y2label);
+      }
+    }
 
     // Loop over plots, calling their draw functions one by one.
-    if (v.x && v.y) {
+    if (v.x && v.y || v.x2 && v.y || v.x && v.y2 || v.x2 && v.y2) {
       dft(scope, function(s) {
-        if (s.draw && s.enabled && s.x && s.y) {
-          // Append SVG group for this plot and draw the plot into it.
-          var g = svg.append('g');
-          var x = (s.x[0] instanceof Array) ? s.x[s.xidx ? s.xidx : 0] : s.x;
-          var y = (s.y[0] instanceof Array) ? s.y[s.yidx ? s.yidx : 0] : s.y;
-          s.draw(g, x, v.x, y, v.y, s);
-          s.$on('$destroy', function() { g.remove(); });
+        if (s.draw && s.enabled) {
+          var xvar = false, yvar = false;
+          var xscale, yscale;
+          if (s.x)  { xvar = 'x';  xscale = v.x;  }
+          if (s.x2) { xvar = 'x2'; xscale = v.x2; }
+          if (s.y)  { yvar = 'y';  yscale = v.y;  }
+          if (s.y2) { yvar = 'y2'; yscale = v.y2; }
+
+          if (xvar && yvar) {
+            // Append SVG group for this plot and draw the plot into it.
+            var g = svg.append('g');
+            var x = (s[xvar][0] instanceof Array) ?
+              s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
+            var y = (s[yvar][0] instanceof Array) ?
+              s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
+            s.draw(g, x, xscale, y, yscale, s);
+            s.$on('$destroy', function() { g.remove(); });
+          }
         }
       });
       if (v.post) v.post(v.innersvg);

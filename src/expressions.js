@@ -29,13 +29,10 @@ radian.factory('radianEval',
                   'Function', 'Global', 'JSON', 'Math', 'Number', 'Object',
                   'RangeError', 'ReferenceError', 'RegExp', 'String',
                   'SyntaxError', 'TypeError', 'URIError'];
-  var exc = { };
-  excnames.forEach(function(n) { exc[n] = 1; });
-  Object.keys(plotLib).forEach(function(k) { exc[k] = 1; });
 
   // We need to be able to call this recursively, so give it a name
   // here.
-  var radianEval = function(scope, inexpr, returnfvs) {
+  var radianEval = function(scope, inexpr, returnfvs, skiperrors) {
     // Pass-through anything that isn't in [[ ]] brackets.
     if (typeof inexpr != "string" ||
         inexpr.substr(0,2) != '[[' && inexpr.substr(-2) != ']]')
@@ -68,7 +65,9 @@ radian.factory('radianEval',
     }});
 
     // Find free variables in JS expression for later processing.
-    var excstack = [ ], fvs = { };
+    var exc = { }, excstack = [ ], fvs = { };
+    excnames.forEach(function(n) { exc[n] = 1; });
+    Object.keys(plotLib).forEach(function(k) { exc[k] = 1; });
     estraverse.traverse(ast, {
       enter: function(v, w) {
         switch (v.type) {
@@ -240,9 +239,10 @@ radian.factory('radianEval',
         eval("ret = " + access);
       }
     } catch (e) {
-      console.log("radianEval failed on '" + expr + "' -- " + e.message);
+      if (!skiperrors)
+        throw Error("radianEval failed on '" + expr + "' -- " + e.message);
     }
-    if (dataset && metadatakey) {
+    if (ret && dataset && metadatakey) {
       if ($rootScope[dataset] && $rootScope[dataset].metadata &&
           $rootScope[dataset].metadata[metadatakey])
         ret.metadata = $rootScope[dataset].metadata[metadatakey];
