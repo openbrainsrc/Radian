@@ -115,9 +115,15 @@ radian.directive('bars',
     d3.zip(x, y).forEach(function(d, i) {
       svg.append('rect')
         .attr('class', 'bar')
-        .attr('x', xs(d[0] - s.barWidths[i] * (barWidth / 2.0 + barOffset)))
+        .attr('x', d[0] instanceof Date ?
+              xs(new Date(d[0].valueOf() -
+                          s.barWidths[i] * (barWidth / 2.0 + barOffset))) :
+              xs(d[0] - s.barWidths[i] * (barWidth / 2.0 + barOffset)))
         .attr('y', ys(d[1]))
-        .attr('width', xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
+        .attr('width', d[0] instanceof Date ?
+              xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0)) -
+              xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0)) :
+              xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
               xs(d[0] - s.barWidths[i] * barWidth / 2.0))
         .attr('height', h - ys(d[1]))
         .style('fill', fill)

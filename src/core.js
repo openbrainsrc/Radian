@@ -225,24 +225,21 @@ radian.directive('plot',
   };
 
 
-  function setup(scope, topgroup, idx, nviews) {
-    var v = { svg: topgroup };
-
-    // Determine data ranges to use for plot -- either as specified in
-    // X-RANGE, Y-RANGE or RANGE attributes on the plot element, or
-    // the union of the data ranges for all plots.
-    if (scope.hasOwnProperty("range") ||
-        scope.hasOwnProperty("rangeX") || scope.hasOwnProperty("rangeY")) {
+  function processRanges(scope, rangea, rangexa, rangeya,
+                         fixedxrv, xextv, xrngv,
+                         fixedyrv, yextv, yrngv) {
+    if (scope.hasOwnProperty(rangea) ||
+        scope.hasOwnProperty(rangexa) || scope.hasOwnProperty(rangeya)) {
       var xrange, yrange;
-      if (scope.hasOwnProperty("range")) {
-        var ranges = scope.range.split(";");
+      if (scope.hasOwnProperty(rangea)) {
+        var ranges = scope[rangea].split(";");
         if (ranges.length == 2) {
           xrange = ranges[0];
           yrange = ranges[1];
         }
       }
-      if (scope.hasOwnProperty("rangeX")) xrange = scope.rangeX;
-      if (scope.hasOwnProperty("rangeY")) yrange = scope.rangeY;
+      if (scope.hasOwnProperty(rangexa)) xrange = scope[rangexa];
+      if (scope.hasOwnProperty(rangeya)) yrange = scope[rangeya];
       if (xrange) {
         var xs = xrange.split(","), vals = xs.map(parseFloat);
         var ok = false, ext = null;
@@ -250,8 +247,8 @@ radian.directive('plot',
           // "min,max"
           if (!isNaN(vals[0]) && !isNaN(vals[1])) {
             ok = true; ext = [vals[0], vals[1]];
-            scope.fixedXRange = true;
-            scope.xextent = ext;
+            scope[fixedxrv] = true;
+            scope[xextv] = ext;
           }
         } else if (xs.length == 1 || xs.length == 2 && !xs[1]) {
           // "min" or "min,"
@@ -260,7 +257,7 @@ radian.directive('plot',
           // ",max"
           if (!isNaN(vals[1])) { ok = true;  ext = [null, vals[1]]; }
         }
-        if (ok) scope.xrange = ext;
+        if (ok) scope[xrngv] = ext;
       }
       if (yrange) {
         var ys = yrange.split(","), vals = ys.map(parseFloat);
@@ -269,8 +266,8 @@ radian.directive('plot',
           // "min,max"
           if (!isNaN(vals[0]) && !isNaN(vals[1])) {
             ok = true; ext = [vals[0], vals[1]];
-            scope.fixedYRange = true;
-            scope.yextent = ext;
+            scope[fixedyrv] = true;
+            scope[yextv] = ext;
           }
         } else if (ys.length == 1 || ys.length == 2 && !ys[1]) {
           // "min" or "min,"
@@ -279,9 +276,24 @@ radian.directive('plot',
           // ",max"
           if (!isNaN(vals[1])) { ok = true;  ext = [null, vals[1]]; }
         }
-        if (ok) scope.yrange = ext;
+        if (ok) scope[yrngv] = ext;
       }
     }
+  };
+
+  function setup(scope, topgroup, idx, nviews) {
+    var v = { svg: topgroup };
+
+    // Determine data ranges to use for plot -- either as specified in
+    // RANGE-X, RANGE-Y or RANGE (for X1 and Y1 axes) and RANGE-X2,
+    // RANGE-Y2 or RANGE2 (for X2 and Y2 axes) attributes on the plot
+    // element, or the union of the data ranges for all plots.
+    processRanges(scope, 'range', 'rangeX', 'rangeY',
+                  'fixedXRange', 'xextent', 'xrange',
+                  'fixedYRange', 'yextent', 'yrange');
+    processRanges(scope, 'range2', 'rangeX2', 'rangeY2',
+                  'fixedX2Range', 'x2extent', 'x2range',
+                  'fixedY2Range', 'y2extent', 'y2range');
     function aext(d) {
       if (d[0] instanceof Array) {
         return d3.merge(d.map(function(a) { return d3.extent(a); }));
@@ -306,7 +318,7 @@ radian.directive('plot',
     dft(scope, function(s) {
       if (!scope.fixedXRange && s.enabled && s.x)
         xexts = xexts.concat(aext(s.x));
-      if (!scope.x2extent && s.enabled && s.x2)
+      if (!scope.fixedX2Range && s.enabled && s.x2)
         x2exts = x2exts.concat(aext(s.x2));
       if (!scope.fixedYRange && s.enabled && s.y) {
         if (scope.fixedXRange)
@@ -314,8 +326,8 @@ radian.directive('plot',
                                      scope.xextent[0], scope.xextent[1]));
         else yexts = yexts.concat(aext(s.y));
       }
-      if (!scope.y2extent && s.enabled && s.y2) {
-        if (scope.xextent)
+      if (!scope.fixedY2Range && s.enabled && s.y2) {
+        if (scope.fixedXRange)
           y2exts = y2exts.concat(aext2(s.y2, s.x,
                                        scope.xextent[0], scope.xextent[1]));
         else y2exts = y2exts.concat(aext(s.y2));
@@ -335,8 +347,6 @@ radian.directive('plot',
     });
     if (!scope.fixedXRange && xexts.length > 0) {
       scope.xextent = d3.extent(xexts);
-      console.log("hasdate=" + hasdate);
-      console.log("1: xextent=" + JSON.stringify(scope.xextent));
       if (scope.xrange) {
         if (scope.xrange[0] != null)
           scope.xextent[0] = Math.min(scope.xextent[0], scope.xrange[0]);
@@ -359,10 +369,28 @@ radian.directive('plot',
       scope.yextent[0] -= yextend[0];
       scope.yextent[1] += yextend[1];
     }
-    if (!scope.x2extent && x2exts.length > 0)
+    if (!scope.fixedX2Range && x2exts.length > 0) {
       scope.x2extent = d3.extent(x2exts);
-    if (!scope.y2extent && y2exts.length > 0)
+      if (scope.x2range) {
+        if (scope.x2range[0] != null)
+          scope.x2extent[0] = Math.min(scope.x2extent[0], scope.x2range[0]);
+        if (scope.x2range[1] != null)
+          scope.x2extent[1] = Math.max(scope.x2extent[1], scope.x2range[1]);
+      }
+      // scope.x2extent[0] -= x2extend[0];
+      // scope.x2extent[1] += x2extend[1];
+    }
+    if (!scope.fixedY2Range && y2exts.length > 0) {
       scope.y2extent = d3.extent(y2exts);
+      if (scope.y2range) {
+        if (scope.y2range[0] != null)
+          scope.y2extent[0] = Math.min(scope.y2extent[0], scope.y2range[0]);
+        if (scope.y2range[1] != null)
+          scope.y2extent[1] = Math.max(scope.y2extent[1], scope.y2range[1]);
+      }
+      // scope.y2extent[0] -= y2extend[0];
+      // scope.y2extent[1] += y2extend[1];
+    }
 
     // Extract plot attributes.
     v.xaxis = !scope.axisX || scope.axisX != 'off';
