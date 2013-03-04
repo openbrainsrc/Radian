@@ -65,7 +65,7 @@ radian.directive('points',
     var stroke = s.stroke || '#000';
     var strokeWidth = s.strokeWidth || 1.0;
     var strokeOpacity = s.strokeOpacity || 1.0;
-    var fill = s.fill || '#000';
+    var fill = s.fill || 'none';
     var fillOpacity = s.fillOpacity || 1.0;
     var orientation = s.orientation || 0.0;
 
@@ -90,6 +90,59 @@ radian.directive('points',
     scope: true,
     link: function(scope, elm, as) {
       plotTypeLink(scope, elm, as, draw);
+    }
+  };
+}]);
+
+
+// Bar charts.
+
+radian.directive('bars',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s, w, h) {
+    var strokeWidth   = s.strokeWidth || 1;
+    var strokeOpacity = s.strokeOpacity || 1.0;
+    var stroke = s.stroke || '#000';
+    var fillOpacity = s.fillOpacity || 1.0;
+    var fill = s.fill || 'none';
+    var barWidth = s.barWidth || 1.0;
+    var barOffset = s.barOffset || 0.0;
+
+    // Single-colour bars.
+    d3.zip(x, y).forEach(function(d, i) {
+      svg.append('rect')
+        .attr('class', 'bar')
+        .attr('x', xs(d[0] - s.barWidths[i] * (barWidth / 2.0 + barOffset)))
+        .attr('y', ys(d[1]))
+        .attr('width', xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
+              xs(d[0] - s.barWidths[i] * barWidth / 2.0))
+        .attr('height', h - ys(d[1]))
+        .style('fill', fill)
+        .style('fillOpacity', fillOpacity)
+        .style('stroke-width', strokeWidth)
+        .style('stroke-opacity', strokeOpacity)
+        .style('stroke', stroke);
+    });
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      plotTypeLink(scope, elm, as, draw);
+      scope.$watch('x', function() {
+        scope.barWidths = scope.x.map(function(xval, i) {
+          if (i == 0) return scope.x[1] - xval;
+          else if (i == scope.x.length - 1)
+            return xval - scope.x[scope.x.length - 2];
+          else return (scope.x[i+1] - scope.x[i-1]) / 2;
+        });
+        scope.rangeXExtend = [scope.barWidths[0] / 2,
+                              scope.barWidths[scope.x.length - 1] / 2];
+      });
     }
   };
 }]);

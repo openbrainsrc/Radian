@@ -246,20 +246,42 @@ radian.directive('plot',
       if (scope.hasOwnProperty("rangeX")) xrange = scope.rangeX;
       if (scope.hasOwnProperty("rangeY")) yrange = scope.rangeY;
       if (xrange) {
-        var xs = xrange.split(",");
-        var xmin = parseFloat(xs[0]), xmax = parseFloat(xs[1]);
-        if (!isNaN(xmin) && !isNaN(xmax)) {
-          scope.hasXRange = true;
-          scope.xextent = [xmin, xmax];
+        var xs = xrange.split(","), vals = xs.map(parseFloat);
+        var ok = false, ext = null;
+        if (xs.length == 2 && xs[0] && xs[1]) {
+          // "min,max"
+          if (!isNaN(vals[0]) && !isNaN(vals[1])) {
+            ok = true; ext = [vals[0], vals[1]];
+            scope.fixedXRange = true;
+            scope.xextent = ext;
+          }
+        } else if (xs.length == 1 || xs.length == 2 && !xs[1]) {
+          // "min" or "min,"
+          if (!isNaN(vals[0])) { ok = true;  ext = [vals[0], null]; }
+        } else if (xs.length == 2 && !xs[0]) {
+          // ",max"
+          if (!isNaN(vals[1])) { ok = true;  ext = [null, vals[1]]; }
         }
+        if (ok) scope.xrange = ext;
       }
       if (yrange) {
-        var ys = yrange.split(",");
-        var ymin = parseFloat(ys[0]), ymax = parseFloat(ys[1]);
-        if (!isNaN(ymin) && !isNaN(ymax)) {
-          scope.hasYRange = true;
-          scope.yextent = [ymin, ymax];
+        var ys = yrange.split(","), vals = ys.map(parseFloat);
+        var ok = false, ext = null;
+        if (ys.length == 2 && ys[0] && ys[1]) {
+          // "min,max"
+          if (!isNaN(vals[0]) && !isNaN(vals[1])) {
+            ok = true; ext = [vals[0], vals[1]];
+            scope.fixedYRange = true;
+            scope.yextent = ext;
+          }
+        } else if (ys.length == 1 || ys.length == 2 && !ys[1]) {
+          // "min" or "min,"
+          if (!isNaN(vals[0])) { ok = true;  ext = [vals[0], null]; }
+        } else if (ys.length == 2 && !ys[0]) {
+          // ",max"
+          if (!isNaN(vals[1])) { ok = true;  ext = [null, vals[1]]; }
         }
+        if (ok) scope.yrange = ext;
       }
     }
     function aext(d) {
@@ -281,34 +303,64 @@ radian.directive('plot',
         }));
     };
     var xexts = [], yexts = [], hasdate = false;
+    var xextend = [0, 0], yextend = [0, 0];
     var x2exts = [], y2exts = [], hasdate2 = false;
     dft(scope, function(s) {
-      if (!scope.xextent && s.enabled && s.x) xexts = xexts.concat(aext(s.x));
+      if (!scope.fixedXRange && s.enabled && s.x)
+        xexts = xexts.concat(aext(s.x));
       if (!scope.x2extent && s.enabled && s.x2)
         x2exts = x2exts.concat(aext(s.x2));
-      if (!scope.yextent && s.enabled && s.y) {
-        if (scope.xextent)
+      if (!scope.fixedYRange && s.enabled && s.y) {
+        if (scope.fixedXRange)
           yexts = yexts.concat(aext2(s.y, s.x,
                                      scope.xextent[0], scope.xextent[1]));
-        else
-          yexts = yexts.concat(aext(s.y));
+        else yexts = yexts.concat(aext(s.y));
       }
       if (!scope.y2extent && s.enabled && s.y2) {
         if (scope.xextent)
           y2exts = y2exts.concat(aext2(s.y2, s.x,
                                        scope.xextent[0], scope.xextent[1]));
-        else
-          y2exts = y2exts.concat(aext(s.y2));
+        else y2exts = y2exts.concat(aext(s.y2));
       }
       if (s.x && s.x.metadata && s.x.metadata.format == 'date')
         hasdate = true;
       if (s.x2 && s.x2.metadata && s.x2.metadata.format == 'date')
         hasdate2 = true;
+      if (s.rangeXExtend) {
+        xextend[0] = Math.max(xextend[0], s.rangeXExtend[0]);
+        xextend[1] = Math.max(xextend[1], s.rangeXExtend[1]);
+      }
+      if (s.rangeYExtend) {
+        yextend[0] = Math.max(yextend[0], s.rangeYExtend[0]);
+        yextend[1] = Math.max(yextend[1], s.rangeYExtend[1]);
+      }
     });
-    if (!scope.xextent && xexts.length > 0)
+    if (!scope.fixedXRange && xexts.length > 0) {
       scope.xextent = d3.extent(xexts);
-    if (!scope.yextent && yexts.length > 0)
+      console.log("hasdate=" + hasdate);
+      console.log("1: xextent=" + JSON.stringify(scope.xextent));
+      if (scope.xrange) {
+        if (scope.xrange[0] != null)
+          scope.xextent[0] = Math.min(scope.xextent[0], scope.xrange[0]);
+        if (scope.xrange[1] != null)
+          scope.xextent[1] = Math.max(scope.xextent[1], scope.xrange[1]);
+      }
+      if (!hasdate) {
+        scope.xextent[0] -= xextend[0];
+        scope.xextent[1] += xextend[1];
+      }
+    }
+    if (!scope.fixedYRange && yexts.length > 0) {
       scope.yextent = d3.extent(yexts);
+      if (scope.yrange) {
+        if (scope.yrange[0] != null)
+          scope.yextent[0] = Math.min(scope.yextent[0], scope.yrange[0]);
+        if (scope.yrange[1] != null)
+          scope.yextent[1] = Math.max(scope.yextent[1], scope.yrange[1]);
+      }
+      scope.yextent[0] -= yextend[0];
+      scope.yextent[1] += yextend[1];
+    }
     if (!scope.x2extent && x2exts.length > 0)
       scope.x2extent = d3.extent(x2exts);
     if (!scope.y2extent && y2exts.length > 0)
@@ -552,7 +604,7 @@ radian.directive('plot',
               s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
             var y = (s[yvar][0] instanceof Array) ?
               s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
-            s.draw(g, x, xscale, y, yscale, s);
+            s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight);
             s.$on('$destroy', function() { g.remove(); });
           }
         }
@@ -2698,7 +2750,7 @@ radian.directive('points',
     var stroke = s.stroke || '#000';
     var strokeWidth = s.strokeWidth || 1.0;
     var strokeOpacity = s.strokeOpacity || 1.0;
-    var fill = s.fill || '#000';
+    var fill = s.fill || 'none';
     var fillOpacity = s.fillOpacity || 1.0;
     var orientation = s.orientation || 0.0;
 
@@ -2723,6 +2775,59 @@ radian.directive('points',
     scope: true,
     link: function(scope, elm, as) {
       plotTypeLink(scope, elm, as, draw);
+    }
+  };
+}]);
+
+
+// Bar charts.
+
+radian.directive('bars',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s, w, h) {
+    var strokeWidth   = s.strokeWidth || 1;
+    var strokeOpacity = s.strokeOpacity || 1.0;
+    var stroke = s.stroke || '#000';
+    var fillOpacity = s.fillOpacity || 1.0;
+    var fill = s.fill || 'none';
+    var barWidth = s.barWidth || 1.0;
+    var barOffset = s.barOffset || 0.0;
+
+    // Single-colour bars.
+    d3.zip(x, y).forEach(function(d, i) {
+      svg.append('rect')
+        .attr('class', 'bar')
+        .attr('x', xs(d[0] - s.barWidths[i] * (barWidth / 2.0 + barOffset)))
+        .attr('y', ys(d[1]))
+        .attr('width', xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
+              xs(d[0] - s.barWidths[i] * barWidth / 2.0))
+        .attr('height', h - ys(d[1]))
+        .style('fill', fill)
+        .style('fillOpacity', fillOpacity)
+        .style('stroke-width', strokeWidth)
+        .style('stroke-opacity', strokeOpacity)
+        .style('stroke', stroke);
+    });
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      plotTypeLink(scope, elm, as, draw);
+      scope.$watch('x', function() {
+        scope.barWidths = scope.x.map(function(xval, i) {
+          if (i == 0) return scope.x[1] - xval;
+          else if (i == scope.x.length - 1)
+            return xval - scope.x[scope.x.length - 2];
+          else return (scope.x[i+1] - scope.x[i-1]) / 2;
+        });
+        scope.rangeXExtend = [scope.barWidths[0] / 2,
+                              scope.barWidths[scope.x.length - 1] / 2];
+      });
     }
   };
 }]);

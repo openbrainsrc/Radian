@@ -2,14 +2,14 @@
 
 <plot height=300 aspect=3>
   <bars stroke-width=2 fill="lightblue" stroke="blue"
-        x="[[vic2012ooa.date#getMonth()]]"
-        y="[[vic2012ooa.prc.meanBy(vic2012ooa.date#getMonth())]]"/>
+        x="[[midMonths(unique(vic2012ooa.date#getMonth()), 2012)]]"
+        y="[[meanBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]"/>
   <lines stroke-width=2 stroke="red"
-         x="[[vic2012ooa.date#dayOfYear()]]" y="[[vic2012ooa.tmp]]"/>
+         x="[[vic2012ooa.date]]" y="[[vic2012ooa.tmp]]"/>
 </plot>
 
 <plot-data name="vic2012ooa" format="csv" cols="date,tmp,prc">
-  <metadata name="date" format="isodate"></metadata>
+  <metadata name="date" format="date"></metadata>
   <metadata name="tmp" label="Temperature" units="&deg;C"></metadata>
   <metadata name="prc" label="Rainfall" units="mm/day"></metadata>
   "2012-01-01",  3.80,  0.90
