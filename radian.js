@@ -841,7 +841,7 @@ radian.factory('radianEval',
     astrepl = estraverse.replace(astrepl, {
       enter: function(n) {
         if (n.type == "CallExpression" && n.callee.type == "PluckExpression") {
-          return {
+          return{
             type:"CallExpression",
             callee:{type:"MemberExpression", object:n.callee.object,
                     property:{type:"Identifier", name:"map"},
@@ -851,14 +851,15 @@ radian.factory('radianEval',
               id:null, params:[{type:"Identifier", name:"$$x"}],
               body:{
                 type:"BlockStatement",
-                body:[{type:"ReturnStatement",
-                       argument:{type:"CallExpression",
-                                 callee:{type:"MemberExpression",
-                                         object:{type:"Identifier", name:"$$x"},
-                                         property:n.callee.property,
-                                         computed:false},
-                                 arguments:n.arguments}
-                      }]
+                body:[{
+                  type:"ReturnStatement",
+                  argument:{type:"CallExpression",
+                            callee:{type:"MemberExpression",
+                                    object:{type:"Identifier", name:"$$x"},
+                                    property:n.callee.property,
+                                    computed:n.callee.property.type=="Literal"},
+                            arguments:n.arguments}
+                }]
               }
              }]
           };
@@ -879,7 +880,8 @@ radian.factory('radianEval',
                  body:[{ type:"ReturnStatement",
                          argument:{ type:"MemberExpression",
                                     object:{ type:"Identifier", name:"$$x" },
-                                    property:n.property, computed:false }
+                                    property:n.property,
+                                    computed:n.property.type=="Literal"}
                        }]
                }
              }]
@@ -935,7 +937,6 @@ radian.factory('radianEval',
 
     // Generate JS code suitable for accessing data.
     var access = escodegen.generate(astrepl);
-
     var ret = [];
     try {
       // Bring plot function library names into scope.
@@ -2347,8 +2348,8 @@ radian.factory('radianParse', function()
     } else if (eat(_hash)) {
       var node = startNodeFrom(base);
       node.object = base;
-      node.property = parseIdent(true);
-      node.computed = false;
+      node.property = parseIdentOrNum(true);
+      node.computed = node.property.type == "Literal";
       return parseSubscripts(finishNode(node, "PluckExpression"), noCalls);
     } else if (eat(_bracketL)) {
       var node = startNodeFrom(base);
@@ -2363,6 +2364,24 @@ radian.factory('radianParse', function()
       node.arguments = parseExprList(_parenR);
       return parseSubscripts(finishNode(node, "CallExpression"), noCalls);
     } else return base;
+  }
+
+  // Parse a number or an identifier (used for pluck expressions).
+
+  function parseIdentOrNum() {
+    switch (tokType) {
+    case _name:
+      return parseIdent();
+    case _num: case _string: case _regexp:
+      var node = startNode();
+      node.value = tokVal;
+      node.raw = input.slice(tokStart, tokEnd);
+      next();
+      return finishNode(node, "Literal");
+
+    default:
+      unexpected();
+    }
   }
 
   // Parse an atomic expression — either a single token that is an
