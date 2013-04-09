@@ -2738,26 +2738,50 @@ radian.directive('lines',
   'use strict';
 
   function draw(svg, x, xs, y, ys, s) {
+    function sty(v) {
+      return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
+    };
     var width   = s.strokeWidth || 1;
     var opacity = s.strokeOpacity || 1.0;
-    var sopts = (s.stroke || '#000').split(';');
-    var str = (sopts.length == 1 || !s.strokesel) ?
-      sopts[0] : sopts[s.strokesel % sopts.length];
+    var stroke = s.stroke || '#000';
+    var sopts = [], str = '';
+    if (typeof stroke == "string") {
+      sopts = stroke.split(';');
+      str = (sopts.length == 1 || !s.strokesel) ?
+        sopts[0] : sopts[s.strokesel % sopts.length];
+    }
 
     // Switch on type of stroke...
-    if (str.indexOf(':') == -1) {
-      // Normal single-colour line.
-      var line = d3.svg.line()
-        .x(function (d) { return xs(d[0]); })
-        .y(function (d) { return ys(d[1]); });
-      svg.append('path').datum(d3.zip(x, y))
-        .attr('class', 'line').attr('d', line)
-        .style('fill', 'none')
-        .style('stroke-width', width)
-        .style('stroke-opacity', opacity)
-        .style('stroke', str);
+    if (typeof stroke != "string" || str.indexOf(':') == -1) {
+      if (!(width instanceof Array || opacity instanceof Array ||
+            stroke instanceof Array)) {
+        // Normal lines; single path.
+        var line = d3.svg.line()
+          .x(function (d) { return xs(d[0]); })
+          .y(function (d) { return ys(d[1]); });
+        svg.append('path').datum(d3.zip(x, y))
+          .attr('class', 'line').attr('d', line)
+          .style('fill', 'none')
+          .style('stroke-width', width)
+          .style('stroke-opacity', opacity)
+          .style('stroke', stroke);
+      } else {
+        // Multiple paths to deal with varying characteristics along
+        // line.
+        console.log("Here we are...");
+        var based = d3.zip(x, y);
+        var lined = d3.zip(based, based.slice(1));
+        svg.selectAll('path').data(lined).enter().append('path')
+          .attr('class', 'line')
+          .style('stroke-width', sty(width))
+          .style('stroke-opacity', sty(opacity))
+          .style('stroke', sty(stroke))
+          .attr('d', d3.svg.line()
+                .x(function (d) { return xs(d[0]); })
+                .y(function (d) { return ys(d[1]); }));
+      }
     } else {
-      // Fading stroke.
+      // Special for fading stroke (temporary).
       var strokes = str.split(':');
       var interp = function(dx) { return 1 - Math.exp(-20*dx/(3*x.length)); };
       var ihsl = d3.interpolateHsl(strokes[0], strokes[1]);
@@ -2792,7 +2816,6 @@ radian.directive('points',
   'use strict';
 
   function draw(svg, x, xs, y, ys, s) {
-    console.log(s);
     var marker = s.marker || "circle";
     var markerSize = s.markerSize || 1;
     var stroke = s.stroke || '#000';
@@ -2910,6 +2933,7 @@ radian.directive('palette',
       var id = attrs.id;
       var typ = attrs.type || 'norm';
       var interp = attrs.interp || 'hsl';
+      interp = interp.toLowerCase();
       var banded = !!attrs.banded;
 
       // Process content -- all text children are appended together
@@ -2949,32 +2973,50 @@ radian.directive('palette',
 radian.factory('discPalFn', function()
 {
   return function(txt) {
+    // Prototype palette function for discrete palette with no keys,
+    // i.e. just a list of colours.
     function protoNoKeys(n, cs, v) {
       if (v instanceof Array) {
+        // For array data, we pull colours out of the palette in
+        // sorted order of the keys.
         var vs = { };
         v.forEach(function(x) { vs[x] = 1; });
         var uvs = Object.keys(vs).sort();
         return v.map(function(x) { return cs[uvs.indexOf(x) % n]; });
       } else if (typeof v == "number")
+        // Otherwise, the palette function argument must be numeric
+        // and is just used as an index into the list of colours.
         return cs[(Math.round(v) - 1) % n];
       else throw Error("invalid operand to discrete palette function");
     };
+
+    // Prototype palette function for discrete palette with keys.
     function protoWithKeys(cs, v) {
+      // Just pull out the appropriate colour value using the key.
       return (v instanceof Array) ?
         v.map(function(x) { return cs[x]; }) : cs[v];
     };
 
+    // Palette entries are separated by semicolons: split them and
+    // trim them for further processing.
     var cs = txt.split(';').
       map(function(s) { return s.trim(); }).
       filter(function(s) { return s.length > 0; });
-    if (cs[0].indexOf(':' != -1)) {
+
+    // A palette with keys will have entries with a key, then a space,
+    // then a colour value.
+    if (cs[0].indexOf(' ') != -1) {
+      // Set up the key to colour mapping and return a function based
+      // on the "with keys" prototype.
       var thiscs = { };
       cs.forEach(function(x) {
-        var css = x.split(':'), k = css[0].trim(), c = css[1].trim();
+        var css = x.split(' '), k = css[0].trim(), c = css[1].trim();
         thiscs[k] = c;
       });
       return function(v) { return protoWithKeys(thiscs, v); };
     } else {
+      // Extract a simple colour list and return a function based
+      // on the "no keys" prototype.
       var thisn = cs.length;
       var thiscs =
         '[' + cs.map(function(c) { return '"' + c + '"' }).join(',') + ']';
@@ -2996,8 +3038,65 @@ radian.factory('absPalFn', function()
 radian.factory('normPalFn', function()
 {
   return function(txt, band, interp) {
+    // Prototype for returned function -- does linear interpolation
+    // from data extent to [0,1] and applies polylinear colour
+    // interpolation function.
+    function proto(cmap, v) {
+      if (!(v instanceof Array))
+        throw Error("normalised palettes must be applied to array arguments");
+      var ext = d3.extent(v);
+      var sc = d3.scale.linear().domain(ext);
+      return v.map(function(x) { return cmap(sc(x)); });
+    };
 
+    // Set up appropriate D3 colour interpolation factory.
+    var intfac;
+    switch (interp) {
+    case 'rgb': intfac = d3.interpolateRgb;  break;
+    case 'hcl': intfac = d3.interpolateHcl;  break;
+    case 'lab': intfac = d3.interpolateLab;  break;
+    default:    intfac = d3.interpolateHsl;  break;
+    }
 
+    // Palette entries are separated by semicolons: split them and
+    // trim them for further processing.
+    var cs = txt.split(';').
+      map(function(s) { return s.trim(); }).
+      filter(function(s) { return s.length > 0; });
+    console.log("cs = " + JSON.stringify(cs));
+
+    // For normalised palettes, each entry should have a numeric value
+    // and a colour, separated by a space.
+    if (!cs.every(function(c) { return c.indexOf(' ') != -1; }))
+      throw Error("invalid format in <palette>");
+
+    // Extract the segment limits and colours from the palette data.
+    var lims = [], cols = [];
+    cs.forEach(function(x) {
+      var css = x.split(' ');
+      lims.push(css[0].trim());
+      cols.push(css[1].trim());
+    });
+    console.log("lims = " + JSON.stringify(lims));
+    console.log("cols = " + JSON.stringify(cols));
+
+    // Check for ascending limit values.
+    for (var i = 1; i < lims.length; ++i)
+      if (lims[i] < lims[i - 1])
+        throw Error("entries out of order in <palette>");
+
+    // Minimum and maximum segment limits.
+    var minl = lims[0], maxl = lims[lims.length-1];
+    console.log("minl = " + minl + "  maxl = " + maxl);
+    if (minl != 0 || maxl != 1)
+      throw Error("invalid segment limits for normalised palette");
+
+    // Build polylinear colour interpolation scale using appropriate
+    // colour interpolation factory.
+    var thiscmap = d3.scale.linear().
+      clamp(true).interpolate(intfac).
+      domain(lims).range(cols);
+    return function(v) { return proto(thiscmap, v); };
   };
 });
 // Plotting function library.
