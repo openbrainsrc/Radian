@@ -1,8 +1,7 @@
 // Process palette directive.
 
 radian.directive('palette',
- ['discPalFn', 'absPalFn', 'normPalFn',
-   function(discPalFn, absPalFn, normPalFn)
+ ['discPalFn', 'contPalFn', function(discPalFn, contPalFn)
 {
   'use strict';
 
@@ -15,9 +14,9 @@ radian.directive('palette',
       elm.hide();
 
       // Process attributes.
-      if (!attrs.id)
-        throw Error("<palette> directive without ID attribute");
-      var id = attrs.id;
+      if (!attrs.name)
+        throw Error("<palette> directive without NAME attribute");
+      var name = attrs.name;
       var typ = attrs.type || 'norm';
       var interp = attrs.interp || 'hsl';
       interp = interp.toLowerCase();
@@ -41,17 +40,17 @@ radian.directive('palette',
         fn = discPalFn(paltext);
         break;
       case 'abs':
-        fn = absPalFn(paltext, banded, interp);
+        fn = contPalFn(true, paltext, banded, interp);
         break;
       case 'norm':
-        fn = normPalFn(paltext, banded, interp);
+        fn = contPalFn(false, paltext, banded, interp);
         break;
       default:
         throw Error("invalid <palette> type: " + typ);
       }
 
       // Install palette function.
-      scope.$parent[id] = fn;
+      scope.$parent[name] = fn;
     }
   };
 }]);
@@ -113,27 +112,25 @@ radian.factory('discPalFn', function()
 });
 
 
-radian.factory('absPalFn', function()
+radian.factory('contPalFn', function()
 {
-  return function(txt, band, interp) {
-
-
-  };
-});
-
-
-radian.factory('normPalFn', function()
-{
-  return function(txt, band, interp) {
-    // Prototype for returned function -- does linear interpolation
-    // from data extent to [0,1] and applies polylinear colour
-    // interpolation function.
-    function proto(cmap, v) {
+  return function(isabs, txt, band, interp) {
+    // Prototype for returned function for normalised palette -- does
+    // linear interpolation from data extent to [0,1] and applies
+    // polylinear colour interpolation function.
+    function protoNorm(cmap, v) {
       if (!(v instanceof Array))
         throw Error("normalised palettes must be applied to array arguments");
       var ext = d3.extent(v);
       var sc = d3.scale.linear().domain(ext);
       return v.map(function(x) { return cmap(sc(x)); });
+    };
+
+    // Prototype for returned function for absolute palette -- just
+    // applies polylinear colour interpolation function.
+    function protoAbs(cmap, v) {
+      return v instanceof Array ?
+        v.map(function(x) { return cmap(x); }) : cmap(v);
     };
 
     // Set up appropriate D3 colour interpolation factory.
@@ -150,7 +147,6 @@ radian.factory('normPalFn', function()
     var cs = txt.split(';').
       map(function(s) { return s.trim(); }).
       filter(function(s) { return s.length > 0; });
-    console.log("cs = " + JSON.stringify(cs));
 
     // For normalised palettes, each entry should have a numeric value
     // and a colour, separated by a space.
@@ -161,11 +157,9 @@ radian.factory('normPalFn', function()
     var lims = [], cols = [];
     cs.forEach(function(x) {
       var css = x.split(' ');
-      lims.push(css[0].trim());
+      lims.push(Number(css[0].trim()));
       cols.push(css[1].trim());
     });
-    console.log("lims = " + JSON.stringify(lims));
-    console.log("cols = " + JSON.stringify(cols));
 
     // Check for ascending limit values.
     for (var i = 1; i < lims.length; ++i)
@@ -174,8 +168,7 @@ radian.factory('normPalFn', function()
 
     // Minimum and maximum segment limits.
     var minl = lims[0], maxl = lims[lims.length-1];
-    console.log("minl = " + minl + "  maxl = " + maxl);
-    if (minl != 0 || maxl != 1)
+    if (!isabs && (minl != 0 || maxl != 1))
       throw Error("invalid segment limits for normalised palette");
 
     // Build polylinear colour interpolation scale using appropriate
@@ -183,6 +176,8 @@ radian.factory('normPalFn', function()
     var thiscmap = d3.scale.linear().
       clamp(true).interpolate(intfac).
       domain(lims).range(cols);
-    return function(v) { return proto(thiscmap, v); };
+    return isabs ?
+      function(v) { return protoAbs(thiscmap, v); } :
+      function(v) { return protoNorm(thiscmap, v); };
   };
 });
