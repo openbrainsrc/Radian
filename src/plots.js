@@ -69,20 +69,23 @@ radian.directive('points',
     var fillOpacity = s.fillOpacity || 1.0;
     var orientation = s.orientation || 0.0;
 
-    // Single-colour points.
-    var points = d3.svg.symbol()
-      .type(marker).size(markerSize);
+    // Plot points: plot attributes are either single values or arrays
+    // of values, one per point.
+    function sty(v) {
+      return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
+    };
+    var points = d3.svg.symbol().type(sty(marker)).size(sty(markerSize));
     svg.selectAll('path').data(d3.zip(x, y))
       .enter().append('path')
       .attr('transform', function(d) {
         return 'translate(' + xs(d[0]) + ',' + ys(d[1]) + ')';
       })
       .attr('d', points)
-      .style('fill', fill)
-      .style('fillOpacity', fillOpacity)
-      .style('stroke-width', strokeWidth)
-      .style('stroke-opacity', strokeOpacity)
-      .style('stroke', stroke);
+      .style('fill', sty(fill))
+      .style('fillOpacity', sty(fillOpacity))
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke));
   };
 
   return {

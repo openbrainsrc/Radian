@@ -2792,6 +2792,7 @@ radian.directive('points',
   'use strict';
 
   function draw(svg, x, xs, y, ys, s) {
+    console.log(s);
     var marker = s.marker || "circle";
     var markerSize = s.markerSize || 1;
     var stroke = s.stroke || '#000';
@@ -2801,20 +2802,23 @@ radian.directive('points',
     var fillOpacity = s.fillOpacity || 1.0;
     var orientation = s.orientation || 0.0;
 
-    // Single-colour points.
-    var points = d3.svg.symbol()
-      .type(marker).size(markerSize);
+    // Plot points: plot attributes are either single values or arrays
+    // of values, one per point.
+    function sty(v) {
+      return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
+    };
+    var points = d3.svg.symbol().type(sty(marker)).size(sty(markerSize));
     svg.selectAll('path').data(d3.zip(x, y))
       .enter().append('path')
       .attr('transform', function(d) {
         return 'translate(' + xs(d[0]) + ',' + ys(d[1]) + ')';
       })
       .attr('d', points)
-      .style('fill', fill)
-      .style('fillOpacity', fillOpacity)
-      .style('stroke-width', strokeWidth)
-      .style('stroke-opacity', strokeOpacity)
-      .style('stroke', stroke);
+      .style('fill', sty(fill))
+      .style('fillOpacity', sty(fillOpacity))
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke));
   };
 
   return {
@@ -2884,6 +2888,118 @@ radian.directive('bars',
     }
   };
 }]);
+// Process palette directive.
+
+radian.directive('palette',
+ ['discPalFn', 'absPalFn', 'normPalFn',
+   function(discPalFn, absPalFn, normPalFn)
+{
+  'use strict';
+
+  return {
+    restrict: 'E',
+    scope: false,
+    link: function(scope, elm, attrs) {
+      // The <palette> element is only there to carry data, so hide it
+      // right away.
+      elm.hide();
+
+      // Process attributes.
+      if (!attrs.id)
+        throw Error("<palette> directive without ID attribute");
+      var id = attrs.id;
+      var typ = attrs.type || 'norm';
+      var interp = attrs.interp || 'hsl';
+      var banded = !!attrs.banded;
+
+      // Process content -- all text children are appended together
+      // for parsing.
+      var paltext = '';
+      elm.contents().each(function(i,n) {
+        if (n instanceof Text) paltext += n.textContent;
+      });
+
+      // Normalise content: line separators are equivalent to
+      // semicolons.
+      paltext = paltext.replace(/\n/g, ';');
+
+      // Generate palette function.
+      var fn;
+      switch (typ) {
+      case 'discrete':
+        fn = discPalFn(paltext);
+        break;
+      case 'abs':
+        fn = absPalFn(paltext, banded, interp);
+        break;
+      case 'norm':
+        fn = normPalFn(paltext, banded, interp);
+        break;
+      default:
+        throw Error("invalid <palette> type: " + typ);
+      }
+
+      // Install palette function.
+      scope.$parent[id] = fn;
+    }
+  };
+}]);
+
+
+radian.factory('discPalFn', function()
+{
+  return function(txt) {
+    function protoNoKeys(n, cs, v) {
+      if (v instanceof Array) {
+        var vs = { };
+        v.forEach(function(x) { vs[x] = 1; });
+        var uvs = Object.keys(vs).sort();
+        return v.map(function(x) { return cs[uvs.indexOf(x) % n]; });
+      } else if (typeof v == "number")
+        return cs[(Math.round(v) - 1) % n];
+      else throw Error("invalid operand to discrete palette function");
+    };
+    function protoWithKeys(cs, v) {
+      return (v instanceof Array) ?
+        v.map(function(x) { return cs[x]; }) : cs[v];
+    };
+
+    var cs = txt.split(';').
+      map(function(s) { return s.trim(); }).
+      filter(function(s) { return s.length > 0; });
+    if (cs[0].indexOf(':' != -1)) {
+      var thiscs = { };
+      cs.forEach(function(x) {
+        var css = x.split(':'), k = css[0].trim(), c = css[1].trim();
+        thiscs[k] = c;
+      });
+      return function(v) { return protoWithKeys(thiscs, v); };
+    } else {
+      var thisn = cs.length;
+      var thiscs =
+        '[' + cs.map(function(c) { return '"' + c + '"' }).join(',') + ']';
+      return function(v) { return protoNoKeys(thisn, thiscs, v); };
+    }
+  };
+});
+
+
+radian.factory('absPalFn', function()
+{
+  return function(txt, band, interp) {
+
+
+  };
+});
+
+
+radian.factory('normPalFn', function()
+{
+  return function(txt, band, interp) {
+
+
+  };
+});
 // Plotting function library.
 
 radian.factory('plotLib', function()

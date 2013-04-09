@@ -22,13 +22,48 @@ function EgCtrl(plotLib, $http, $scope, $location) {
 }
 EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
+var negs = 27;
+var egtitles = [ "Basic plot; CSV data",
+                 "Basic plot; JSON data",
+                 "Int. legend; fading",
+                 "X-axis zoom",
+                 "Stroke fade UI",
+                 "Stroke colour UI",
+                 "X/Y variable UI",
+                 "Plot grid with tabs",
+                 "Date handling",
+                 "Data aggr. funcs.",
+                 "Bar charts",
+                 "Func. plots",
+                 "Func. plots",
+                 "Vectorisation",
+                 "Data binding",
+                 "<plot-options>",
+                 "Basic points plot",
+                 "Range attributes",
+                 "Log axes",
+                 "Second axes",
+                 "Bar chart",
+                 "Test",
+                 "Integer pluck",
+                 "Tom's data example",
+                 "Norm. palette",
+                 "Disc. palette",
+                 "Disc. pal. (mark)" ];
 
 angular.module('myApp', ['radian']).
   config(['$routeProvider', function($routeProvider) {
-    for (var eg = 1; eg <= 24; ++eg) {
+    for (var eg = 1; eg <= negs; ++eg) {
       var n = (eg < 10 ? '0' : '') + eg;
-      $routeProvider.when('/'+n, {templateUrl: 'eg/'+n+'.html',
-                                  controller: EgCtrl});
+      $routeProvider.when('/' + n, { templateUrl: 'eg/' + n + '.html',
+                                     controller: EgCtrl });
     }
-    $routeProvider.otherwise({redirectTo: '/01'});
+    $routeProvider.otherwise({ redirectTo: '/01' });
+  }]).
+  controller('BaseController', ['$rootScope', function($rootScope) {
+    $rootScope.egs = [];
+    for (var eg = 1; eg <= negs; ++eg) {
+      var n = (eg < 10 ? '0' : '') + eg;
+      $rootScope.egs.push({ link: "#/" + n, title: egtitles[eg - 1] });
+    }
   }]);
