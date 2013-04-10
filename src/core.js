@@ -455,8 +455,8 @@ radian.directive('plot',
         v.y2 = d3.scale.linear().range([v.realheight, 0])
           .domain(scope.y2extent).clamp(true);
     };
-    makeXScaler();
-    makeYScaler();
+    if (scope.xextent) makeXScaler();
+    if (scope.yextent) makeYScaler();
     if (scope.x2extent) makeX2Scaler();
     if (scope.y2extent) makeY2Scaler();
     if (scope.hasOwnProperty("axisXTransform"))
