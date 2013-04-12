@@ -105,7 +105,7 @@ radian.directive('points',
       })
       .attr('d', points)
       .style('fill', sty(fill))
-      .style('fillOpacity', sty(fillOpacity))
+      .style('fill-opacity', sty(fillOpacity))
       .style('stroke-width', sty(strokeWidth))
       .style('stroke-opacity', sty(strokeOpacity))
       .style('stroke', sty(stroke));
@@ -153,7 +153,7 @@ radian.directive('bars',
               xs(d[0] - s.barWidths[i] * barWidth / 2.0))
         .attr('height', h - ys(d[1]))
         .style('fill', fill)
-        .style('fillOpacity', fillOpacity)
+        .style('fill-opacity', fillOpacity)
         .style('stroke-width', strokeWidth)
         .style('stroke-opacity', strokeOpacity)
         .style('stroke', stroke);

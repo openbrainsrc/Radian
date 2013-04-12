@@ -1,11 +1,11 @@
 <h3>Example 11 (bar charts)</h3>
 
 <plot height=300 aspect=3 range-y2="0">
-  <bars stroke-width=2 fill="lightblue" stroke="blue"
-        x="[[midMonths(unique(vic2012ooa.date#getMonth()), 2012)]]"
-        y2="[[meanBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]"/>
   <lines stroke-width=2 stroke="red"
          x="[[vic2012ooa.date]]" y="[[vic2012ooa.tmp]]"/>
+  <bars stroke-width=2 fill="lightblue" fill-opacity=0.5 stroke="blue"
+        x="[[midMonths(unique(vic2012ooa.date#getMonth()), 2012)]]"
+        y2="[[meanBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]"/>
 </plot>
 
 <plot-data name="vic2012ooa" format="csv" cols="date,tmp,prc">

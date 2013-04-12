@@ -2865,6 +2865,7 @@ radian.directive('bars',
     var strokeOpacity = s.strokeOpacity || 1.0;
     var stroke = s.stroke || '#000';
     var fillOpacity = s.fillOpacity || 1.0;
+    console.log("fillOpacity = " + fillOpacity);
     var fill = s.fill || 'none';
     var barWidth = s.barWidth || 1.0;
     var barOffset = s.barOffset || 0.0;
@@ -2885,7 +2886,7 @@ radian.directive('bars',
               xs(d[0] - s.barWidths[i] * barWidth / 2.0))
         .attr('height', h - ys(d[1]))
         .style('fill', fill)
-        .style('fillOpacity', fillOpacity)
+        .style('fill-opacity', fillOpacity)
         .style('stroke-width', strokeWidth)
         .style('stroke-opacity', strokeOpacity)
         .style('stroke', stroke);
