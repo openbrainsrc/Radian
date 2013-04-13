@@ -137,35 +137,41 @@ radian.directive('bars',
     var barWidth = s.barWidth || 1.0;
     var barOffset = s.barOffset || 0.0;
 
-    // Single-colour bars.
-    d3.zip(x, y).forEach(function(d, i) {
-      svg.append('rect')
-        .attr('class', 'bar')
-        .attr('x', d[0] instanceof Date ?
-              xs(new Date(d[0].valueOf() -
-                          s.barWidths[i] * (barWidth / 2.0 + barOffset))) :
-              xs(d[0] - s.barWidths[i] * (barWidth / 2.0 + barOffset)))
-        .attr('y', ys(d[1]))
-        .attr('width', d[0] instanceof Date ?
-              xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0)) -
-              xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0)) :
-              xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
-              xs(d[0] - s.barWidths[i] * barWidth / 2.0))
-        .attr('height', h - ys(d[1]))
-        .style('fill', fill)
-        .style('fill-opacity', fillOpacity)
-        .style('stroke-width', strokeWidth)
-        .style('stroke-opacity', strokeOpacity)
-        .style('stroke', stroke);
-    });
+    // Plot bars: plot attributes are either single values or arrays
+    // of values, one per bar.
+    function sty(v) {
+      return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
+    };
+    svg.selectAll('rect').data(d3.zip(x, y))
+      .enter().append('rect')
+      .attr('class', 'bar')
+      .attr('x', function(d, i) {
+        return d[0] instanceof Date ?
+          xs(new Date(d[0].valueOf() -
+                      s.barWidths[i] * (barWidth / 2.0 + barOffset))) :
+          xs(d[0] - s.barWidths[i] * (barWidth / 2.0 + barOffset));
+      })
+      .attr('y', function(d, i) { return ys(d[1]); })
+      .attr('width', function(d, i) {
+        return d[0] instanceof Date ?
+          xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0)) -
+          xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0)) :
+          xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
+          xs(d[0] - s.barWidths[i] * barWidth / 2.0);
+      })
+      .attr('height', function(d, i) { return h - ys(d[1]); })
+      .style('fill', sty(fill))
+      .style('fill-opacity', sty(fillOpacity))
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke));
   };
 
   return {
     restrict: 'E',
     scope: true,
     link: function(scope, elm, as) {
-      plotTypeLink(scope, elm, as, draw);
-      scope.$watch('x', function() {
+      scope.$on('setupExtra', function() {
         scope.barWidths = scope.x.map(function(xval, i) {
           if (i == 0) return scope.x[1] - xval;
           else if (i == scope.x.length - 1)
@@ -175,6 +181,7 @@ radian.directive('bars',
         scope.rangeXExtend = [scope.barWidths[0] / 2,
                               scope.barWidths[scope.x.length - 1] / 2];
       });
+      plotTypeLink(scope, elm, as, draw);
     }
   };
 }]);

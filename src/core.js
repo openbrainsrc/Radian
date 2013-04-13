@@ -152,6 +152,7 @@ radian.directive('plot',
       scope.views.forEach(function(v) { draw(v, scope); });
     };
     function reset() {
+      scope.$broadcast('setupExtra');
       scope.views = svgs.map(function(s, i) {
         return setup(scope, s, i, svgs.length);
       });

@@ -91,6 +91,22 @@ radian.factory('plotLib', function()
     })(x);
   };
 
+  // Histogramming function.
+  function histogram(xs, nbins) {
+    var rng = d3.extent(xs), binwidth = (rng[1] - rng[0]) / nbins;
+    var cs = [], ns = [];
+    for (var i = 0; i < nbins; ++i) {
+      ns.push(0);  cs.push(rng[0] + binwidth * (i + 0.5));
+    }
+    for (var i = 0; i < xs.length; ++i)
+      ++ns[Math.min(nbins-1, Math.max
+                    (0, Math.floor((xs[i] - rng[0]) / binwidth)))];
+    var fs = [];
+    for (var i = 0; i < nbins; ++i) fs.push(ns[i] / xs.length);
+    var ret = { centres:cs, counts:ns, freqs:fs };
+    console.log("ret = " + JSON.stringify(ret));
+    return ret;
+  };
 
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
@@ -138,6 +154,7 @@ radian.factory('plotLib', function()
            lognormal: lognormal,
            gamma: gamma,
            invgamma: invgamma,
+           histogram: histogram,
            rad$$neg: vect(function(a) { return -a; }),
            rad$$add: vectOp(function(a, b) { return a + b; }),
            rad$$sub: vectOp(function(a, b) { return a - b; }),
