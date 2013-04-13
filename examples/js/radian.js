@@ -695,11 +695,16 @@ radian.directive('plotOptions', ['processAttrs', function(processAttrs)
 
   return {
     restrict: 'E',
-    template: '<div ng-transclude></div>',
+    template: '<div></div>',
     replace: true,
     transclude: true,
-    scope: false,
-    link: function(scope, elm, as) { processAttrs(scope, as); }
+    scope: true,
+    compile: function(elm, as, trans) {
+      return { pre: function(s, e, a) {
+        processAttrs(s, a);
+        trans(s.$new(), function (cl) { e.append(cl); });
+      } };
+    }
   };
 }]);
 // This file contains a modified version of the Acorn parser, set up
@@ -2837,7 +2842,7 @@ radian.directive('points',
       })
       .attr('d', points)
       .style('fill', sty(fill))
-      .style('fillOpacity', sty(fillOpacity))
+      .style('fill-opacity', sty(fillOpacity))
       .style('stroke-width', sty(strokeWidth))
       .style('stroke-opacity', sty(strokeOpacity))
       .style('stroke', sty(stroke));
@@ -2865,7 +2870,6 @@ radian.directive('bars',
     var strokeOpacity = s.strokeOpacity || 1.0;
     var stroke = s.stroke || '#000';
     var fillOpacity = s.fillOpacity || 1.0;
-    console.log("fillOpacity = " + fillOpacity);
     var fill = s.fill || 'none';
     var barWidth = s.barWidth || 1.0;
     var barOffset = s.barOffset || 0.0;

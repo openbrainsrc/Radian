@@ -693,10 +693,15 @@ radian.directive('plotOptions', ['processAttrs', function(processAttrs)
 
   return {
     restrict: 'E',
-    template: '<div ng-transclude></div>',
+    template: '<div></div>',
     replace: true,
     transclude: true,
-    scope: false,
-    link: function(scope, elm, as) { processAttrs(scope, as); }
+    scope: true,
+    compile: function(elm, as, trans) {
+      return { pre: function(s, e, a) {
+        processAttrs(s, a);
+        trans(s.$new(), function (cl) { e.append(cl); });
+      } };
+    }
   };
 }]);
