@@ -103,9 +103,7 @@ radian.factory('plotLib', function()
                     (0, Math.floor((xs[i] - rng[0]) / binwidth)))];
     var fs = [];
     for (var i = 0; i < nbins; ++i) fs.push(ns[i] / xs.length);
-    var ret = { centres:cs, counts:ns, freqs:fs };
-    console.log("ret = " + JSON.stringify(ret));
-    return ret;
+    return { centres:cs, counts:ns, freqs:fs };
   };
 
   // Library -- used for bringing useful names into scope for
