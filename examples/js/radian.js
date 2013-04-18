@@ -2945,7 +2945,7 @@ radian.directive('palette',
       var typ = attrs.type || 'norm';
       var interp = attrs.interp || 'hsl';
       interp = interp.toLowerCase();
-      var banded = !!attrs.banded;
+      var banded = attrs.hasOwnProperty("banded");
 
       // Process content -- all text children are appended together
       // for parsing.
@@ -3060,7 +3060,12 @@ radian.factory('contPalFn', function()
 
     // Set up appropriate D3 colour interpolation factory.
     var intfac;
-    switch (interp) {
+    if (band)
+      intfac = function(a, b) { return function(t) {
+//        console.log("a=" + a + " b=" + b + " t=" + t);
+        return a;
+      }; };
+    else switch (interp) {
     case 'rgb': intfac = d3.interpolateRgb;  break;
     case 'hcl': intfac = d3.interpolateHcl;  break;
     case 'lab': intfac = d3.interpolateLab;  break;
@@ -3085,7 +3090,6 @@ radian.factory('contPalFn', function()
       lims.push(Number(css[0].trim()));
       cols.push(css[1].trim());
     });
-
     // Check for ascending limit values.
     for (var i = 1; i < lims.length; ++i)
       if (lims[i] < lims[i - 1])
@@ -3093,6 +3097,13 @@ radian.factory('contPalFn', function()
 
     // Minimum and maximum segment limits.
     var minl = lims[0], maxl = lims[lims.length-1];
+    if (band && !isabs && maxl != 1) {
+      lims.push(1);
+      cols.push('black');
+      maxl = 1;
+    }
+    console.log("lims=" + JSON.stringify(lims));
+    console.log("cols=" + JSON.stringify(cols));
     if (!isabs && (minl != 0 || maxl != 1))
       throw Error("invalid segment limits for normalised palette");
 
@@ -3211,9 +3222,7 @@ radian.factory('plotLib', function()
                     (0, Math.floor((xs[i] - rng[0]) / binwidth)))];
     var fs = [];
     for (var i = 0; i < nbins; ++i) fs.push(ns[i] / xs.length);
-    var ret = { centres:cs, counts:ns, freqs:fs };
-    console.log("ret = " + JSON.stringify(ret));
-    return ret;
+    return { centres:cs, counts:ns, freqs:fs };
   };
 
   // Library -- used for bringing useful names into scope for
