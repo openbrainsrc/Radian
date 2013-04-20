@@ -2588,38 +2588,12 @@ radian.factory('radianParse', function()
 // Bring plot data into Angular scope by parsing <plot-data> directive
 // body.
 
-radian.directive('plotData', [function()
+radian.directive('plotData', ['$http', function($http)
 {
   'use strict';
 
-  // We use a post-link function here so that any enclosed <metadata>
-  // directives will have been linked by the time we get here.
-  function postLink(scope, elm, as) {
-    // The <plot-data> element is only there to carry data, so hide
-    // it right away.
-    elm.hide();
-
-    // Process attributes.
-    if (!as.name) throw Error('<plot-data> must have NAME attribute');
-    var dataset = as.name;
-    var format = as.format || 'json';
-    var sep = as.separator === '' ? ' ' : (as.separator || ',');
-    var cols = as.cols;
-    if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
-    var formats = ['json', 'csv'];
-    if (formats.indexOf(format) == -1)
-      throw Error('invalid FORMAT "' + format + '" in <plot-data>');
-    if (format == 'csv' && !cols)
-      throw Error('CSV <plot-data> must have COLS');
-
-    // Process content -- all text children are appended together
-    // for parsing.
-    var datatext = '';
-    elm.contents().each(function(i,n) {
-      if (n instanceof Text) datatext += n.textContent;
-    });
-
-    // Parse data.
+  // Parse JSON or CSV data.
+  function parseData(datatext, format, cols, separator) {
     var d;
     var fpre = /^\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/;
     switch (format) {
@@ -2633,7 +2607,7 @@ radian.directive('plotData', [function()
                            .map(function(s) {
                              return s.replace(/^\s+/, '');
                            }).join('\n'),
-                           { separator: sep });
+                           { separator: separator });
         if (d.length > 0) {
           if (d[0].length != cols.length)
             throw Error('mismatch between COLS and' +
@@ -2654,20 +2628,25 @@ radian.directive('plotData', [function()
         }
       } catch (e) { throw Error('invalid CSV data in <plot-data>'); }
     }
+    return d;
+  };
 
-    // Process any date fields.
-    function dateProcess(d, k, f) {
-      function go(x, active) {
-        if (x instanceof Array && x.length > 0) {
-          if (typeof x[0] == 'string' && active)
-            x.forEach(function(v, i) { x[i] = f(v); });
-          else
-            x.forEach(function(v) { go(v, false); });
-        } else if (typeof x == 'object')
-          Object.keys(x).forEach(function(xk) { go(x[xk], xk == k); });
-      }
-      go(d, false);
-    };
+  // Date field processing.
+  function dateProcess(d, k, f) {
+    function go(x, active) {
+      if (x instanceof Array && x.length > 0) {
+        if (typeof x[0] == 'string' && active)
+          x.forEach(function(v, i) { x[i] = f(v); });
+        else
+          x.forEach(function(v) { go(v, false); });
+      } else if (typeof x == 'object')
+        Object.keys(x).forEach(function(xk) { go(x[xk], xk == k); });
+    }
+    go(d, false);
+  };
+
+  // Process all date fields.
+  function processDates(scope, dataset, d) {
     if (scope.$parent[dataset] && scope.$parent[dataset].metadata) {
       for (var k in scope.$parent[dataset].metadata) {
         var md = scope.$parent[dataset].metadata[k];
@@ -2685,11 +2664,55 @@ radian.directive('plotData', [function()
         }
       }
     }
+  };
 
-    // Install data in scope, preserving any metadata.
-    var md = scope.$parent[dataset] ? scope.$parent[dataset].metadata : null;
-    scope.$parent[dataset] = d;
-    if (md) scope.$parent[dataset].metadata = md;
+
+  // We use a post-link function here so that any enclosed <metadata>
+  // directives will have been linked by the time we get here.
+  function postLink(scope, elm, as) {
+    // The <plot-data> element is only there to carry data, so hide
+    // it right away.
+    elm.hide();
+
+    // Process attributes.
+    if (!as.name) throw Error('<plot-data> must have NAME attribute');
+    var dataset = as.name;
+    var format = as.format || 'json';
+    var sep = as.separator === '' ? ' ' : (as.separator || ',');
+    var cols = as.cols;
+    if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
+    var formats = ['json', 'csv'];
+    if (formats.indexOf(format) == -1)
+      throw Error('invalid FORMAT "' + format + '" in <plot-data>');
+    if (format == 'csv' && !cols)
+      throw Error('CSV <plot-data> must have COLS');
+    var src = as.src;
+
+    // Process content -- all text children are appended together
+    // for parsing.
+    function processData(datatext) {
+      // Parse data.
+      var d = parseData(datatext, format, cols, sep);
+
+      // Process any date fields.
+      processDates(scope, dataset, d);
+
+      // Install data in scope, preserving any metadata.
+      var md = scope.$parent[dataset] ? scope.$parent[dataset].metadata : null;
+      scope.$parent[dataset] = d;
+      if (md) scope.$parent[dataset].metadata = md;
+    };
+    if (!src) {
+      var datatext = '';
+      elm.contents().each(function(i,n) {
+        if (n instanceof Text) datatext += n.textContent;
+      });
+      processData(datatext);
+    } else {
+      $http.get(src)
+        .success(function(data) { processData(data); })
+        .error(function() { throw Error("failed to read data from " + src); });
+    }
   };
 
   return {
@@ -3061,10 +3084,7 @@ radian.factory('contPalFn', function()
     // Set up appropriate D3 colour interpolation factory.
     var intfac;
     if (band)
-      intfac = function(a, b) { return function(t) {
-//        console.log("a=" + a + " b=" + b + " t=" + t);
-        return a;
-      }; };
+      intfac = function(a, b) { return function(t) { return a; }; };
     else switch (interp) {
     case 'rgb': intfac = d3.interpolateRgb;  break;
     case 'hcl': intfac = d3.interpolateHcl;  break;
@@ -3095,15 +3115,12 @@ radian.factory('contPalFn', function()
       if (lims[i] < lims[i - 1])
         throw Error("entries out of order in <palette>");
 
-    // Minimum and maximum segment limits.
+    // Minimum and maximum segment limits (fix up top end for banded
+    // palettes).
     var minl = lims[0], maxl = lims[lims.length-1];
     if (band && !isabs && maxl != 1) {
-      lims.push(1);
-      cols.push('black');
-      maxl = 1;
+      lims.push(1);  cols.push('black');  maxl = 1;
     }
-    console.log("lims=" + JSON.stringify(lims));
-    console.log("cols=" + JSON.stringify(cols));
     if (!isabs && (minl != 0 || maxl != 1))
       throw Error("invalid segment limits for normalised palette");
 
