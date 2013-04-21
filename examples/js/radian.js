@@ -633,7 +633,8 @@ radian.directive('plot',
               s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
             var y = (s[yvar][0] instanceof Array) ?
               s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
-            s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight);
+            s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight,
+                   yvar == 'y2' ? 2 : 1);
             s.$on('$destroy', function() { g.remove(); });
           }
         }
@@ -2946,6 +2947,52 @@ radian.directive('bars',
     }
   };
 }]);
+
+
+// Area plots.
+
+radian.directive('area',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s, axis) {
+    var opacity = s.fillOpacity || 1.0;
+    var fill = s.fill || '#000';
+    var yminv = axis == 1 ? 'ymin' : 'y2min';
+    var ymin, ymintmp = 0;
+    if (s.hasOwnProperty(yminv)) ymintmp = s[yminv];
+    if (ymintmp instanceof Array)
+      ymin = ymintmp;
+    else {
+      ymin = new Array(x.length);
+      for (var i = 0; i < ymin.length; ++i) ymin[i] = Number(ymintmp);
+    }
+
+    // Switch on type of stroke...
+    if (!(opacity instanceof Array || fill instanceof Array)) {
+      // Normal area; single path.
+      var area = d3.svg.area()
+        .x(function(d) { return xs(d[0]); })
+        .y0(function(d) { return ys(d[1]); })
+        .y1(function(d) { return ys(d[2]); });
+      svg.append('path').datum(d3.zip(x, ymin, y))
+        .attr('class', 'area').attr('d', area)
+        .style('fill-opacity', opacity)
+        .style('fill', fill);
+    } else throw Error("<area> plots require singular paint attributes")
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      plotTypeLink(scope, elm, as, draw);
+    }
+  };
+}]);
+
+
 // Process palette directive.
 
 radian.directive('palette',

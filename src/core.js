@@ -631,7 +631,8 @@ radian.directive('plot',
               s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
             var y = (s[yvar][0] instanceof Array) ?
               s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
-            s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight);
+            s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight,
+                   yvar == 'y2' ? 2 : 1);
             s.$on('$destroy', function() { g.remove(); });
           }
         }
