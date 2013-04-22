@@ -1953,7 +1953,8 @@ radian.factory('radianParse', function()
     }
     default: {
       // Deal with optional tags.
-      var banded = false, interp = "hsl";
+      var banded, interp;
+      banded = false; interp = "hsl";
       if (tokType == _name) {
         var tmp = parseIdent().name.toLowerCase();
         if (tmp == "banded") { next(); banded = true; }
@@ -1971,7 +1972,8 @@ radian.factory('radianParse', function()
 
       // We are now lined up at the beginning of the (value, colour)
       // pairs.
-      var vals = [], cols = [], first = true;
+      var first, vals, cols;
+      first = true; vals = []; cols = [];
       while (!eat(_braceR)) {
         if (!first) eat(_semi); else first = false;
         if (tokType == _name) vals.push(parseIdent().name);
@@ -1988,7 +1990,7 @@ radian.factory('radianParse', function()
     var node = startNode();
     node.palette = paldef;
     return finishNode(node, "PaletteExpression");
-  }
+  };
 
 
   // Parses a comma-separated list of expressions, and returns them as
