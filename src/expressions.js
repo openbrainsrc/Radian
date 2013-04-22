@@ -20,8 +20,8 @@
 // [ghbt]: https://github.com/marijnh/acorn/issues
 
 radian.factory('radianEval',
-  ['$rootScope', 'plotLib', 'radianParse',
-  function($rootScope, plotLib, radianParse)
+  ['$rootScope', 'plotLib', 'radianParse', 'genPalFn',
+  function($rootScope, plotLib, radianParse, genPalFn)
 {
   // Top level JavaScript names that we don't want to treat as free
   // variables in Radian expressions.
@@ -41,10 +41,20 @@ radian.factory('radianEval',
     if (expr == "") return returnfvs ? [0, []] : 0;
 
     // Parse data path as (slightly enhanced) JavaScript.
-    var ast = radianParse(expr);
-    estraverse.traverse(ast, { leave: function(n) {
+    var astorig = radianParse(expr);
+    estraverse.traverse(astorig, { leave: function(n) {
       delete n.start; delete n.end;
     } });
+
+    // Process palette and interpolator definitions into named
+    // functions.
+    var ast = estraverse.replace(astorig, { enter: function(n) {
+      if (n.type == "PaletteExpression")
+        return { type: "MemberExpression",
+                 object: { type: "Identifier", name: "rad$$pal" },
+                 property: { type: "Identifier", name: genPalFn(n.palette) } };
+      else return n;
+    }});
 
     // Determine metadata key, which is only possible for simple
     // applications of member access and plucking.  (For example, for
@@ -390,7 +400,7 @@ radian.factory('radianParse', function()
 
   var _num = {type: "num"}, _regexp = {type: "regexp"};
   var _string = {type: "string"}, _name = {type: "name"};
-  var _eof = {type: "eof"};
+  var _colour = {type: "colour"}, _eof = {type: "eof"};
 
   // Keyword tokens. The `keyword` property (also used in keyword-like
   // operators) indicates that the token originated from an
@@ -418,6 +428,7 @@ radian.factory('radianParse', function()
   var _var = {keyword: "var"}, _while = {keyword: "while", isLoop: true};
   var _with = {keyword: "with"}, _new = {keyword: "new", beforeExpr: true};
   var _this = {keyword: "this"};
+  var _palette = {keyword: "@P"}, _interpolator = {keyword: "@I"};
 
   // The keywords that denote values.
 
@@ -441,7 +452,7 @@ radian.factory('radianParse', function()
      "var": _var, "while": _while, "with": _with, "null": _null, "true": _true,
      "false": _false, "new": _new, "in": _in,
      "instanceof": {keyword: "instanceof", binop: 7, beforeExpr: true},
-     "this": _this,
+     "this": _this, "@P": _palette, "@I": _interpolator,
      "typeof": {keyword: "typeof", prefix: true, beforeExpr: true},
      "void": {keyword: "void", prefix: true, beforeExpr: true},
      "delete": {keyword: "delete", prefix: true, beforeExpr: true}};
@@ -777,6 +788,13 @@ radian.factory('radianParse', function()
     return finishOp(code === 61 ? _eq : _prefix, 1);
   }
 
+  function readToken_pal_interp() { // '@'
+    var next = input.charCodeAt(tokPos+1);
+    if (next == 80) return finishOp(_palette, 2); // 'P'
+    else if (next == 73) return finishOp(_interpolator, 2); // 'I'
+    else raise("Invalid palette token sequence");
+  }
+
   function getTokenFromCode(code) {
     switch(code) {
       // The interpretation of a dot depends on whether it is followed
@@ -839,6 +857,9 @@ radian.factory('radianParse', function()
 
     case 126: // '~'
       return finishOp(_prefix, 1);
+
+    case 64: // '@'
+      return readToken_pal_interp(code);
     }
 
     return false;
@@ -852,6 +873,7 @@ radian.factory('radianParse', function()
     var code = input.charCodeAt(tokPos);
     // Identifier or keyword. '\uXXXX' sequences are allowed in
     // identifiers, so '\' also dispatches to that.
+    if (code == '#') return readColour();
     if (isIdentifierStart(code) || code === 92 /* '\' */) return readWord();
 
     var tok = getTokenFromCode(code);
@@ -1070,6 +1092,23 @@ radian.factory('radianParse', function()
         raise(tokStart, "The keyword '" + word + "' is reserved");
     }
     return finishToken(type, word);
+  }
+
+  function readColour() {
+    function ishex(c) {
+      return c >= '0' && c <= '9' ||
+        c >= 'A' && c <= 'F' ||
+        c >= 'a' && c <= 'f';
+    };
+    ++tokPos;
+    var n = 0;
+    for (var i = tokPos; ishex(input.charAt(i)) && i < 6; ++i) ++n;
+    var val;
+    if (n == 6) { val = input.substr(0, 6); tokPos += 6; }
+    else if (n == 3) { val = input.substr(0, 3); tokPos += 3; }
+    else raise("Invalid colour constant");
+    var type = _colour;
+    return finishToken(type, val);
   }
 
   // ## Parser
@@ -1730,6 +1769,16 @@ radian.factory('radianParse', function()
       next();
       return parseFunction(node, false);
 
+    case _palette:
+      var node = startNode();
+      next();
+      return parsePalette(node);
+
+    case _interpolator:
+      var node = startNode();
+      next();
+      return parseInterpolator(node);
+
     case _new:
       return parseNew();
 
@@ -1841,6 +1890,106 @@ radian.factory('radianParse', function()
     return finishNode(node, isStatement ?
                       "FunctionDeclaration" : "FunctionExpression");
   }
+
+  function parsePalette(node) {
+    // Possible formats are:
+    //
+    //  @P{colour:colour}                                     G
+    //  @P{colour;colour;colour...}                           C
+    //  @P{type interp banded value colour; value colour...}  D/A/N
+    //
+    // The "type" value is mandatory and can be one of "norm", "abs"
+    // or "discrete" or abbreviations of them (i.e. "n" or "N", "a" or
+    // "A" and "d" or "D"); "interp" and "banded" are both optional --
+    // valid values for "interp" are "RGB", "HSL", "HCL" or "Lab";
+    // "banded" is just a present/absent flag.
+    //
+    // The "value" items are numbers, and "colour" items are either
+    // names or of the form #XXX or #XXXXXX, where X is a hex digit.
+
+    var type, tmp;
+    expect(_braceL);
+    if (tokType == _name) {
+      tmp = parseIdent().name.toLowerCase();
+      if ("discrete".substr(0, tmp.length) == tmp)        type = 'discrete';
+      else if ("absolute".substr(0, tmp.length) == tmp)   type = 'absolute';
+      else if ("normalised".substr(0, tmp.length) == tmp) type = 'normalised';
+      else if (eat(_semi))                                type = 'colours';
+      else if (eat(_colon))                               type = 'gradient';
+      else raise("Invalid palette specification");
+    } else if (tokType == _colour) {
+      tmp = '#' + tokVal;
+      next();
+      if (eat(_semi))                                     type = 'colours';
+      else if (eat(_colon))                               type = 'gradient';
+      else raise("Invalid palette specification");
+    } else type = 'normalised';
+
+    var paldef;
+    switch (type) {
+    case 'gradient': {
+      var col1 = tmp, col2;
+      if (tokType == _name)
+        col2 = parseIdent().name.toLowerCase();
+      else if (tokType == _colour)
+        col2 = '#' + tokVal;
+      else raise("Invalid palette specification");
+      expect(_braceR);
+      paldef = { type:"normalised", values:[0,1], colours:[col1,col2] };
+      break;
+    }
+    case 'colours': {
+      var cols = [tmp], first = false;
+      while (!eat(_braceR)) {
+        if (!first) expect(_semi); else first = false;
+        if (tokType == _name)
+          cols.push(parseIdent().name.toLowerCase());
+        else if (tokType == _colour)
+          cols.push('#' + tokVal);
+        else raise("Invalid palette specification");
+      }
+      paldef = { type:"discrete", values:null, colours:cols };
+      break;
+    }
+    default: {
+      // Deal with optional tags.
+      var banded = false, interp = "hsl";
+      if (tokType == _name) {
+        var tmp = parseIdent().name.toLowerCase();
+        if (tmp == "banded") { next(); banded = true; }
+        else {
+          if (tmp == "rgb" || tmp == "hsl" || tmp == "hcl" || tmp == "lab") {
+            interp = tmp;
+            next();
+            if (tokType == _name) {
+              tmp = parseIdent().name.toLowerCase();
+              if (tmp == "banded") { next(); banded = true; }
+            }
+          }
+        }
+      }
+
+      // We are now lined up at the beginning of the (value, colour)
+      // pairs.
+      var vals = [], cols = [], first = true;
+      while (!eat(_braceR)) {
+        if (!first) eat(_semi); else first = false;
+        if (tokType == _name) vals.push(parseIdent().name);
+        else if (tokType == _num) { vals.push(tokVal); next(); }
+        else raise("Invalid palette specification");
+        if (tokType == _name) cols.push(parseIdent().name.toLowerCase());
+        else if (tokType == _colour) { cols.push('#' + tokVal); next(); }
+        else raise("Invalid palette specification");
+      }
+      paldef = { type:type, values:vals, colours:cols };
+    }
+    }
+
+    var node = startNode();
+    node.palette = paldef;
+    return finishNode(node, "PaletteExpression");
+  }
+
 
   // Parses a comma-separated list of expressions, and returns them as
   // an array. `close` is the token type that ends the list, and

@@ -159,5 +159,6 @@ radian.factory('plotLib', function()
            rad$$mul: vectOp(function(a, b) { return a * b; }),
            rad$$div: vectOp(function(a, b) { return a / b; }),
            rad$$pow: vectOp(function(a, b) { return Math.pow(a, b); }),
+           rad$$pal: {}
          };
 });

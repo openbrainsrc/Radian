@@ -186,3 +186,33 @@ radian.factory('contPalFn', function()
       function(v) { return protoNorm(thiscmap, v); };
   };
 });
+
+
+radian.factory('genPalFn',
+ ['discPalFn', 'contPalFn', 'MD5', 'plotLib',
+  function(discPalFn, contPalFn, MD5, plotLib)
+{
+  'use strict';
+
+  return function(paldef) {
+    var paltext;
+    if (paldef.values)
+      paltext = d3.zip(paldef.values, paldef.colours).map(function(p) {
+        return p.join(' ');
+      }).join(';');
+    else
+      paltext = paldef.colours.join(';');
+    var fnname = paldef.type.charAt(0) + MD5(JSON.stringify(paltext));
+    if (!plotLib.rad$$pal[fnname]) {
+      var fn, interp = paldef.interp || 'hsl', band = paldef.banded;
+      switch (paldef.type) {
+      case 'discrete':   fn = discPalFn(paltext);                      break;
+      case 'absolute':   fn = contPalFn(true, paltext, band, interp);  break;
+      case 'normalised': fn = contPalFn(false, paltext, band, interp); break;
+      }
+      plotLib.rad$$pal[fnname] = fn;
+    }
+    return fnname;
+  };
+}]);
+
