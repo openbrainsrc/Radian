@@ -20,8 +20,8 @@
 // [ghbt]: https://github.com/marijnh/acorn/issues
 
 radian.factory('radianEval',
-  ['$rootScope', 'plotLib', 'radianParse', 'genPalFn',
-  function($rootScope, plotLib, radianParse, genPalFn)
+  ['plotLib', 'radianParse', 'genPalFn',
+  function(plotLib, radianParse, genPalFn)
 {
   // Top level JavaScript names that we don't want to treat as free
   // variables in Radian expressions.
@@ -254,9 +254,9 @@ radian.factory('radianEval',
         throw Error("radianEval failed on '" + expr + "' -- " + e.message);
     }
     if (ret && dataset && metadatakey) {
-      if ($rootScope[dataset] && $rootScope[dataset].metadata &&
-          $rootScope[dataset].metadata[metadatakey])
-        ret.metadata = $rootScope[dataset].metadata[metadatakey];
+      if (scope[dataset] && scope[dataset].metadata &&
+          scope[dataset].metadata[metadatakey])
+        ret.metadata = scope[dataset].metadata[metadatakey];
     }
     return returnfvs ? [ret, Object.keys(fvs)] : ret;
   };
