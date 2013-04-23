@@ -795,7 +795,22 @@ radian.factory('radianParse', function()
     else raise("Invalid palette token sequence");
   }
 
-  function getTokenFromCode(code) {
+  function readToken_colour() { // '#'
+    function ishex(c) {
+      return c>='0' && c<='9' || c>='A' && c<='F' || c>='a' && c<='f';
+    };
+    ++tokPos;
+    var n = 0;
+    for (var i = tokPos; ishex(input.charAt(i)) && n < 6; ++i) ++n;
+    var val;
+    if (n == 6) { val = input.substr(tokPos, 6); tokPos += 6; }
+    else if (n == 3) { val = input.substr(tokPos, 3); tokPos += 3; }
+    else raise("Invalid colour constant");
+    var type = _colour;
+    return finishToken(type, val);
+  }
+
+  function getTokenFromCode(code, doColour) {
     switch(code) {
       // The interpretation of a dot depends on whether it is followed
       // by a digit.
@@ -803,7 +818,9 @@ radian.factory('radianParse', function()
       return readToken_dot();
 
       // Punctuation tokens.
-    case 35: ++tokPos; return finishToken(_hash);
+    case 35:
+      if (doColour) return readToken_colour();
+      else { ++tokPos; return finishToken(_hash); }
     case 40: ++tokPos; return finishToken(_parenL);
     case 41: ++tokPos; return finishToken(_parenR);
     case 59: ++tokPos; return finishToken(_semi);
@@ -865,7 +882,8 @@ radian.factory('radianParse', function()
     return false;
   }
 
-  function readToken(forceRegexp) {
+  function readToken(forceRegexp, doColour) {
+    if (doColour) --tokPos;
     tokStart = tokPos;
     if (forceRegexp) return readRegexp();
     if (tokPos >= inputLen) return finishToken(_eof);
@@ -873,10 +891,9 @@ radian.factory('radianParse', function()
     var code = input.charCodeAt(tokPos);
     // Identifier or keyword. '\uXXXX' sequences are allowed in
     // identifiers, so '\' also dispatches to that.
-    if (code == '#') return readColour();
     if (isIdentifierStart(code) || code === 92 /* '\' */) return readWord();
 
-    var tok = getTokenFromCode(code);
+    var tok = getTokenFromCode(code, doColour);
 
     if (tok === false) {
       // If we are here, we either found a non-ASCII identifier
@@ -1092,23 +1109,6 @@ radian.factory('radianParse', function()
         raise(tokStart, "The keyword '" + word + "' is reserved");
     }
     return finishToken(type, word);
-  }
-
-  function readColour() {
-    function ishex(c) {
-      return c >= '0' && c <= '9' ||
-        c >= 'A' && c <= 'F' ||
-        c >= 'a' && c <= 'f';
-    };
-    ++tokPos;
-    var n = 0;
-    for (var i = tokPos; ishex(input.charAt(i)) && i < 6; ++i) ++n;
-    var val;
-    if (n == 6) { val = input.substr(0, 6); tokPos += 6; }
-    else if (n == 3) { val = input.substr(0, 3); tokPos += 3; }
-    else raise("Invalid colour constant");
-    var type = _colour;
-    return finishToken(type, val);
   }
 
   // ## Parser
@@ -1917,22 +1917,22 @@ radian.factory('radianParse', function()
       else if (eat(_semi))                                type = 'colours';
       else if (eat(_colon))                               type = 'gradient';
       else raise("Invalid palette specification");
-    } else if (tokType == _colour) {
-      tmp = '#' + tokVal;  next();
+    } else if (tokType == _hash) {
+      readToken(false, true);  tmp = '#' + tokVal;  next();
       if (eat(_semi))                                     type = 'colours';
       else if (eat(_colon))                               type = 'gradient';
       else raise("Invalid palette specification");
     } else type = 'normalised';
 
-    var paldef;
+    var paldef = { type:type };
     switch (type) {
     case 'gradient': {
       var col1 = tmp, col2;
       if (tokType == _name)
         col2 = parseIdent().name.toLowerCase();
-      else if (tokType == _colour)
-        col2 = '#' + tokVal;
-      else raise("Invalid palette specification");
+      else if (tokType == _hash) {
+        readToken(false, true);  col2 = '#' + tokVal;  next();
+      } else raise("Invalid palette specification");
       expect(_braceR);
       paldef = { type:"normalised", values:[0,1], colours:[col1,col2] };
       break;
@@ -1943,27 +1943,29 @@ radian.factory('radianParse', function()
         if (!first) expect(_semi); else first = false;
         if (tokType == _name)
           cols.push(parseIdent().name.toLowerCase());
-        else if (tokType == _colour)
-          cols.push('#' + tokVal);
-        else raise("Invalid palette specification");
+        else if (tokType == _hash) {
+          readToken(false, true);  cols.push('#' + tokVal);  next();
+        } else raise("Invalid palette specification");
       }
       paldef = { type:"discrete", values:null, colours:cols };
       break;
     }
-    default: {
+    case 'absolute':
+    case 'normalised':
       // Deal with optional tags.
-      var banded, interp;
-      banded = false; interp = 'hsl';
       if (tokType == _name &&
           (tokVal == 'banded' || tokVal == 'rgb' || tokVal == 'hsl' ||
            tokVal == 'hcl' || tokVal == 'lab')) {
-        if (tokVal == 'banded') { banded = true; next(); }
+        if (tokVal == 'banded') { paldef.banded = true; next(); }
         else {
-          interp = tmp;  next();
-          if (tokType == _name && tokVal == 'banded') { banded = true; next(); }
+          paldef.interp = tmp;  next();
+          if (tokType == _name && tokVal == 'banded') {
+            paldef.banded = true; next();
+          }
         }
       }
-
+      // DELIBERATE FALL-THROUGH TO NEXT CASE!
+    case 'discrete':
       // We are now lined up at the beginning of the (value, colour)
       // pairs.
       var first, vals, cols;
@@ -1979,12 +1981,13 @@ radian.factory('radianParse', function()
         } else if (tokType == _num) { vals.push(tokVal);  next(); }
         else raise("Invalid palette specification");
         if (tokType == _name) cols.push(parseIdent().name.toLowerCase());
-        else if (tokType == _colour) { cols.push('#' + tokVal); next(); }
+        else if (tokType == _hash) {
+          readToken(false, true);  cols.push('#' + tokVal);  next();
+        }
         else raise("Invalid palette specification");
       }
-      paldef = { type:type, values:vals, colours:cols };
-      if (banded) paldef.banded = true;
-    }
+      paldef.values = vals;
+      paldef.colours = cols;
     }
 
     var node = startNode();

@@ -2,13 +2,13 @@
 
 <plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
       axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
-  <lines y="[[sin(x)]]" stroke="[[@P{blue:red}(y)]]"/>
+  <lines y="[[sin(x)]]" stroke="[[@P{#7F7F7F:#FF0000}(y)]]"/>
   <lines y="[[cos(x)]]" stroke="[[@P{0 green; 1 orange}(y)]]"/>
 </plot>
 
 <plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
       axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
-  <lines y="[[sin(x)]]" stroke="[[@P{abs -2 blue; 2 red}(y)]]"/>
+  <lines y="[[sin(x)]]" stroke="[[@P{abs -2 #00F; 2 #F00}(y)]]"/>
   <lines y="[[cos(x)]]" stroke="[[@P{abs -1 green; 1 orange}(y)]]"/>
 </plot>
 
