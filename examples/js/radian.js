@@ -2985,13 +2985,25 @@ radian.directive('lines',
     } else {
       // Multiple paths to deal with varying characteristics along
       // line.
-      var based = d3.zip(x, y);
-      var lined = d3.zip(based, based.slice(1));
+      var ptsperseg = 50, maxsegments = Math.floor(x.length / ptsperseg);
+      var based = d3.zip(x, y), lined = [];
+      var widths = [], opacities = [], strokes = [];
+      var i0 = 0, i1 = ptsperseg;
+      while (i0 < x.length) {
+        lined.push(based.slice(i0, i1+1));
+        var imid = Math.floor((i0 + i1) / 2);
+        widths.push(width instanceof Array ? width[imid] : width);
+        opacities.push(opacity instanceof Array ? opacity[imid] : opacity);
+        strokes.push(stroke instanceof Array ? stroke[imid] : stroke);
+        i0 = i1;
+        i1 = i0 + ptsperseg;
+      }
       svg.selectAll('path').data(lined).enter().append('path')
         .attr('class', 'line')
-        .style('stroke-width', sty(width))
-        .style('stroke-opacity', sty(opacity))
-        .style('stroke', sty(stroke))
+        .style('stroke-width', function(d, i) { return widths[i]; })
+        .style('stroke-opacity', function(d, i) { return opacities[i]; })
+        .style('stroke', function(d, i) { return strokes[i]; })
+        .style('fill', 'none')
         .attr('d', d3.svg.line()
               .x(function (d) { return xs(d[0]); })
               .y(function (d) { return ys(d[1]); }));
