@@ -170,8 +170,16 @@ radian.factory('contPalFn', function()
     // Minimum and maximum segment limits (fix up top end for banded
     // palettes).
     var minl = lims[0], maxl = lims[lims.length-1];
-    if (band && !isabs && maxl != 1) {
-      lims.push(1);  cols.push('black');  maxl = 1;
+    if (band) {
+      if (isabs) {
+        lims.push(Number.MAX_VALUE);
+        cols.push('black');
+        maxl = Number.MAX_VALUE;
+      } else if (maxl != 1) {
+        lims.push(1);
+        cols.push('black');
+        maxl = 1;
+      }
     }
     if (!isabs && (minl != 0 || maxl != 1))
       throw Error("invalid segment limits for normalised palette");

@@ -1918,8 +1918,7 @@ radian.factory('radianParse', function()
       else if (eat(_colon))                               type = 'gradient';
       else raise("Invalid palette specification");
     } else if (tokType == _colour) {
-      tmp = '#' + tokVal;
-      next();
+      tmp = '#' + tokVal;  next();
       if (eat(_semi))                                     type = 'colours';
       else if (eat(_colon))                               type = 'gradient';
       else raise("Invalid palette specification");
@@ -1954,19 +1953,14 @@ radian.factory('radianParse', function()
     default: {
       // Deal with optional tags.
       var banded, interp;
-      banded = false; interp = "hsl";
-      if (tokType == _name) {
-        var tmp = parseIdent().name.toLowerCase();
-        if (tmp == "banded") { next(); banded = true; }
+      banded = false; interp = 'hsl';
+      if (tokType == _name &&
+          (tokVal == 'banded' || tokVal == 'rgb' || tokVal == 'hsl' ||
+           tokVal == 'hcl' || tokVal == 'lab')) {
+        if (tokVal == 'banded') { banded = true; next(); }
         else {
-          if (tmp == "rgb" || tmp == "hsl" || tmp == "hcl" || tmp == "lab") {
-            interp = tmp;
-            next();
-            if (tokType == _name) {
-              tmp = parseIdent().name.toLowerCase();
-              if (tmp == "banded") { next(); banded = true; }
-            }
-          }
+          interp = tmp;  next();
+          if (tokType == _name && tokVal == 'banded') { banded = true; next(); }
         }
       }
 
@@ -1977,13 +1971,19 @@ radian.factory('radianParse', function()
       while (!eat(_braceR)) {
         if (!first) eat(_semi); else first = false;
         if (tokType == _name) vals.push(parseIdent().name);
-        else if (tokType == _num) { vals.push(tokVal); next(); }
+        else if (tokType == _plusmin) {
+          var sign = tokVal == '-' ? (-1) : 1;
+          next();
+          if (tokType != _num) raise("Invalid palette specification");
+          vals.push(sign * tokVal);  next();
+        } else if (tokType == _num) { vals.push(tokVal);  next(); }
         else raise("Invalid palette specification");
         if (tokType == _name) cols.push(parseIdent().name.toLowerCase());
         else if (tokType == _colour) { cols.push('#' + tokVal); next(); }
         else raise("Invalid palette specification");
       }
       paldef = { type:type, values:vals, colours:cols };
+      if (banded) paldef.banded = true;
     }
     }
 
