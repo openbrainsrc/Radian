@@ -214,9 +214,9 @@ radian.directive('plot',
       scope.$on('dataChange', reset);
 
       // Register UI event handlers.
-      scope.$watch('strokesel', redraw);
-      scope.$watch('xidx', reset);
-      scope.$watch('yidx', reset);
+      scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });
+      scope.$watch('xidx', function(n, o) { if (n != undefined) reset(); });
+      scope.$watch('yidx', function(n, o) { if (n != undefined) reset(); });
     }, 0);
 
     // Set up interactivity.
@@ -280,6 +280,47 @@ radian.directive('plot',
         if (ok) scope[yrngv] = ext;
       }
     }
+  };
+
+  function makeXScaler(scope, v, hasdate) {
+    var xform = scope.axisXTransform || "linear";
+    if (hasdate)
+      v.x = d3.time.scale().range([0, v.realwidth]).domain(scope.xextent);
+    else if (xform == "log")
+      v.x = d3.scale.log().range([0, v.realwidth])
+      .domain(scope.xextent).clamp(true);
+    else
+      v.x = d3.scale.linear().range([0, v.realwidth])
+      .domain(scope.xextent).clamp(true);
+  };
+  function makeX2Scaler(scope, v, hasdate) {
+    var xform = scope.axisXTransform || "linear";
+    if (hasdate)
+      v.x2 = d3.time.scale().range([0, v.realwidth]).domain(scope.x2extent);
+    else if (xform == "log")
+      v.x2 = d3.scale.log().range([0, v.realwidth])
+      .domain(scope.x2extent).clamp(true);
+    else
+      v.x2 = d3.scale.linear().range([0, v.realwidth])
+      .domain(scope.x2extent).clamp(true);
+  };
+  function makeYScaler(scope, v) {
+    var xform = scope.axisYTransform || "linear";
+    if (xform == "log")
+      v.y = d3.scale.log().range([v.realheight, 0])
+      .domain(scope.yextent).clamp(true);
+    else
+      v.y = d3.scale.linear().range([v.realheight, 0])
+      .domain(scope.yextent).clamp(true);
+  };
+  function makeY2Scaler(scope, v) {
+    var xform = scope.axisYTransform || "linear";
+    if (xform == "log")
+      v.y2 = d3.scale.log().range([v.realheight, 0])
+      .domain(scope.y2extent).clamp(true);
+    else
+      v.y2 = d3.scale.linear().range([v.realheight, 0])
+      .domain(scope.y2extent).clamp(true);
   };
 
   function setup(scope, topgroup, idx, nviews) {
@@ -420,60 +461,33 @@ radian.directive('plot',
     v.outh = v.realheight + v.margin.top + v.margin.bottom;
 
     // Set up D3 data ranges.
-    function makeXScaler() {
-      if (hasdate)
-        v.x = d3.time.scale().range([0, v.realwidth]).domain(scope.xextent);
-      else if (xAxisTransform == "log")
-        v.x = d3.scale.log().range([0, v.realwidth])
-          .domain(scope.xextent).clamp(true);
-      else
-        v.x = d3.scale.linear().range([0, v.realwidth])
-          .domain(scope.xextent).clamp(true);
-    }
-    function makeX2Scaler() {
-      if (hasdate2)
-        v.x2 = d3.time.scale().range([0, v.realwidth]).domain(scope.x2extent);
-      else if (xAxisTransform == "log")
-        v.x2 = d3.scale.log().range([0, v.realwidth])
-          .domain(scope.x2extent).clamp(true);
-      else
-        v.x2 = d3.scale.linear().range([0, v.realwidth])
-          .domain(scope.x2extent).clamp(true);
-    }
-    function makeYScaler() {
-      if (yAxisTransform == "log")
-        v.y = d3.scale.log().range([v.realheight, 0])
-          .domain(scope.yextent).clamp(true);
-      else
-        v.y = d3.scale.linear().range([v.realheight, 0])
-          .domain(scope.yextent).clamp(true);
-    };
-    function makeY2Scaler() {
-      if (yAxisTransform == "log")
-        v.y2 = d3.scale.log().range([v.realheight, 0])
-          .domain(scope.y2extent).clamp(true);
-      else
-        v.y2 = d3.scale.linear().range([v.realheight, 0])
-          .domain(scope.y2extent).clamp(true);
-    };
-    if (scope.xextent) makeXScaler();
-    if (scope.yextent) makeYScaler();
-    if (scope.x2extent) makeX2Scaler();
-    if (scope.y2extent) makeY2Scaler();
+    if (scope.xextent) makeXScaler(scope, v, hasdate);
+    if (scope.yextent) makeYScaler(scope, v, hasdate2);
+    if (scope.x2extent) makeX2Scaler(scope, v);
+    if (scope.y2extent) makeY2Scaler(scope, v);
     if (scope.hasOwnProperty("axisXTransform"))
-      scope.$watch('axisXTransform', function(n, o) {
-        xAxisTransform = n || "linear";
-        makeXScaler();
-        if (scope.x2) makeX2Scaler();
-        scope.views.forEach(function(v) { draw(v, scope); });
-      });
+      if (!scope.watchXTransform)
+        scope.watchXTransform = scope.$watch('axisXTransform', function(n, o) {
+          if (n == undefined || n == xAxisTransform) return;
+          xAxisTransform = n || "linear";
+          scope.views.forEach(function(v) {
+            makeXScaler(scope, v, hasdate);
+            if (scope.x2) makeX2Scaler(scope, v, hasdate2);
+            draw(v, scope);
+          });
+        });
     if (scope.hasOwnProperty("axisYTransform"))
-      scope.$watch('axisYTransform', function(n, o) {
+    if (!scope.watchYTransform) {
+      scope.watchYTransform = scope.$watch('axisYTransform', function(n, o) {
+        if (n == undefined || n == yAxisTransform) return;
         yAxisTransform = n || "linear";
-        makeYScaler();
-        if (scope.y2) makeY2Scaler();
-        scope.views.forEach(function(v) { draw(v, scope); });
+        scope.views.forEach(function(v) {
+          makeYScaler(scope, v);
+          if (scope.y2) makeY2Scaler(scope, v);
+          draw(v, scope);
+        });
       });
+    }
 
     // Figure out axis labels.
     function axisLabel(labelText, v, idxvar, selectvar, def) {
@@ -663,7 +677,9 @@ radian.directive('plot',
 // attribute processing, hides HTML element, sets up drawing function
 // and sets up event emitters for data and paint changes.
 
-radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
+radian.factory('plotTypeLink',
+ ['processAttrs', '$timeout',
+  function(processAttrs, $timeout)
 {
   var paintas = [ 'orientation', 'fill', 'fillOpacity', 'label',
                   'marker', 'markerSize', 'stroke', 'strokeOpacity',
@@ -675,8 +691,22 @@ radian.factory('plotTypeLink', ['processAttrs', function(processAttrs)
     scope.draw = draw;
     scope.$parent.addPlot(scope);
 
-    scope.$watch('x', function() { scope.$emit('dataChange', scope); });
-    scope.$watch('y', function() { scope.$emit('dataChange', scope); });
+    scope.xchange = scope.ychange = false;
+    function emitChange() {
+      var emit = scope.xchange || scope.ychange;
+      scope.xchange = scope.ychange = false;
+      if (emit) scope.$emit('dataChange', scope);
+    }
+    scope.$watch('x', function(n, o) {
+      if (n == undefined || n === o || scope.xchange) return;
+      scope.xchange = true;
+      $timeout(emitChange);
+    });
+    scope.$watch('y', function(n, o) {
+      if (n == undefined || n === o || scope.ychange) return;
+      scope.ychange = true;
+      $timeout(emitChange);
+    });
     paintas.forEach(function(a) {
       if (scope.hasOwnProperty(a))
         scope.$watch(a, function() { scope.$emit('paintChange', scope); });
