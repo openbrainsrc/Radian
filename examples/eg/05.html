@@ -2,7 +2,8 @@
 
 <plot title="Trajectories" stroke-switch="Fade"
       axis-x-label="x" axis-y-label="y" width=500 aspect=1>
-  <lines stroke-width=2 stroke="blue;grey:red" x="[[sim1.x]]" y="[[sim1.y]]"/>
+  <lines stroke-width=2 stroke="[[['blue',@P{grey:red}]]]"
+         x="[[sim1.x]]" y="[[sim1.y]]"/>
 </plot>
 
 <plot-data name="sim1" format="csv" separator=" " cols="t,x,y,z">

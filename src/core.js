@@ -132,6 +132,7 @@ radian.directive('plot',
     else if (casp) { asp = casp; h = w / asp; }
     scope.width = w; scope.height = h;
     scope.svg = elm.children()[1];
+    scope.strokesel = 0;
     $(elm).css('width', w).css('height', h);
 
     // Set up view list and function for child elements to add plots.

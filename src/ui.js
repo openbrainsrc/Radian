@@ -10,7 +10,7 @@ radian.directive('radianUi', ['$timeout', function($timeout)
        '<span class="form-inline">',
          '<span ng-show="xvs">',
            '<span>{{xlab}}</span>',
-           '<select ng-model="xidx" class="span1" ',
+           '<select ng-model="xidx" class="var-select" ',
                    'ng-options="v[0] as v[1] for v in xvs">',
            '</select>',
          '</span>',
@@ -19,7 +19,7 @@ radian.directive('radianUi', ['$timeout', function($timeout)
          '</span>',
          '<span ng-show="yvs">',
            '<span>{{ylab}}</span>',
-           '<select ng-model="yidx" class="span1" ',
+           '<select ng-model="yidx" class="var-select" ',
                    'ng-options="v[0] as v[1] for v in yvs">',
            '</select>',
          '</span>',
@@ -107,16 +107,16 @@ radian.factory('radianLegend', function()
         .data(legendps).enter().append('g');
       var legcs = leggs.append('circle').style('stroke-width', 1).attr('r', 5)
         .attr('fill', function(d,i) {
-          return d.stroke.split(';')[0] || '#000';
+          return d.stroke[0] || '#000';
         })
         .attr('stroke', function(d,i) {
-          return d.stroke.split(';')[0] || '#000';
+          return d.stroke[0] || '#000';
         });
       var clickHandler = function(d,i) {
         d.enabled = !d.enabled;
         d3.select(this).select('circle')
           .attr('fill', d.enabled ?
-                (d.stroke.split(';')[0] || '#000') : '#f5f5f5');
+                (d.stroke[0] || '#000') : '#f5f5f5');
         scope.$emit('paintChange');
       };
       leggs.on('click', clickHandler);

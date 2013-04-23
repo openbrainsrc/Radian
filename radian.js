@@ -134,6 +134,7 @@ radian.directive('plot',
     else if (casp) { asp = casp; h = w / asp; }
     scope.width = w; scope.height = h;
     scope.svg = elm.children()[1];
+    scope.strokesel = 0;
     $(elm).css('width', w).css('height', h);
 
     // Set up view list and function for child elements to add plots.
@@ -2958,53 +2959,39 @@ radian.directive('lines',
     var width   = s.strokeWidth || 1;
     var opacity = s.strokeOpacity || 1.0;
     var stroke = s.stroke || '#000';
-    var sopts = [], str = '';
-    if (typeof stroke == "string") {
-      sopts = stroke.split(';');
-      str = (sopts.length == 1 || !s.strokesel) ?
-        sopts[0] : sopts[s.strokesel % sopts.length];
+    if (s.strokeSwitch)
+      stroke = s.strokesel ? stroke[s.strokesel % stroke.length] : stroke[0];
+
+    // Deal with along-stroke interpolation.
+    if (stroke instanceof Function) {
+      var tmp = new Array(x.length);
+      for (var i = 0; i < x.length; ++i) tmp[i] = i / x.length;
+      stroke = stroke(tmp);
     }
 
     // Switch on type of stroke...
-    if (typeof stroke != "string" || str.indexOf(':') == -1) {
-      if (!(width instanceof Array || opacity instanceof Array ||
-            stroke instanceof Array)) {
-        // Normal lines; single path.
-        var line = d3.svg.line()
-          .x(function (d) { return xs(d[0]); })
-          .y(function (d) { return ys(d[1]); });
-        svg.append('path').datum(d3.zip(x, y))
-          .attr('class', 'line').attr('d', line)
-          .style('fill', 'none')
-          .style('stroke-width', width)
-          .style('stroke-opacity', opacity)
-          .style('stroke', stroke);
-      } else {
-        // Multiple paths to deal with varying characteristics along
-        // line.
-        var based = d3.zip(x, y);
-        var lined = d3.zip(based, based.slice(1));
-        svg.selectAll('path').data(lined).enter().append('path')
-          .attr('class', 'line')
-          .style('stroke-width', sty(width))
-          .style('stroke-opacity', sty(opacity))
-          .style('stroke', sty(stroke))
-          .attr('d', d3.svg.line()
-                .x(function (d) { return xs(d[0]); })
-                .y(function (d) { return ys(d[1]); }));
-      }
+    if (!(width instanceof Array || opacity instanceof Array ||
+          stroke instanceof Array)) {
+      // Normal lines; single path.
+      var line = d3.svg.line()
+        .x(function (d) { return xs(d[0]); })
+        .y(function (d) { return ys(d[1]); });
+      svg.append('path').datum(d3.zip(x, y))
+        .attr('class', 'line').attr('d', line)
+        .style('fill', 'none')
+        .style('stroke-width', width)
+        .style('stroke-opacity', opacity)
+        .style('stroke', stroke);
     } else {
-      // Special for fading stroke (temporary).
-      var strokes = str.split(':');
-      var interp = function(dx) { return 1 - Math.exp(-20*dx/(3*x.length)); };
-      var ihsl = d3.interpolateHsl(strokes[0], strokes[1]);
+      // Multiple paths to deal with varying characteristics along
+      // line.
       var based = d3.zip(x, y);
       var lined = d3.zip(based, based.slice(1));
       svg.selectAll('path').data(lined).enter().append('path')
         .attr('class', 'line')
-        .style('stroke-width', width)
-        .style('stroke-opacity', opacity)
-        .style('stroke', function(d,i) { return ihsl(interp(i)); })
+        .style('stroke-width', sty(width))
+        .style('stroke-opacity', sty(opacity))
+        .style('stroke', sty(stroke))
         .attr('d', d3.svg.line()
               .x(function (d) { return xs(d[0]); })
               .y(function (d) { return ys(d[1]); }));
@@ -3579,7 +3566,7 @@ radian.directive('radianUi', ['$timeout', function($timeout)
        '<span class="form-inline">',
          '<span ng-show="xvs">',
            '<span>{{xlab}}</span>',
-           '<select ng-model="xidx" class="span1" ',
+           '<select ng-model="xidx" class="var-select" ',
                    'ng-options="v[0] as v[1] for v in xvs">',
            '</select>',
          '</span>',
@@ -3588,7 +3575,7 @@ radian.directive('radianUi', ['$timeout', function($timeout)
          '</span>',
          '<span ng-show="yvs">',
            '<span>{{ylab}}</span>',
-           '<select ng-model="yidx" class="span1" ',
+           '<select ng-model="yidx" class="var-select" ',
                    'ng-options="v[0] as v[1] for v in yvs">',
            '</select>',
          '</span>',
@@ -3676,16 +3663,16 @@ radian.factory('radianLegend', function()
         .data(legendps).enter().append('g');
       var legcs = leggs.append('circle').style('stroke-width', 1).attr('r', 5)
         .attr('fill', function(d,i) {
-          return d.stroke.split(';')[0] || '#000';
+          return d.stroke[0] || '#000';
         })
         .attr('stroke', function(d,i) {
-          return d.stroke.split(';')[0] || '#000';
+          return d.stroke[0] || '#000';
         });
       var clickHandler = function(d,i) {
         d.enabled = !d.enabled;
         d3.select(this).select('circle')
           .attr('fill', d.enabled ?
-                (d.stroke.split(';')[0] || '#000') : '#f5f5f5');
+                (d.stroke[0] || '#000') : '#f5f5f5');
         scope.$emit('paintChange');
       };
       leggs.on('click', clickHandler);
