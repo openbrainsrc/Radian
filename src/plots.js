@@ -192,7 +192,7 @@ radian.directive('area',
 {
   'use strict';
 
-  function draw(svg, x, xs, y, ys, s, axis) {
+  function draw(svg, x, xs, y, ys, s, rw, rh, axis) {
     var opacity = s.fillOpacity || 1.0;
     var fill = s.fill || '#000';
     var yminv = axis == 1 ? 'ymin' : 'y2min';
@@ -224,6 +224,48 @@ radian.directive('area',
     scope: true,
     link: function(scope, elm, as) {
       plotTypeLink(scope, elm, as, draw);
+    }
+  };
+}]);
+
+
+// Background plots.
+
+radian.directive('background',
+ ['processAttrs', '$http', '$timeout',
+  function(processAttrs, $http, $timeout)
+{
+  'use strict';
+
+  function draw(svg, s) {
+    console.log("<background> got a draw...");
+    console.log($(svg));
+    $(svg).text('<rect x="80" y="90" width="30" height="30">');
+//    svg.append('g').datum(0).html('<rect x="80" y="90" width="30" height="30">');
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      processAttrs(scope, as);
+      elm.hide();
+      scope.noData = true;
+      scope.draw = draw;
+      scope.$parent.addPlot(scope);
+      console.log(scope);
+
+      if (!scope.src) throw Error("<background> element needs SRC");
+      $timeout(function () {
+        $http.get(scope.src)
+          .success(function(data) {
+            scope.bg = data;
+            scope.$emit('dataChange');
+          })
+          .error(function() {
+            throw Error("failed to read data from " + scope.src);
+          });
+      });
     }
   };
 }]);

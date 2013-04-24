@@ -1,0 +1,8 @@
+<h3>Example 38 (SVG background images)</h3>
+
+<plot height=600 aspect=1
+      axis-x="none" axis-y="none" stroke="black" stroke-width=2
+      marker="circle" marker-size=75 theta="[[seq(0, 2*PI, 12)]]">
+  <background src="/data/tiger.svg"></background>
+  <points x="[[100+50*cos(theta)]]" y="[[100+50*sin(theta)]]"></points>
+</plot>

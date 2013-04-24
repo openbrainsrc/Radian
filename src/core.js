@@ -632,23 +632,30 @@ radian.directive('plot',
     if (v.x && v.y || v.x2 && v.y || v.x && v.y2 || v.x2 && v.y2) {
       dft(scope, function(s) {
         if (s.draw && s.enabled) {
-          var xvar = false, yvar = false;
-          var xscale, yscale;
-          if (s.x)  { xvar = 'x';  xscale = v.x;  }
-          if (s.x2) { xvar = 'x2'; xscale = v.x2; }
-          if (s.y)  { yvar = 'y';  yscale = v.y;  }
-          if (s.y2) { yvar = 'y2'; yscale = v.y2; }
-
-          if (xvar && yvar) {
+          if (s.noData) {
             // Append SVG group for this plot and draw the plot into it.
             var g = svg.append('g');
-            var x = (s[xvar][0] instanceof Array) ?
-              s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
-            var y = (s[yvar][0] instanceof Array) ?
-              s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
-            s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight,
-                   yvar == 'y2' ? 2 : 1);
+            s.draw(g, s, v.realwidth, v.realheight);
             s.$on('$destroy', function() { g.remove(); });
+          } else {
+            var xvar = false, yvar = false;
+            var xscale, yscale;
+            if (s.x)  { xvar = 'x';  xscale = v.x;  }
+            if (s.x2) { xvar = 'x2'; xscale = v.x2; }
+            if (s.y)  { yvar = 'y';  yscale = v.y;  }
+            if (s.y2) { yvar = 'y2'; yscale = v.y2; }
+
+            if (xvar && yvar) {
+              // Append SVG group for this plot and draw the plot into it.
+              var g = svg.append('g');
+              var x = (s[xvar][0] instanceof Array) ?
+                s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
+              var y = (s[yvar][0] instanceof Array) ?
+                s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
+              s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight,
+                     yvar == 'y2' ? 2 : 1);
+              s.$on('$destroy', function() { g.remove(); });
+            }
           }
         }
       });
