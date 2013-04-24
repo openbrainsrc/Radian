@@ -2985,7 +2985,8 @@ radian.directive('lines',
     } else {
       // Multiple paths to deal with varying characteristics along
       // line.
-      var ptsperseg = 50, maxsegments = Math.floor(x.length / ptsperseg);
+      var maxsegments = 200;
+      var ptsperseg = Math.max(1, Math.floor(x.length / maxsegments));
       var based = d3.zip(x, y), lined = [];
       var widths = [], opacities = [], strokes = [];
       var i0 = 0, i1 = ptsperseg;
@@ -3381,6 +3382,7 @@ radian.factory('genPalFn',
   'use strict';
 
   return function(paldef) {
+    console.log(JSON.stringify(paldef));
     var paltext;
     if (paldef.values)
       paltext = d3.zip(paldef.values, paldef.colours).map(function(p) {
