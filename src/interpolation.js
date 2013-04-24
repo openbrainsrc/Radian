@@ -50,7 +50,10 @@ radian.directive('palette',
       }
 
       // Install palette function.
-      scope.$parent[name] = fn;
+      if (scope.$parent)
+        scope.$parent[name] = fn;
+      else
+        scope[name] = fn;
     }
   };
 }]);

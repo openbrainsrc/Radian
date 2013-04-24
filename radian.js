@@ -936,11 +936,11 @@ radian.factory('radianEval',
           };
         }}});
 
-    // Replace free variables in JS expression by calls to"scope.$eval".
-    // We do things this way rather than using Angular's"scope.$eval" on
-    // the whole JS expression because the Angular expression parser only
-    // deals with a relatively small subset of JS (no anonymous functions,
-    // for instance).
+    // Replace free variables in JS expression by calls
+    // to"scope.$eval".  We do things this way rather than using
+    // Angular's "scope.$eval" on the whole JS expression because the
+    // Angular expression parser only deals with a relatively small
+    // subset of JS (no anonymous functions, for instance).
     astrepl = estraverse.replace(astrepl, {
       enter: function(v, w) {
         switch (v.type) {
@@ -2833,9 +2833,9 @@ radian.directive('plotData', ['$http', function($http)
 
   // Process all date fields.
   function processDates(scope, dataset, d) {
-    if (scope.$parent[dataset] && scope.$parent[dataset].metadata) {
-      for (var k in scope.$parent[dataset].metadata) {
-        var md = scope.$parent[dataset].metadata[k];
+    if (scope[dataset] && scope[dataset].metadata) {
+      for (var k in scope[dataset].metadata) {
+        var md = scope[dataset].metadata[k];
         if (md.format == 'date') {
           if (!md.dateParseFormat)
             dateProcess(d, k, function(v) { return new Date(v); });
@@ -2876,17 +2876,18 @@ radian.directive('plotData', ['$http', function($http)
 
     // Process content -- all text children are appended together
     // for parsing.
+    var dscope = scope.$parent ? scope.$parent : scope;
     function processData(datatext) {
       // Parse data.
       var d = parseData(datatext, format, cols, sep);
 
       // Process any date fields.
-      processDates(scope, dataset, d);
+      processDates(dscope, dataset, d);
 
       // Install data in scope, preserving any metadata.
-      var md = scope.$parent[dataset] ? scope.$parent[dataset].metadata : null;
-      scope.$parent[dataset] = d;
-      if (md) scope.$parent[dataset].metadata = md;
+      var md = dscope[dataset] ? dscope[dataset].metadata : null;
+      dscope[dataset] = d;
+      if (md) dscope[dataset].metadata = md;
     };
     if (!src) {
       var datatext = '';
@@ -2914,9 +2915,6 @@ radian.directive('plotData', ['$http', function($http)
 radian.directive('metadata', [function()
 {
   'use strict';
-
-  [ 'dateFormat', 'dateParseFormat', 'errorFor',
-    'format', 'label', 'units' ]
 
   return {
     restrict: 'E',
@@ -3229,7 +3227,10 @@ radian.directive('palette',
       }
 
       // Install palette function.
-      scope.$parent[name] = fn;
+      if (scope.$parent)
+        scope.$parent[name] = fn;
+      else
+        scope[name] = fn;
     }
   };
 }]);
@@ -3382,7 +3383,6 @@ radian.factory('genPalFn',
   'use strict';
 
   return function(paldef) {
-    console.log(JSON.stringify(paldef));
     var paltext;
     if (paldef.values)
       paltext = d3.zip(paldef.values, paldef.colours).map(function(p) {
