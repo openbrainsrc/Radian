@@ -5,6 +5,38 @@ function EgCtrl(plotLib, $http, $scope, $location) {
     return ms.map(function(m) { return new Date(y, m, 15); });
   };
 
+  // Turn a vector of [[x1,y1], [x2,y2], ..., [xn,yn]] into a vector
+  // of y-values interpolated to [f, ..., t].
+  plotLib.fillIn = function(d, f, t) {
+    var ft = t - f + 1;
+    var ys = new Array(ft);
+    var x1 = d[0][0], xn = d[d.length-1][0];
+    var y1 = d[0][1], yn = d[d.length-1][1];
+    if (d.length == 1)
+      for (var i = 0; i < ft; ++i) ys[i] = y1;
+    else {
+      var i = 0;
+      if (f < x1) {
+        var delta = (d[1][1] - y1) / (d[1][0] - x1);
+        var yf = y1 - delta * (x1 - f);
+        for (; i < x1-f; ++i) ys[i] = yf + delta * i;
+      }
+      ys[i] = y1;
+      var j = 1;
+      while (j < d.length) {
+        var ym = d[j-1][1], yp = d[j][1], xm = d[j-1][0], xp = d[j][0];
+        var delta = (yp - ym) / (xp - xm);
+        for (; x1+i < d[j][0]; ++i) ys[i] = ym + delta * (x1+i - xm);
+        if (i < ft) ys[i++] = d[j++][1];
+      }
+      if (i < ft) {
+        var delta = (yn - d[d.length-2][1]) / (xn - d[d.length-2][0]);
+        for (var i0 = i; i < ft; ++i) ys[i] = yn + delta * (i-i0+1);
+      }
+    }
+    return ys;
+  };
+
   $scope.$watch('$location.hash', function() {
     var url = "http://" + location.host + "/eg/" +
       location.hash.slice(2) + ".html";
@@ -22,7 +54,7 @@ function EgCtrl(plotLib, $http, $scope, $location) {
 }
 EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
-var negs = 38;
+var negs = 39;
 var egtitles = [ "Basic plot; CSV data",
                  "Basic plot; JSON data",
                  "Int. legend; fading",
@@ -56,11 +88,12 @@ var egtitles = [ "Basic plot; CSV data",
                  "Tom's plot-options bug",
                  "Histogram",
                  "Banded pal.",
-                 "CSV data via URL",
+                 "Data via URL",
                  "Simple area plot",
                  "Comp. pal. #1",
                  "Comp. pal. #2",
-                 "Gradient pal."];
+                 "Gradient pal.",
+                 "Health & wealth"];
 
 angular.module('myApp', ['radian']).
   config(['$routeProvider', function($routeProvider) {

@@ -2784,7 +2784,7 @@ radian.directive('plotData', ['$http', function($http)
     var fpre = /^\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/;
     switch (format) {
     case 'json':
-      try { d = JSON.parse(datatext); }
+      try { d = typeof datatext == 'string' ? JSON.parse(datatext) : datatext; }
       catch (e) { throw Error('invalid JSON data in <plot-data>'); }
       break;
     case 'csv':
@@ -3512,6 +3512,37 @@ radian.factory('plotLib', function()
     return { centres:cs, counts:ns, freqs:fs };
   };
 
+  // Helper function to find minimum and maximum values in a
+  // potentially nested array.
+  function flattenExtent(a) {
+    var min = Number.POSITIVE_INFINITY, max = Number.NEGATIVE_INFINITY;
+    for (var i = 0; i < a.length; ++i) {
+      if (a[i] instanceof Array) {
+        var sub = flattenExtent(a[i]);
+        min = Math.min(min, sub[0]); max = Math.max(max, sub[1]);
+      } else { min = Math.min(min, a[i]);  max = Math.max(max, a[i]); }
+    }
+    return [min, max];
+  };
+
+  // Interpolator generating function.
+  function interpolate(d, r, t) {
+    var type = t || 'linear', base;
+    switch (type) {
+    case 'linear': base = d3.scale.linear();  break;
+    case 'sqrt':   base = d3.scale.sqrt();    break;
+    case 'log':    base = d3.scale.log();     break;
+    default:
+      if (type.substr(0, 4) == 'pow:')
+        base = d3.scale.pow().exponent(Number(type.substr(5)));
+      else throw Error("invalid interpolation type");
+    }
+    var dom = d || [0,1];  dom = flattenExtent(dom);
+    var rng = r || [0,1];  rng = flattenExtent(rng);
+    var ret = base.domain(dom).range(rng);
+    return function(x) { return x.map(ret); };
+  };
+
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -3544,6 +3575,8 @@ radian.factory('plotLib', function()
            mean: d3.mean,
            median: d3.median,
            quantile: d3.quantile,
+           category10: vect(d3.scale.category10()),
+           category20: vect(d3.scale.category20()),
            zip: d3.zip,
            seq: seq,
            seqStep: seqStep,
@@ -3559,6 +3592,7 @@ radian.factory('plotLib', function()
            gamma: gamma,
            invgamma: invgamma,
            histogram: histogram,
+           interpolate: interpolate,
            rad$$neg: vect(function(a) { return -a; }),
            rad$$add: vectOp(function(a, b) { return a + b; }),
            rad$$sub: vectOp(function(a, b) { return a - b; }),
