@@ -11,7 +11,7 @@ radian.directive('plotData', ['$http', function($http)
     var fpre = /^\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/;
     switch (format) {
     case 'json':
-      try { d = JSON.parse(datatext); }
+      try { d = typeof datatext == 'string' ? JSON.parse(datatext) : datatext; }
       catch (e) { throw Error('invalid JSON data in <plot-data>'); }
       break;
     case 'csv':
