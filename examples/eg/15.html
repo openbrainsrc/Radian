@@ -2,9 +2,9 @@
 
 <div class="form-inline">
   <label>Mean</label>
-  <input type="text" ng-model="mu" ng-init="mu=5">
+  <input type="range" min=0 max=10 step=0.01 ng-model="mu" ng-init="mu=5">
   <label>&nbsp;&nbsp;Standard deviation</label>
-  <input type="text" ng-model="sigma" ng-init="sigma=1">
+  <input type="range" min=0.01 max=10 step=0.01 ng-model="sigma" ng-init="sigma=1">
 </div>
 <br>
 
