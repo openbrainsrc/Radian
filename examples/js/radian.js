@@ -2876,18 +2876,17 @@ radian.directive('plotData', ['$http', function($http)
 
     // Process content -- all text children are appended together
     // for parsing.
-    var dscope = scope.$parent ? scope.$parent : scope;
     function processData(datatext) {
       // Parse data.
       var d = parseData(datatext, format, cols, sep);
 
       // Process any date fields.
-      processDates(dscope, dataset, d);
+      processDates(scope, dataset, d);
 
       // Install data in scope, preserving any metadata.
-      var md = dscope[dataset] ? dscope[dataset].metadata : null;
-      dscope[dataset] = d;
-      if (md) dscope[dataset].metadata = md;
+      var md = scope[dataset] ? scope[dataset].metadata : null;
+      scope[dataset] = d;
+      if (md) scope[dataset].metadata = md;
     };
     if (!src) {
       var datatext = '';
@@ -2936,10 +2935,10 @@ radian.directive('metadata', [function()
         });
 
       // Set up metadata for this data set.
-      if (!scope.$parent[dataset]) scope.$parent[dataset] = { metadata: { } };
-      if (!scope.$parent[dataset].metadata)
-        scope.$parent[dataset].metadata = { };
-      scope.$parent[dataset].metadata[name] = md;
+      if (!scope[dataset]) scope[dataset] = { metadata: { } };
+      if (!scope[dataset].metadata)
+        scope[dataset].metadata = { };
+      scope[dataset].metadata[name] = md;
     }
   };
 }]);
@@ -3227,10 +3226,7 @@ radian.directive('palette',
       }
 
       // Install palette function.
-      if (scope.$parent)
-        scope.$parent[name] = fn;
-      else
-        scope[name] = fn;
+      scope[name] = fn;
     }
   };
 }]);
