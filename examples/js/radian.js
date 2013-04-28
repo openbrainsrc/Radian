@@ -2863,16 +2863,18 @@ radian.directive('plotData', ['$http', function($http)
     // Process attributes.
     if (!as.name) throw Error('<plot-data> must have NAME attribute');
     var dataset = as.name;
-    var format = as.format || 'json';
+    var src = as.src;
+    var format = as.format;
     var sep = as.separator === '' ? ' ' : (as.separator || ',');
     var cols = as.cols;
     if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
-    var formats = ['json', 'csv'];
-    if (formats.indexOf(format) == -1)
-      throw Error('invalid FORMAT "' + format + '" in <plot-data>');
-    if (format == 'csv' && !cols)
-      throw Error('CSV <plot-data> must have COLS');
-    var src = as.src;
+    if (!src) {
+      var formats = ['json', 'csv'];
+      if (formats.indexOf(format) == -1)
+        throw Error('invalid FORMAT "' + format + '" in <plot-data>');
+      if (format == 'csv' && !cols)
+        throw Error('CSV <plot-data> must have COLS');
+    }
 
     // Process content -- all text children are appended together
     // for parsing.
@@ -2896,7 +2898,13 @@ radian.directive('plotData', ['$http', function($http)
       processData(datatext);
     } else {
       $http.get(src)
-        .success(function(data) { processData(data); })
+        .success(function(data, status, headers, config) {
+          format = (headers("Content-Type") == 'application/json') ?
+            'json' : 'csv';
+          if (format == 'csv' && !cols)
+            throw Error('CSV <plot-data> must have COLS');
+          processData(data);
+        })
         .error(function() { throw Error("failed to read data from " + src); });
     }
   };
