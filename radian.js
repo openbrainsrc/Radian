@@ -134,7 +134,7 @@ radian.directive('plot',
     else if (casp) { asp = casp; h = w / asp; }
     scope.width = w; scope.height = h;
     scope.svg = elm.children()[1];
-    scope.strokesel = 0;
+    $rootScope.strokesel = 0;
     $(elm).css('width', w).css('height', h);
 
     // Set up view list and function for child elements to add plots.
@@ -2964,7 +2964,7 @@ radian.directive('lines',
     var width   = s.strokeWidth || 1;
     var opacity = s.strokeOpacity || 1.0;
     var stroke = s.stroke || '#000';
-    if (s.strokeSwitch)
+    if (stroke instanceof Array && s.strokesel !== undefined)
       stroke = s.strokesel ? stroke[s.strokesel % stroke.length] : stroke[0];
 
     // Deal with along-stroke interpolation.
@@ -3715,16 +3715,16 @@ radian.factory('radianLegend', function()
         .data(legendps).enter().append('g');
       var legcs = leggs.append('circle').style('stroke-width', 1).attr('r', 5)
         .attr('fill', function(d,i) {
-          return d.stroke[0] || '#000';
+          return d.stroke || '#000';
         })
         .attr('stroke', function(d,i) {
-          return d.stroke[0] || '#000';
+          return d.stroke || '#000';
         });
       var clickHandler = function(d,i) {
         d.enabled = !d.enabled;
         d3.select(this).select('circle')
           .attr('fill', d.enabled ?
-                (d.stroke[0] || '#000') : '#f5f5f5');
+                (d.stroke || '#000') : '#f5f5f5');
         scope.$emit('paintChange');
       };
       leggs.on('click', clickHandler);
