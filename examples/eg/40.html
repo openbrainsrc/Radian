@@ -1,4 +1,4 @@
-<h3>Example 39 (Wealth & Health of Nations)</h3>
+<h3>Example 40 (expression plucking)</h3>
 
 <div class="form-inline">
   <label>Year ({{year}})</label>
@@ -19,9 +19,7 @@
       popint="[[interpolate(pop,[1,1000],'sqrt')]]"
       axis-x-label="Per capita GDP" axis-x-transform="log"
       axis-y-label="Life expectancy">
-  <points x="[[gdp.map(function(d) { return d[yidx]; })]]"
-          y="[[life.map(function(d) { return d[yidx]; })]]"
-          fill="[[category10(region)]]"
-          marker-size="[[popint(pop.map(function(d) { return d[yidx]; }))]])">
+  <points x="[[gdp#(yidx)]]" y="[[life#(yidx)]]" fill="[[category10(region)]]"
+          marker-size="[[popint(pop#(yidx))]])">
   </points>
 </plot>

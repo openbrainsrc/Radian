@@ -883,8 +883,10 @@ radian.factory('radianEval',
 
     // Pluck expression transformations:
     //
-    //  a#b     ->  a.map(function($$x) { return $$x.b; })
-    //  a#b(c)  ->  a.map(function($$x) { return $$x.b(c); })
+    //  a#id     ->  a.map(function($$x) { return $$x.id; })
+    //  a#id(c)  ->  a.map(function($$x) { return $$x.id(c); })
+    //  a#n      ->  a.map(function($$x) { return $$x[n]; })
+    //  a#(expr) ->  a.map(function($$x) { return $$x[expr]; })
     //
     astrepl = estraverse.replace(astrepl, {
       enter: function(n) {
@@ -905,7 +907,7 @@ radian.factory('radianEval',
                             callee:{type:"MemberExpression",
                                     object:{type:"Identifier", name:"$$x"},
                                     property:n.callee.property,
-                                    computed:n.callee.property.type=="Literal"},
+                                    computed:n.callee.computed},
                             arguments:n.arguments}
                 }]
               }
@@ -929,7 +931,7 @@ radian.factory('radianEval',
                          argument:{ type:"MemberExpression",
                                     object:{ type:"Identifier", name:"$$x" },
                                     property:n.property,
-                                    computed:n.property.type=="Literal"}
+                                    computed:n.computed}
                        }]
                }
              }]
@@ -2425,8 +2427,7 @@ radian.factory('radianParse', function()
     } else if (eat(_hash)) {
       var node = startNodeFrom(base);
       node.object = base;
-      node.property = parseIdentOrNum(true);
-      node.computed = node.property.type == "Literal";
+      node.computed = parseIdentNumOrParenExpr(node);
       return parseSubscripts(finishNode(node, "PluckExpression"), noCalls);
     } else if (eat(_bracketL)) {
       var node = startNodeFrom(base);
@@ -2445,17 +2446,21 @@ radian.factory('radianParse', function()
 
   // Parse a number or an identifier (used for pluck expressions).
 
-  function parseIdentOrNum() {
+  function parseIdentNumOrParenExpr(n) {
     switch (tokType) {
     case _name:
-      return parseIdent();
+      n.property = parseIdent();
+      return false;
     case _num: case _string: case _regexp:
       var node = startNode();
       node.value = tokVal;
       node.raw = input.slice(tokStart, tokEnd);
       next();
-      return finishNode(node, "Literal");
-
+      n.property = finishNode(node, "Literal");
+      return true;
+    case _parenL:
+      n.property = parseParenExpression();
+      return true;
     default:
       unexpected();
     }
@@ -2864,7 +2869,7 @@ radian.directive('plotData', ['$http', function($http)
     if (!as.name) throw Error('<plot-data> must have NAME attribute');
     var dataset = as.name;
     var src = as.src;
-    var format = as.format;
+    var format = as.format || 'json';
     var sep = as.separator === '' ? ' ' : (as.separator || ',');
     var cols = as.cols;
     if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });

@@ -91,7 +91,7 @@ radian.directive('plotData', ['$http', function($http)
     if (!as.name) throw Error('<plot-data> must have NAME attribute');
     var dataset = as.name;
     var src = as.src;
-    var format = as.format;
+    var format = as.format || 'json';
     var sep = as.separator === '' ? ' ' : (as.separator || ',');
     var cols = as.cols;
     if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
