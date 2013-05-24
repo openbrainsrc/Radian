@@ -140,9 +140,22 @@ radian.directive('plot',
     // Set up view list and function for child elements to add plots.
     scope.views = [];
     scope.switchable = [];
+    function ancestor(ances, desc) {
+      if (ances == desc) return true;
+      if (desc == $rootScope) return false;
+      return ancestor(ances, desc.$parent);
+    };
     scope.addPlot = function(s) {
       if (scope.hasOwnProperty('legendSwitches')) scope.switchable.push(s);
       s.enabled = true;
+      s.$on('$destroy', function(e) {
+        if (ancestor(e.targetScope, s)) {
+          s.enabled = false;
+          var idx = scope.switchable.indexOf(s);
+          if (idx != -1) scope.switchable.splice(idx, 1);
+          scope.$emit('dataChange');
+        }
+      });
     };
 
     transclude(scope.$new(), function (cl) { elm.append(cl); });
