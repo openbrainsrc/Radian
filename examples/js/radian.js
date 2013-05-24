@@ -134,7 +134,7 @@ radian.directive('plot',
     else if (casp) { asp = casp; h = w / asp; }
     scope.width = w; scope.height = h;
     scope.svg = elm.children()[1];
-    $rootScope.strokesel = 0;
+    scope.strokesel = as.hasOwnProperty('strokeSwitch') ? 0 : undefined;
     $(elm).css('width', w).css('height', h);
 
     // Set up view list and function for child elements to add plots.
@@ -2982,7 +2982,7 @@ radian.directive('lines',
     var width   = s.strokeWidth || 1;
     var opacity = s.strokeOpacity || 1.0;
     var stroke = s.stroke || '#000';
-    if (stroke instanceof Array && s.strokesel !== undefined)
+    if (stroke instanceof Array && s.strokeSwitch && s.strokesel !== undefined)
       stroke = s.strokesel ? stroke[s.strokesel % stroke.length] : stroke[0];
 
     // Deal with along-stroke interpolation.
