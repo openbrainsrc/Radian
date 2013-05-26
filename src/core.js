@@ -463,11 +463,13 @@ radian.directive('plot',
                  bottom: scope.bottomMargin || 2, left: scope.leftMargin || 2 };
     var xAxisTransform = scope.axisXTransform || "linear";
     var yAxisTransform = scope.axisYTransform || "linear";
+    v.title = scope.title;
 
     // Set up plot margins.
     if (v.xaxis) v.margin.bottom += 20 + (showXAxisLabel ? 15 : 0);
     if (v.yaxis) v.margin.left += 30 + (showYAxisLabel ? 22 : 0);
     if (v.x2axis) v.margin.top += 20 + (showX2AxisLabel ? 15 : 0);
+    if (v.title) v.margin.top += 30;
     if (v.y2axis) v.margin.right += 30 + (showY2AxisLabel ? 22 : 0);
     v.realwidth = v.svg.attr('width') - v.margin.left - v.margin.right;
     v.realheight = v.svg.attr('height') - v.margin.top - v.margin.bottom;
@@ -545,6 +547,7 @@ radian.directive('plot',
     // Set up plot margins.
     var outsvg = v.svg.append('g').attr('width', v.outw).attr('height', v.outh);
     var svg = outsvg.append('g')
+      .attr('width', v.realwidth).attr('height', v.realheight)
       .attr('transform', 'translate(' + v.margin.left + ',' +
                                         v.margin.top + ')');
     v.innersvg = svg;
@@ -568,14 +571,14 @@ radian.directive('plot',
       if (has_date) axis.tickFormat(d3.time.format(dformat));
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
-              (+v.realheight + 4) + ')')
+              (+v.realheight + v.margin.top + 4) + ')')
         .call(axis);
       if (v.xlabel)
         var xpos = 0, ypos = 35;
         outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
               (+v.margin.left + v.realwidth / 2) +
-              ',' + v.realheight + ')')
+              ',' + (+v.realheight + v.margin.top) + ')')
         .append('text')
         .attr('x', xpos).attr('y', ypos)
         .attr('text-anchor', 'middle').text(v.xlabel);
@@ -596,13 +599,15 @@ radian.directive('plot',
       });
       if (has_date) axis.tickFormat(d3.time.format(dformat));
       outsvg.append('g').attr('class', 'axis')
-        .attr('transform', 'translate(' + v.margin.left + ',4)')
+        .attr('transform', 'translate(' + v.margin.left + ',' +
+              (+v.margin.top + 4) + ')')
         .call(axis);
       if (v.x2label)
         var xpos = 0, ypos = 35;
         outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
-              (+v.margin.left + v.realwidth / 2) + ',0)')
+              (+v.margin.left + v.realwidth / 2) + ',' +
+              (+v.margin.top) + ')')
         .append('text')
         .attr('x', xpos).attr('y', ypos)
         .attr('text-anchor', 'middle').text(v.x2label);
@@ -612,10 +617,11 @@ radian.directive('plot',
         .scale(v.y).orient('left')
         .ticks(outsvg.attr('height') / 36);
       outsvg.append('g').attr('class', 'axis')
-        .attr('transform', 'translate(' + (+v.margin.left - 4) + ',0)')
+        .attr('transform', 'translate(' + (+v.margin.left - 4) + ',' +
+              (+v.margin.top) + ')')
         .call(axis);
       if (v.ylabel) {
-        var xpos = 12, ypos = v.realheight / 2;
+        var xpos = 12, ypos = +v.margin.top + v.realheight / 2;
         outsvg.append('g').attr('class', 'axis-label')
         .append('text')
         .attr('x', xpos).attr('y', ypos)
@@ -629,16 +635,31 @@ radian.directive('plot',
         .ticks(outsvg.attr('height') / 36);
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' +
-              (+v.realwidth + v.margin.left) + ',0)')
+              (+v.realwidth + v.margin.left) + ',' +
+              (+v.margin.top) + ')')
         .call(axis);
       if (v.y2label) {
-        var xpos = v.realwidth + v.margin.left + 40, ypos = v.realheight / 2;
+        var xpos = v.realwidth + v.margin.left + 40;
+        var ypos = +v.margin.top + v.realheight / 2;
         outsvg.append('g').attr('class', 'axis-label')
         .append('text')
         .attr('x', xpos).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
         .attr('text-anchor', 'middle').text(v.y2label);
       }
+    }
+
+    // Plot title.
+    if (v.title) {
+      var xpos = 0, ypos = 20;
+      outsvg.append('g').attr('class', 'axis-label')
+        .attr('transform', 'translate(' +
+              (+v.margin.left + v.realwidth / 2) + ',0)')
+        .append('text')
+        .attr('x', xpos).attr('y', ypos)
+        .style('font-size', '125%')
+        .style('font-weight', 'bold')
+        .attr('text-anchor', 'middle').text(v.title);
     }
 
     // Loop over plots, calling their draw functions one by one.

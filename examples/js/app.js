@@ -54,7 +54,7 @@ function EgCtrl(plotLib, $http, $scope, $location) {
 }
 EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
-var negs = 40;
+var negs = 41;
 var egtitles = [ "Basic plot; CSV data",
                  "Basic plot; JSON data",
                  "Int. legend; fading",
@@ -94,7 +94,8 @@ var egtitles = [ "Basic plot; CSV data",
                  "Comp. pal. #2",
                  "Gradient pal.",
                  "Health & wealth",
-                 "Pluck expr. test"];
+                 "Pluck expr. test",
+                 "Plot titles #1"];
 
 angular.module('myApp', ['radian']).
   config(['$routeProvider', function($routeProvider) {
