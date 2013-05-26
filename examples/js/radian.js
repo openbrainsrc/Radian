@@ -135,6 +135,7 @@ radian.directive('plot',
     scope.width = w; scope.height = h;
     scope.svg = elm.children()[1];
     scope.strokesel = as.hasOwnProperty('strokeSwitch') ? 0 : undefined;
+    scope.fontSize = as.fontSize || 12;
     $(elm).css('width', w).css('height', h);
 
     // Set up view list and function for child elements to add plots.
@@ -468,11 +469,17 @@ radian.directive('plot',
     v.title = scope.title;
 
     // Set up plot margins.
-    if (v.xaxis) v.margin.bottom += 20 + (showXAxisLabel ? 15 : 0);
-    if (v.yaxis) v.margin.left += 30 + (showYAxisLabel ? 22 : 0);
-    if (v.x2axis) v.margin.top += 20 + (showX2AxisLabel ? 15 : 0);
-    if (v.title) v.margin.top += 30;
-    if (v.y2axis) v.margin.right += 30 + (showY2AxisLabel ? 22 : 0);
+    var del1 = Math.floor(1.75 * scope.fontSize);
+    var del2 = Math.floor(1.25 * scope.fontSize);
+    var del3 = Math.floor(2.5 * scope.fontSize);
+    var del4 = Math.floor(2.0 * scope.fontSize);
+    console.log("del1=" + del1 + " del2=" + del2 +
+                " del3=" + del3 + " del4=" + del4);
+    if (v.xaxis) v.margin.bottom += del1 + (showXAxisLabel ? del2 : 0);
+    if (v.yaxis) v.margin.left += del3 + (showYAxisLabel ? del4 : 0);
+    if (v.x2axis) v.margin.top += del1 + (showX2AxisLabel ? del2 : 0);
+    if (v.title) v.margin.top += del3;
+    if (v.y2axis) v.margin.right += del3 + (showY2AxisLabel ? del4 : 0);
     v.realwidth = v.svg.attr('width') - v.margin.left - v.margin.right;
     v.realheight = v.svg.attr('height') - v.margin.top - v.margin.bottom;
     v.outw = v.realwidth + v.margin.left + v.margin.right;
@@ -556,6 +563,8 @@ radian.directive('plot',
     if (v.clip) svg.attr('clip-path', 'url(#' + v.clip + ')');
 
     // Draw D3 axes.
+    var del1 = Math.floor(scope.fontSize / 3.0);
+    var del2 = Math.floor(3.0 * scope.fontSize);
     if (v.xaxis && v.x) {
       var axis = d3.svg.axis()
         .scale(v.x).orient('bottom')
@@ -573,16 +582,16 @@ radian.directive('plot',
       if (has_date) axis.tickFormat(d3.time.format(dformat));
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
-              (+v.realheight + v.margin.top + 4) + ')')
+              (+v.realheight + v.margin.top + del1) + ')')
         .call(axis);
       if (v.xlabel)
-        var xpos = 0, ypos = 35;
         outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
               (+v.margin.left + v.realwidth / 2) +
               ',' + (+v.realheight + v.margin.top) + ')')
         .append('text')
-        .attr('x', xpos).attr('y', ypos)
+        .attr('x', 0).attr('y', del2)
+        .style('font-size', scope.fontSize)
         .attr('text-anchor', 'middle').text(v.xlabel);
     }
     if (v.x2axis && v.x2) {
@@ -602,16 +611,16 @@ radian.directive('plot',
       if (has_date) axis.tickFormat(d3.time.format(dformat));
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
-              (+v.margin.top + 4) + ')')
+              (+v.margin.top + del1) + ')')
         .call(axis);
       if (v.x2label)
-        var xpos = 0, ypos = 35;
         outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
               (+v.margin.left + v.realwidth / 2) + ',' +
               (+v.margin.top) + ')')
         .append('text')
-        .attr('x', xpos).attr('y', ypos)
+        .attr('x', 0).attr('y', del2)
+        .style('font-size', scope.fontSize)
         .attr('text-anchor', 'middle').text(v.x2label);
     }
     if (v.yaxis && v.y) {
@@ -619,15 +628,16 @@ radian.directive('plot',
         .scale(v.y).orient('left')
         .ticks(outsvg.attr('height') / 36);
       outsvg.append('g').attr('class', 'axis')
-        .attr('transform', 'translate(' + (+v.margin.left - 4) + ',' +
+        .attr('transform', 'translate(' + (+v.margin.left - del1) + ',' +
               (+v.margin.top) + ')')
         .call(axis);
       if (v.ylabel) {
-        var xpos = 12, ypos = +v.margin.top + v.realheight / 2;
+        var xpos = scope.fontSize, ypos = +v.margin.top + v.realheight / 2;
         outsvg.append('g').attr('class', 'axis-label')
         .append('text')
         .attr('x', xpos).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
+        .style('font-size', scope.fontSize)
         .attr('text-anchor', 'middle').text(v.ylabel);
       }
     }
@@ -641,26 +651,28 @@ radian.directive('plot',
               (+v.margin.top) + ')')
         .call(axis);
       if (v.y2label) {
-        var xpos = v.realwidth + v.margin.left + 40;
+        var xpos = v.realwidth + v.margin.left +
+          Math.floor(3.3 * scope.fontSize);
         var ypos = +v.margin.top + v.realheight / 2;
         outsvg.append('g').attr('class', 'axis-label')
         .append('text')
         .attr('x', xpos).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
+        .style('font-size', scope.fontSize)
         .attr('text-anchor', 'middle').text(v.y2label);
       }
     }
+    d3.selectAll('.axis text').style('font-size', scope.fontSize);
 
     // Plot title.
     if (v.title) {
-      var xpos = 0, ypos = 20;
       outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
               (+v.margin.left + v.realwidth / 2) + ',0)')
         .append('text')
-        .attr('x', xpos).attr('y', ypos)
-        .style('font-size', '125%')
+        .attr('x', 0).attr('y', Math.floor(1.7 * scope.fontSize))
         .style('font-weight', 'bold')
+        .style('font-size', Math.floor(1.25 * scope.fontSize))
         .attr('text-anchor', 'middle').text(v.title);
     }
 
