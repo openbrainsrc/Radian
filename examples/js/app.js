@@ -37,6 +37,9 @@ function EgCtrl(plotLib, $http, $scope, $location) {
     return ys;
   };
 
+  $scope.pals = { bgr: '0 blue; 0.5 grey; 1 red',
+                  gyo: '0 green; 0.5 yellow; 1 orange' };
+
   $scope.$watch('$location.hash', function() {
     var url = "http://" + location.host + "/eg/" +
       location.hash.slice(2) + ".html";
@@ -54,7 +57,7 @@ function EgCtrl(plotLib, $http, $scope, $location) {
 }
 EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
-var negs = 42;
+var negs = 47;
 var egtitles = [ "Basic plot; CSV data",
                  "Basic plot; JSON data",
                  "Int. legend; fading",
@@ -96,7 +99,12 @@ var egtitles = [ "Basic plot; CSV data",
                  "Health & wealth",
                  "Pluck expr. test",
                  "Plot titles #1",
-                 "Layout #1"];
+                 "Layout #1",
+                 "Layout #2",
+                 "Layout #3",
+                 "Layout #4",
+                 "Layout #5",
+                 "Layout #6"];
 
 angular.module('myApp', ['radian']).
   config(['$routeProvider', function($routeProvider) {

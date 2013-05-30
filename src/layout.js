@@ -87,8 +87,6 @@ radian.factory('layoutSizes', ['layoutToString', function(layoutToString) {
   // Determine sizes of frames in a layout.
   return function(w, h, spc, layout)
   {
-    // console.log("layoutSizes: w=" + w + " h=" + h + " spc=" + spc +
-    //             " layout: " + layoutToString(layout));
     // Fit a range of space parameters into a given size and spacing.
     function fitSizes(w, ws)
     {
@@ -112,8 +110,6 @@ radian.factory('layoutSizes', ['layoutToString', function(layoutToString) {
 
     function help(w, h, layout)
     {
-      // console.log("help w=" + w + " h=" + h + " layout: " +
-      //             layoutToString(layout));
       if (layout.type == 'plot') return layout;
       function getratios(ls) {
         return ls.map(function(l) { return l.size || null; });
@@ -143,120 +139,120 @@ radian.factory('layoutSizes', ['layoutToString', function(layoutToString) {
   };
 }]);
 
-
-radian.directive('plotRow',
- ['layoutSizes', 'processAttrs', 'calcPlotDimensions', 'layoutToString',
-  function(layoutSizes, processAttrs, calcPlotDimensions, layoutToString)
+radian.factory('addToLayout', function()
 {
-  'use strict';
+  return function(sc, sublayout, size) {
+    if (sublayout.hasOwnProperty('$id'))
+      sc.layoutItems.push({ size: Number(size),
+                            item: { type: 'plot', items: sublayout } });
+    else
+      sc.layoutItems.push({ size: Number(size), item: sublayout });
+  };
+});
 
-  function preLink(sc, elm, as, transclude) {
-    processAttrs(sc, as);
-    // console.log("<plot-row> preLink: scope, as");
-    // console.log(sc);
-    // console.log(as);
-    if (!sc.inLayout) {
-      calcPlotDimensions(sc, elm, as);
-      sc.layoutTop = true;
-      sc.inLayout = true;
-    }
-    sc.layoutItems = [];
-    sc.addToLayout = function(sublayout, size) {
-      if (sublayout.hasOwnProperty('$id'))
-        sc.layoutItems.push({ size: Number(size),
-                              item: { type: 'plot', items: sublayout } });
-      else
-        sc.layoutItems.push({ size: Number(size), item: sublayout });
+radian.factory('extractFrames',
+ ['layoutToString',
+  function(layoutToString)
+{
+  // A "frame" is an object of the form { x, y, w, h, plot }, where
+  // plot points to the plot scope.
+  return function(spc, w, h, layout) {
+    function go(curx, cury, curw, curh, lay) {
+      var frames = [];
+      if (lay.type == 'hbox') {
+        for (var i = 0; i < lay.items.length; ++i) {
+          var item = lay.items[i].item;
+          var itype = lay.items[i].item.type;
+          var isize = lay.items[i].size;
+          if (item.type == 'plot') {
+            frames.push({ x: curx, y: cury, w: isize, h: curh,
+                          plot: item.items });
+          } else if (item.type == 'vbox') {
+            frames = frames.concat(go(curx, cury, isize, curh, item));
+          }
+          curx += isize + spc;
+        }
+      } else if (lay.type == 'vbox') {
+        for (var i = 0; i < lay.items.length; ++i) {
+          var item = lay.items[i].item;
+          var itype = lay.items[i].item.type;
+          var isize = lay.items[i].size;
+          if (item.type == 'plot') {
+            frames.push({ x: curx, y: cury, w: curw, h: isize,
+                          plot: item.items });
+          } else if (item.type == 'hbox') {
+            frames = frames.concat(go(curx, cury, curw, isize, item));
+          }
+          cury += isize + spc;
+        }
+      } else throw Error("invalid layout passed to extractFrames");
+      return frames;
     };
-    transclude(sc.$new(), function (cl) { elm.append(cl); });
-  };
-
-  function postLink(sc, elm) {
-    // console.log("<plot-row> postLink: scope");
-    // console.log(sc);
-    var row = { type: 'hbox', items: sc.layoutItems };
-    if (sc.hasOwnProperty('layoutTop')) {
-      console.log("Top-level <plot-row> postLink: scope");
-//      console.log(sc);
-      console.log("row: " + layoutToString(row));
-      var spacing = sc.layoutSpacing || 0;
-      var layedout = layoutSizes(sc.width, sc.height, spacing, row);
-//      console.log(layedout);
-      console.log("layedout: " + layoutToString(layedout));
-    } else sc.$parent.addToLayout(row, sc.layoutShare);
-  };
-
-  return {
-    restrict: 'E',
-    template:
-    ['<div class="radian-row">',
-     '</div>'].join(""),
-    replace: true,
-    transclude: true,
-    scope: true,
-    compile: function(elm, as, trans) {
-      return { pre: function(s, e, a) { preLink(s, e, a, trans); },
-               post: postLink };
-    }
+    return go(0, 0, w, h, layout);
   };
 }]);
 
-
-radian.directive('plotCol',
- ['layoutSizes', 'processAttrs', 'calcPlotDimensions', 'layoutToString',
-  function(layoutSizes, processAttrs, calcPlotDimensions, layoutToString)
+radian.factory('layoutDirective',
+ ['layoutSizes', 'processAttrs', 'calcPlotDimensions',
+  'addToLayout', 'extractFrames', 'layoutToString',
+  function(layoutSizes, processAttrs, calcPlotDimensions,
+           addToLayout, extractFrames, layoutToString)
 {
   'use strict';
 
-  function preLink(sc, elm, as, transclude) {
-    processAttrs(sc, as);
-    // console.log("<plot-col> preLink: scope, as");
-    // console.log(sc);
-    // console.log(as);
-    if (!sc.inLayout) {
-      calcPlotDimensions(sc, elm, as);
-      sc.layoutTop = true;
-      sc.inLayout = true;
-    }
-    sc.layoutItems = [];
-    sc.addToLayout = function(sublayout, size) {
-      if (sublayout.hasOwnProperty('$id'))
-        sc.layoutItems.push({ size: Number(size),
-                              item: { type: 'plot', items: sublayout } });
-      else
-        sc.layoutItems.push({ size: Number(size), item: sublayout });
+  return function(container) {
+    function preLink(sc, elm, as, transclude) {
+      processAttrs(sc, as);
+      if (!sc.inLayout) {
+        calcPlotDimensions(sc, elm, as);
+        sc.layoutTop = true;
+        sc.inLayout = true;
+        $(elm).css('width', sc.width).css('height', sc.height);
+        sc.layoutsvg = elm.children()[0];
+      } else
+        $(elm.children()[1]).remove();
+      sc.layoutItems = [];
+      transclude(sc.$new(), function (cl) { elm.append(cl); });
     };
-    transclude(sc.$new(), function (cl) { elm.append(cl); });
-  };
 
-  function postLink(sc, elm) {
-    // console.log("<plot-col> postLink: scope");
-    // console.log(sc);
-    var col = { type: 'vbox', items: sc.layoutItems };
-    if (sc.hasOwnProperty('layoutTop')) {
-      console.log("Top-level <plot-col> postLink: scope");
-//      console.log(sc);
-      console.log("col: " + layoutToString(col));
-      var spacing = sc.layoutSpacing || 0;
-      var layedout = layoutSizes(sc.width, sc.height, spacing, col);
-//      console.log(layedout);
-      console.log("layedout: " + layoutToString(layedout));
-    } else sc.$parent.addToLayout(col, sc.layoutShare);
-  };
+    function postLink(sc, elm) {
+      var items = { type: container, items: sc.layoutItems };
+      if (sc.hasOwnProperty('layoutTop')) {
+        var spacing = sc.layoutSpacing || 0;
+        var layedout = layoutSizes(sc.width, sc.height, spacing, items);
+        var frames = extractFrames(0, sc.width, sc.height, layedout);
+        frames.forEach(function(fr) {
+          fr.plot.width = fr.w;
+          fr.plot.height = fr.h;
+          fr.plot.svg = d3.select(sc.layoutsvg).append('g')
+            .attr('width', fr.w).attr('height', fr.h)
+            .attr('transform', 'translate(' + fr.x + ',' + fr.y + ')')[0][0];
+        });
+      } else addToLayout(sc.$parent, items, sc.layoutShare);
+    };
 
-  return {
-    restrict: 'E',
-    template:
-    ['<div class="radian-col">',
-     '</div>'].join(""),
-    replace: true,
-    transclude: true,
-    scope: true,
-    compile: function(elm, as, trans) {
-      return { pre: function(s, e, a) { preLink(s, e, a, trans); },
-               post: postLink };
-    }
+    return {
+      restrict: 'E',
+      template: '<div class="radian"><svg></svg></div>',
+      replace: true,
+      transclude: true,
+      scope: true,
+      compile: function(elm, as, trans) {
+        return { pre: function(s, e, a) { preLink(s, e, a, trans); },
+                 post: postLink };
+      }
+    };
   };
+}]);
+
+radian.directive('plotRow', ['layoutDirective', function(layoutDirective)
+{
+  return layoutDirective('hbox');
+}]);
+
+radian.directive('plotCol', ['layoutDirective', function(layoutDirective)
+{
+  return layoutDirective('vbox');
 }]);
 
 

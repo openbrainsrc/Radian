@@ -91,7 +91,6 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
 
 radian.factory('calcPlotDimensions', function() {
   return function(scope, elm, as) {
-    // console.log("calcPlotDimensions...");
     var h = 300, asp = 1.618, w = asp * h;
     var aw = as.width, ah = as.height, aasp = as.aspect;
     var cw = elm.width(), ch = elm.height();
@@ -127,9 +126,9 @@ radian.factory('calcPlotDimensions', function() {
 // Main plot directive.  Kind of complicated...
 
 radian.directive('plot',
- ['processAttrs', 'calcPlotDimensions',
+ ['processAttrs', 'calcPlotDimensions', 'addToLayout',
   '$timeout', '$rootScope', 'dumpScope', 'dft', 'radianLegend',
- function(processAttrs, calcPlotDimensions,
+ function(processAttrs, calcPlotDimensions, addToLayout,
           $timeout, $rootScope, dumpScope, dft, radianLegend)
 {
   'use strict';
@@ -141,18 +140,17 @@ radian.directive('plot',
     // Angular scope as regular variables (to be use in data access
     // expressions).
     processAttrs(scope, as);
-    // console.log("<plot> preLink: scope, as");
-    // console.log(scope);
-    // console.log(as);
-
     if (!scope.inLayout) {
       calcPlotDimensions(scope, elm, as)
       scope.layoutTop = true;
-    } else scope.addToLayout(scope, scope.layoutShare);
-    scope.svg = elm.children()[1];
+      $(elm).css('width', scope.width).css('height', scope.height);
+      scope.svg = elm.children()[1];
+    } else {
+      $(elm.children()[1]).remove();
+      addToLayout(scope, scope, scope.layoutShare);
+    }
     scope.strokesel = as.hasOwnProperty('strokeSwitch') ? 0 : undefined;
     scope.fontSize = as.fontSize || 12;
-//    $(elm).css('width', w).css('height', h);
 
     // Set up view list and function for child elements to add plots.
     scope.views = [];
@@ -181,7 +179,6 @@ radian.directive('plot',
   // We do the actual plotting after the transcluded plot type
   // elements are linked.
   function postLink(scope, elm) {
-    // console.log("<plot> postLink");
     function redraw() {
       scope.views.forEach(function(v) { draw(v, scope); });
     };
@@ -193,53 +190,57 @@ radian.directive('plot',
       if (setupBrush) setupBrush();
       redraw();
     };
-
-    // Set up plot areas (including zoomers).
-    var svgelm = d3.select(scope.svg);
-    if (scope.uivisible)
-      scope.height -= parseInt($(elm.children()[0]).css('height'));
-    svgelm.attr('width', scope.width).attr('height', scope.height);
-    var mainsvg = svgelm.append('g')
-      .attr('width', scope.width).attr('height', scope.height);
-    var svgs = [mainsvg];
+    var svgs = [];
     var setupBrush = null;
-    if (scope.hasOwnProperty('zoomX')) {
-      var zfrac = scope.zoomFraction || 0.2;
-      zfrac = Math.min(0.95, Math.max(0.05, zfrac));
-      var zoomHeight = (scope.height - 6) * zfrac;
-      var mainHeight = (scope.height - 6) * (1 - zfrac);
-      var zoomsvg = svgelm.append('g')
-        .attr('transform', 'translate(0,' + (mainHeight + 6) + ')')
-        .attr('width', scope.width).attr('height', zoomHeight);
-      svgs.push(zoomsvg);
-      svgs[0].attr('height', mainHeight);
+    var svgelm = null;
+    function init() {
+      // Set up plot areas (including zoomers).
+      svgelm = d3.select(scope.svg);
+      if (scope.uivisible)
+        scope.height -= parseInt($(elm.children()[0]).css('height'));
+      svgelm.attr('width', scope.width).attr('height', scope.height);
+      var mainsvg = svgelm.append('g')
+        .attr('width', scope.width).attr('height', scope.height);
+      svgs = [mainsvg];
+      if (scope.hasOwnProperty('zoomX')) {
+        var zfrac = scope.zoomFraction || 0.2;
+        zfrac = Math.min(0.95, Math.max(0.05, zfrac));
+        var zoomHeight = (scope.height - 6) * zfrac;
+        var mainHeight = (scope.height - 6) * (1 - zfrac);
+        var zoomsvg = svgelm.append('g')
+          .attr('transform', 'translate(0,' + (mainHeight + 6) + ')')
+          .attr('width', scope.width).attr('height', zoomHeight);
+        svgs.push(zoomsvg);
+        svgs[0].attr('height', mainHeight);
 
-      setupBrush = function() {
-        svgelm.append('defs').append('clipPath')
-          .attr('id', 'xzoomclip')
-          .append('rect')
-          .attr('width', scope.views[0].realwidth)
-          .attr('height', scope.views[0].realheight);
-        scope.views[0].clip = 'xzoomclip';
-        var brush = d3.svg.brush().x(scope.views[1].x);
-        brush.on('brush', function() {
-          scope.views[0].x.domain(brush.empty() ?
-                                  scope.views[1].x.domain() : brush.extent());
-          draw(scope.views[0], scope);
-        });
-        scope.views[1].post = function(svg) {
-          svg.append('g')
-            .attr('class', 'x brush')
-            .call(brush)
-            .selectAll('rect')
-            .attr('y', -6)
-            .attr('height', scope.views[1].realheight + 7);
-        }
-      };
-    }
+        setupBrush = function() {
+          svgelm.append('defs').append('clipPath')
+            .attr('id', 'xzoomclip')
+            .append('rect')
+            .attr('width', scope.views[0].realwidth)
+            .attr('height', scope.views[0].realheight);
+          scope.views[0].clip = 'xzoomclip';
+          var brush = d3.svg.brush().x(scope.views[1].x);
+          brush.on('brush', function() {
+            scope.views[0].x.domain(brush.empty() ?
+                                    scope.views[1].x.domain() : brush.extent());
+            draw(scope.views[0], scope);
+          });
+          scope.views[1].post = function(svg) {
+            svg.append('g')
+              .attr('class', 'x brush')
+              .call(brush)
+              .selectAll('rect')
+              .attr('y', -6)
+              .attr('height', scope.views[1].realheight + 7);
+          }
+        };
+      }
+    };
 
     $timeout(function() {
       // Draw plots and legend.
+      init();
       reset();
       radianLegend(svgelm, scope);
 
@@ -724,7 +725,7 @@ radian.directive('plot',
     template:
     ['<div class="radian">',
        '<radian-ui></radian-ui>',
-       '<svg></svg>',
+         '<svg></svg>',
      '</div>'].join(""),
     replace: true,
     transclude: true,
