@@ -83,25 +83,15 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
 }]);
 
 
-// Main plot directive.  Kind of complicated...
+// Deal with plot dimension attributes: explicit attribute values
+// override CSS values.  Do sensible things with width, height and
+// aspect ratio.  This is called either for individual plots, or for
+// the outermost plot layout directive (<plot-row>, <plot-col> or
+// <plot-grid>).
 
-radian.directive('plot',
- ['processAttrs', '$timeout', '$rootScope', 'dumpScope', 'dft', 'radianLegend',
- function(processAttrs, $timeout, $rootScope, dumpScope, dft, radianLegend)
-{
-  'use strict';
-
-  // We do setup work here so that we can organise things before the
-  // transcluded plotting directives are linked.
-  function preLink(scope, elm, as, transclude) {
-    // Process attributes, bringing all but a few special cases into
-    // Angular scope as regular variables (to be use in data access
-    // expressions).
-    processAttrs(scope, as);
-
-    // Deal with plot dimension attributes: explicit attribute values
-    // override CSS values.  Do sensible things with width, height and
-    // aspect ratio...
+radian.factory('calcPlotDimensions', function() {
+  return function(scope, elm, as) {
+    // console.log("calcPlotDimensions...");
     var h = 300, asp = 1.618, w = asp * h;
     var aw = as.width, ah = as.height, aasp = as.aspect;
     var cw = elm.width(), ch = elm.height();
@@ -130,11 +120,39 @@ radian.directive('plot',
     else if (ch) { h = ch; w = h * asp; }
     else if (cw) { w = cw; h = w / asp; }
     else if (casp) { asp = casp; h = w / asp; }
-    scope.width = w; scope.height = h;
+    scope.width = Number(w); scope.height = Number(h);
+  };
+});
+
+// Main plot directive.  Kind of complicated...
+
+radian.directive('plot',
+ ['processAttrs', 'calcPlotDimensions',
+  '$timeout', '$rootScope', 'dumpScope', 'dft', 'radianLegend',
+ function(processAttrs, calcPlotDimensions,
+          $timeout, $rootScope, dumpScope, dft, radianLegend)
+{
+  'use strict';
+
+  // We do setup work here so that we can organise things before the
+  // transcluded plotting directives are linked.
+  function preLink(scope, elm, as, transclude) {
+    // Process attributes, bringing all but a few special cases into
+    // Angular scope as regular variables (to be use in data access
+    // expressions).
+    processAttrs(scope, as);
+    // console.log("<plot> preLink: scope, as");
+    // console.log(scope);
+    // console.log(as);
+
+    if (!scope.inLayout) {
+      calcPlotDimensions(scope, elm, as)
+      scope.layoutTop = true;
+    } else scope.addToLayout(scope, scope.layoutShare);
     scope.svg = elm.children()[1];
     scope.strokesel = as.hasOwnProperty('strokeSwitch') ? 0 : undefined;
     scope.fontSize = as.fontSize || 12;
-    $(elm).css('width', w).css('height', h);
+//    $(elm).css('width', w).css('height', h);
 
     // Set up view list and function for child elements to add plots.
     scope.views = [];
@@ -163,6 +181,7 @@ radian.directive('plot',
   // We do the actual plotting after the transcluded plot type
   // elements are linked.
   function postLink(scope, elm) {
+    // console.log("<plot> postLink");
     function redraw() {
       scope.views.forEach(function(v) { draw(v, scope); });
     };
@@ -471,8 +490,6 @@ radian.directive('plot',
     var del2 = Math.floor(1.25 * scope.fontSize);
     var del3 = Math.floor(2.5 * scope.fontSize);
     var del4 = Math.floor(2.0 * scope.fontSize);
-    console.log("del1=" + del1 + " del2=" + del2 +
-                " del3=" + del3 + " del4=" + del4);
     if (v.xaxis) v.margin.bottom += del1 + (showXAxisLabel ? del2 : 0);
     if (v.yaxis) v.margin.left += del3 + (showYAxisLabel ? del4 : 0);
     if (v.x2axis) v.margin.top += del1 + (showX2AxisLabel ? del2 : 0);

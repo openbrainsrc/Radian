@@ -9,6 +9,7 @@ all: radian.js radian.min.js examples
 	src/core.js \
 	src/expressions.js \
 	src/data.js \
+	src/layout.js \
 	src/plots.js \
 	src/interpolation.js \
 	src/lib.js \
