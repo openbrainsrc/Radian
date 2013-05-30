@@ -143,10 +143,11 @@ radian.factory('addToLayout', function()
 {
   return function(sc, sublayout, size) {
     if (sublayout.hasOwnProperty('$id'))
-      sc.layoutItems.push({ size: Number(size),
+      sc.layoutItems.push({ size: size != null ? Number(size) : null,
                             item: { type: 'plot', items: sublayout } });
     else
-      sc.layoutItems.push({ size: Number(size), item: sublayout });
+      sc.layoutItems.push({ size: size != null ? Number(size) : null,
+                            item: sublayout });
   };
 });
 
@@ -255,6 +256,68 @@ radian.directive('plotCol', ['layoutDirective', function(layoutDirective)
   return layoutDirective('vbox');
 }]);
 
+radian.directive('plotGrid',
+ ['layoutSizes', 'processAttrs', 'calcPlotDimensions',
+  'addToLayout', 'extractFrames', 'layoutToString',
+  function(layoutSizes, processAttrs, calcPlotDimensions,
+           addToLayout, extractFrames, layoutToString)
+{
+  'use strict';
+
+  function preLink(sc, elm, as, transclude) {
+    processAttrs(sc, as);
+    if (!sc.inLayout) {
+      calcPlotDimensions(sc, elm, as);
+      sc.layoutTop = true;
+      sc.inLayout = true;
+      $(elm).css('width', sc.width).css('height', sc.height);
+      sc.layoutsvg = elm.children()[0];
+    } else
+      $(elm.children()[1]).remove();
+    sc.layoutItems = [];
+    transclude(sc.$new(), function (cl) { elm.append(cl); });
+  };
+
+  function postLink(sc, elm) {
+    var nrows = sc.rows || Math.floor(Math.sqrt(sc.layoutItems.length));
+    var ncols = sc.cols || Math.ceil(sc.layoutItems.length / nrows);
+    var rows = [];
+    var i = 0;
+    for (var r = 0; r < nrows; ++r) {
+      var cols = [];
+      for (var c = 0; c < ncols; ++c) {
+        if (i >= sc.layoutItems.length) break;
+        cols.push(sc.layoutItems[i++]);
+      }
+      rows.push({ size: null, item: { type: 'hbox', items: cols } });
+    }
+    var items = { type: 'vbox', items: rows };
+    if (sc.hasOwnProperty('layoutTop')) {
+      var spacing = sc.layoutSpacing || 0;
+      var layedout = layoutSizes(sc.width, sc.height, spacing, items);
+      var frames = extractFrames(0, sc.width, sc.height, layedout);
+      frames.forEach(function(fr) {
+        fr.plot.width = fr.w;
+        fr.plot.height = fr.h;
+        fr.plot.svg = d3.select(sc.layoutsvg).append('g')
+          .attr('width', fr.w).attr('height', fr.h)
+          .attr('transform', 'translate(' + fr.x + ',' + fr.y + ')')[0][0];
+      });
+    } else addToLayout(sc.$parent, items, sc.layoutShare);
+  };
+
+  return {
+    restrict: 'E',
+    template: '<div class="radian"><svg></svg></div>',
+    replace: true,
+    transclude: true,
+    scope: true,
+    compile: function(elm, as, trans) {
+      return { pre: function(s, e, a) { preLink(s, e, a, trans); },
+               post: postLink };
+    }
+  };
+}]);
 
 radian.factory('layoutToString', function() {
   'use strict';
