@@ -68,6 +68,13 @@ radian.directive('lines',
     restrict: 'E',
     scope: true,
     link: function(scope, elm, as) {
+      scope.$on('setupExtra', function() {
+        var width = scope.strokeWidth instanceof Array ?
+          scope.strokeWidth.reduce(function(x,y) {
+            return Math.max(Number(x), Number(y));
+          }) : (Number(scope.strokeWidth) || 1);
+        scope.rangeExtendPixels([width/2, width/2], [width/2, width/2]);
+      });
       plotTypeLink(scope, elm, as, draw);
     }
   };
@@ -114,6 +121,19 @@ radian.directive('points',
     restrict: 'E',
     scope: true,
     link: function(scope, elm, as) {
+      scope.$on('setupExtra', function() {
+        var width = scope.strokeWidth instanceof Array ?
+          scope.strokeWidth.reduce(function(x,y) {
+            return Math.max(Number(x), Number(y));
+          }) : (Number(scope.strokeWidth) || 1);
+        if (scope.stroke == 'none') width = 0;
+        var size = scope.markerSize instanceof Array ?
+          scope.markerSize.reduce(function(x,y) {
+            return Math.max(Number(x), Number(y));
+          }) : (Number(scope.markerSize) || 1);
+        var delta = (width + Math.sqrt(size)) / 2;
+        scope.rangeExtendPixels([delta, delta], [delta, delta]);
+      });
       plotTypeLink(scope, elm, as, draw);
     }
   };
@@ -179,6 +199,11 @@ radian.directive('bars',
         });
         scope.rangeXExtend = [scope.barWidths[0] / 2,
                               scope.barWidths[scope.x.length - 1] / 2];
+        var width = scope.strokeWidth instanceof Array ?
+          scope.strokeWidth.reduce(function(x,y) {
+            return Math.max(Number(x), Number(y));
+          }) : (Number(scope.strokeWidth) || 1);
+        scope.rangeExtendPixels([2*width, 2*width], null);
       });
       plotTypeLink(scope, elm, as, draw);
     }

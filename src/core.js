@@ -137,6 +137,9 @@ radian.directive('plot',
 {
   'use strict';
 
+  // ID generator for plots.
+  var plotidgen = 0;
+
   // We do setup work here so that we can organise things before the
   // transcluded plotting directives are linked.
   function preLink(scope, elm, as, transclude) {
@@ -144,6 +147,7 @@ radian.directive('plot',
     // Angular scope as regular variables (to be use in data access
     // expressions).
     processAttrs(scope, as);
+    scope.plotid = ++plotidgen;
     if (!scope.inLayout) {
       calcPlotDimensions(scope, elm, as)
       scope.layoutTop = true;
@@ -203,10 +207,22 @@ radian.directive('plot',
   // We do the actual plotting after the transcluded plot type
   // elements are linked.
   function postLink(scope, elm) {
+    scope.rangeExtendPixels = function(x, y) {
+      if (x != null)
+        scope.rangeXExtendPixels =
+          [Math.max(scope.rangeXExtendPixels[0], x[0]),
+           Math.max(scope.rangeXExtendPixels[1], x[1])];
+      if (y != null)
+        scope.rangeYExtendPixels =
+          [Math.max(scope.rangeYExtendPixels[0], y[0]),
+           Math.max(scope.rangeYExtendPixels[1], y[1])];
+    };
     function redraw() {
       scope.views.forEach(function(v) { draw(v, scope); });
     };
     function reset() {
+      scope.rangeXExtendPixels = [0, 0];
+      scope.rangeYExtendPixels = [0, 0];
       scope.$broadcast('setupExtra');
       scope.views = svgs.map(function(s, i) {
         return setup(scope, s, i, svgs.length);
@@ -338,35 +354,43 @@ radian.directive('plot',
 
   function makeXScaler(scope, v, hasdate) {
     var xform = scope.axisXTransform || "linear";
+    var ext = scope.rangeXExtendPixels;
+    var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (hasdate)
-      v.x = d3.time.scale().range([0, v.realwidth]).domain(scope.xextent);
+      v.x = d3.time.scale().range([b,t]).domain(scope.xextent);
     else if (xform == "log")
-      v.x = d3.scale.log().range([0, v.realwidth]).domain(scope.xextent);
+      v.x = d3.scale.log().range([b,t]).domain(scope.xextent);
     else
-      v.x = d3.scale.linear().range([0, v.realwidth]).domain(scope.xextent);
+      v.x = d3.scale.linear().range([b,t]).domain(scope.xextent);
   };
   function makeX2Scaler(scope, v, hasdate) {
     var xform = scope.axisXTransform || "linear";
+    var ext = scope.rangeXExtendPixels;
+    var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (hasdate)
-      v.x2 = d3.time.scale().range([0, v.realwidth]).domain(scope.x2extent);
+      v.x2 = d3.time.scale().range([b,t]).domain(scope.x2extent);
     else if (xform == "log")
-      v.x2 = d3.scale.log().range([0, v.realwidth]).domain(scope.x2extent);
+      v.x2 = d3.scale.log().range([b,t]).domain(scope.x2extent);
     else
-      v.x2 = d3.scale.linear().range([0, v.realwidth]).domain(scope.x2extent);
+      v.x2 = d3.scale.linear().range([b,t]).domain(scope.x2extent);
   };
   function makeYScaler(scope, v) {
     var xform = scope.axisYTransform || "linear";
+    var ext = scope.rangeYExtendPixels;
+    var b = ext ? ext[0] : 0, t = v.realheight - (ext ? ext[1] : 0);
     if (xform == "log")
-      v.y = d3.scale.log().range([v.realheight, 0]).domain(scope.yextent);
+      v.y = d3.scale.log().range([t,b]).domain(scope.yextent);
     else
-      v.y = d3.scale.linear().range([v.realheight, 0]).domain(scope.yextent);
+      v.y = d3.scale.linear().range([t,b]).domain(scope.yextent);
   };
   function makeY2Scaler(scope, v) {
     var xform = scope.axisYTransform || "linear";
+    var ext = scope.rangeYExtendPixels;
+    var b = ext ? ext[0] : 0, t = v.realheight - (ext ? ext[1] : 0);
     if (xform == "log")
-      v.y2 = d3.scale.log().range([v.realheight, 0]).domain(scope.y2extent);
+      v.y2 = d3.scale.log().range([t,b]).domain(scope.y2extent);
     else
-      v.y2 = d3.scale.linear().range([v.realheight, 0]).domain(scope.y2extent);
+      v.y2 = d3.scale.linear().range([t,b]).domain(scope.y2extent);
   };
 
   function setup(scope, topgroup, idx, nviews) {
@@ -432,6 +456,8 @@ radian.directive('plot',
         yextend[0] = Math.max(yextend[0], s.rangeYExtend[0]);
         yextend[1] = Math.max(yextend[1], s.rangeYExtend[1]);
       }
+      if (s.rangeXExtendPixels) scope.rangeXExtendPixels = s.rangeXExtendPixels;
+      if (s.rangeYExtendPixels) scope.rangeYExtendPixels = s.rangeYExtendPixels;
     });
     if (!scope.fixedXRange && xexts.length > 0) {
       scope.xextent = d3.extent(xexts);
@@ -575,11 +601,11 @@ radian.directive('plot',
 
     if (idx == 0) {
       var svgelm = d3.select(scope.svg);
-      svgelm.select('#mainclip').remove();
+      v.clip = 'mainclip' + scope.plotid;
+      svgelm.select('#' + v.clip).remove();
       svgelm.append('defs').append('clipPath')
-        .attr('id', 'mainclip').append('rect')
+        .attr('id', v.clip).append('rect')
         .attr('width', v.realwidth).attr('height', v.realheight);
-      v.clip = 'mainclip';
     }
 
     return v;
