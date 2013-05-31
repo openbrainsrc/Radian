@@ -11,11 +11,27 @@
 <body>
   <div class="container-fluid">
     <div class="row-fluid">
-      <div class="span2">
+      <div class="span2" ng-controller="BaseController">
         <br>
-        <ul ng-controller="BaseController">
-          <li ng-repeat="eg in egs"><a href={{eg.link}}>{{eg.title}}</a></li>
-        </ul>
+        <div class="accordion" id="egs">
+          <div class="accordion-group" ng-repeat="g in egs">
+            <div class="accordion-heading">
+              <a class="accordion-toggle" data-toggle="collapse"
+                 data-parent="#egs" href={{g.idhash}}>
+                {{g.title}}
+              </a>
+            </div>
+            <div id={{g.id}} class="accordion-body collapse">
+              <div class="accordion-inner">
+                <ul>
+                  <li ng-repeat="eg in g.items">
+                    <a href={{eg.link}}>{{eg.title}}</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="span10">
         <div class="container" ng-view></div>

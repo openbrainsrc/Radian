@@ -57,54 +57,74 @@ function EgCtrl(plotLib, $http, $scope, $location) {
 }
 EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
-var negs = 47;
-var egtitles = [ "Basic plot; CSV data",
-                 "Basic plot; JSON data",
-                 "Int. legend; fading",
-                 "X-axis zoom",
-                 "Stroke fade UI",
-                 "Stroke colour UI",
-                 "X/Y variable UI",
-                 "Plot grid with tabs",
-                 "Date handling",
-                 "Data aggr. funcs.",
-                 "Bar charts",
-                 "Func. plots",
-                 "Func. plots",
-                 "Vectorisation",
-                 "Data binding",
-                 "<plot-options>",
-                 "Basic points plot",
-                 "Range attributes",
-                 "Log axes",
-                 "Second axes",
-                 "Bar chart",
-                 "Test",
-                 "Integer pluck",
-                 "Tom's data example",
-                 "Norm. palette",
-                 "Disc. palette",
-                 "Disc. pal. (mark)",
-                 "Func. + pal.",
-                 "Func. + abs. pal.",
-                 "Abs. pal. terrain",
-                 "Tom's plot-options bug",
-                 "Histogram",
-                 "Banded pal.",
-                 "Data via URL",
-                 "Simple area plot",
-                 "Comp. pal. #1",
-                 "Comp. pal. #2",
-                 "Gradient pal.",
-                 "Health & wealth",
-                 "Pluck expr. test",
-                 "Plot titles #1",
-                 "Layout #1",
-                 "Layout #2",
-                 "Layout #3",
-                 "Layout #4",
-                 "Layout #5",
-                 "Layout #6"];
+var negs = 48;
+
+var eggrps = [ { title: "Plot types",
+                 items: [["Basic plot; CSV data",   1],
+                         ["Basic plot; JSON data",  2],
+                         ["Bar charts",            11],
+                         ["Func. plots",           12],
+                         ["Func. plots",           13],
+                         ["Basic points plot",     17],
+                         ["Range attributes",      18],
+                         ["Log axes",              19],
+                         ["Second axes",           20],
+                         ["Bar chart",             21],
+                         ["Test",                  22],
+                         ["Histogram",             32],
+                         ["Simple area plot",      35]] },
+
+               { title: "UI examples",
+                 items: [["Int. legend; fading",    3],
+                         ["X-axis zoom",            4],
+                         ["Stroke fade UI",         5],
+                         ["Stroke colour UI",       6],
+                         ["X/Y variable UI",        7]] },
+
+               { title: "Data access",
+                 items: [["Date handling",          9],
+                         ["Data aggr. funcs.",     10],
+                         ["Vectorisation",         14],
+                         ["Data binding",          15],
+                         ["Integer pluck",         23],
+                         ["Pluck expr. test",      40],
+                         ["Data via URL",          34]] },
+
+               { title: "Layout",
+                 items: [["Layout #1",             42],
+                         ["Layout #2",             43],
+                         ["Layout #3",             44],
+                         ["Layout #4",             45],
+                         ["Layout #5",             46],
+                         ["Layout #6",             47],
+                         ["Plot grid with tabs",    8]] },
+
+               { title: "Palettes",
+                 items: [["Norm. palette",         25],
+                         ["Disc. palette",         26],
+                         ["Disc. pal. (mark)",     27],
+                         ["Func. + pal.",          28],
+                         ["Func. + abs. pal.",     29],
+                         ["Abs. pal. terrain",     30],
+                         ["Banded pal.",           33],
+                         ["Simple area plot",      35],
+                         ["Comp. pal. #1",         36],
+                         ["Comp. pal. #2",         37],
+                         ["Gradient pal.",         38]] },
+
+               { title: "Formatting",
+                 items: [["<plot-options>",        16],
+                         ["Plot titles #1",        41]] },
+
+               { title: "Bigger examples",
+                 items: [["Health & wealth",       39]] },
+
+               { title: "Bugs",
+                 items: [["Tom's data example",    24],
+                         ["Test",                  22],
+                         ["plot-options bug",      31],
+                         ["Palettes & ng-repeat",  48]] } ];
+
 
 angular.module('myApp', ['radian']).
   config(['$routeProvider', function($routeProvider) {
@@ -117,8 +137,17 @@ angular.module('myApp', ['radian']).
   }]).
   controller('BaseController', ['$rootScope', function($rootScope) {
     $rootScope.egs = [];
-    for (var eg = 1; eg <= negs; ++eg) {
-      var n = (eg < 10 ? '0' : '') + eg;
-      $rootScope.egs.push({ link: "#/" + n, title: egtitles[eg - 1] });
+    for (var grp = 0; grp < eggrps.length; ++grp) {
+      var grpitems = [];
+      for (var i = 0; i < eggrps[grp].items.length; ++i) {
+        var egtitle = eggrps[grp].items[i][0];
+        var eg = eggrps[grp].items[i][1];
+        var n = (eg < 10 ? '0' : '') + eg;
+        grpitems.push({ title: egtitle, link: "#/" + n });
+      }
+      $rootScope.egs.push({ title: eggrps[grp].title,
+                            id: "grp" + grp,
+                            idhash: "#grp" + grp,
+                            items: grpitems });
     }
   }]);

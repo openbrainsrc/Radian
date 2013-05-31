@@ -219,7 +219,7 @@ radian.factory('layoutDirective',
     function postLink(sc, elm) {
       var items = { type: container, items: sc.layoutItems };
       if (sc.hasOwnProperty('layoutTop')) {
-        var spacing = sc.layoutSpacing || 0;
+        var spacing = sc.spacing || 0;
         var layedout = layoutSizes(sc.width, sc.height, spacing, items);
         var frames = extractFrames(0, sc.width, sc.height, layedout);
         frames.forEach(function(fr) {
@@ -293,7 +293,7 @@ radian.directive('plotGrid',
     }
     var items = { type: 'vbox', items: rows };
     if (sc.hasOwnProperty('layoutTop')) {
-      var spacing = sc.layoutSpacing || 0;
+      var spacing = sc.spacing || 0;
       var layedout = layoutSizes(sc.width, sc.height, spacing, items);
       var frames = extractFrames(0, sc.width, sc.height, layedout);
       frames.forEach(function(fr) {
