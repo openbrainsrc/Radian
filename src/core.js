@@ -59,25 +59,29 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
       // re-evaluate and rearrange the free variable watchers.
       as.$observe(a, function(v) {
         entry.expr = v;
-        var val = radianEval(scope, v, true);
-        scope[a] = val[0];
-        entry.fvs = val[1];
-        Object.keys(entry.fvwatchers).forEach(function(v) {
-          // The new free variables are already in entry.fvs.  If this
-          // one isn't in there, deregister the watch and remove it.
-          if (entry.fvs.indexOf(v) == -1) {
-            entry.fvwatchers[v]();
-            delete entry.fvwatchers[v];
-          }
-        });
-        // Add watchers for any new free variables.
-        entry.fvs.forEach(function(v) {
-          if (!entry.fvwatchers[v])
-            entry.fvwatchers[v] = scope.$watch(v, function() {
-              scope[a] = radianEval(scope, entry.expr);
-            }, true);
-        });
-      });
+        try {
+          var val = radianEval(scope, v, true);
+          scope[a] = val[0];
+          entry.fvs = val[1];
+          Object.keys(entry.fvwatchers).forEach(function(v) {
+            // The new free variables are already in entry.fvs.  If
+            // this one isn't in there, deregister the watch and
+            // remove it.
+            if (entry.fvs.indexOf(v) == -1) {
+              entry.fvwatchers[v]();
+              delete entry.fvwatchers[v];
+            }
+          });
+          // Add watchers for any new free variables.
+          entry.fvs.forEach(function(v) {
+            if (!entry.fvwatchers[v])
+              entry.fvwatchers[v] = scope.$watch(v, function() {
+                scope[a] = radianEval(scope, entry.expr);
+              }, true);
+          });
+        } catch (e) {
+          console.log("Exception in radianEval watcher.  Skipping...");
+        }});
     });
   };
 }]);

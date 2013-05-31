@@ -37,9 +37,6 @@ function EgCtrl(plotLib, $http, $scope, $location) {
     return ys;
   };
 
-  $scope.pals = { bgr: '0 blue; 0.5 grey; 1 red',
-                  gyo: '0 green; 0.5 yellow; 1 orange' };
-
   $scope.$watch('$location.hash', function() {
     var url = "http://" + location.host + "/eg/" +
       location.hash.slice(2) + ".html";
@@ -107,7 +104,6 @@ var eggrps = [ { title: "Plot types",
                          ["Func. + abs. pal.",     29],
                          ["Abs. pal. terrain",     30],
                          ["Banded pal.",           33],
-                         ["Simple area plot",      35],
                          ["Comp. pal. #1",         36],
                          ["Comp. pal. #2",         37],
                          ["Gradient pal.",         38]] },
@@ -135,7 +131,8 @@ angular.module('myApp', ['radian']).
     }
     $routeProvider.otherwise({ redirectTo: '/01' });
   }]).
-  controller('BaseController', ['$rootScope', function($rootScope) {
+  controller('BaseController',
+  ['$rootScope', function($rootScope) {
     $rootScope.egs = [];
     for (var grp = 0; grp < eggrps.length; ++grp) {
       var grpitems = [];
@@ -145,9 +142,10 @@ angular.module('myApp', ['radian']).
         var n = (eg < 10 ? '0' : '') + eg;
         grpitems.push({ title: egtitle, link: "#/" + n });
       }
-      $rootScope.egs.push({ title: eggrps[grp].title,
-                            id: "grp" + grp,
-                            idhash: "#grp" + grp,
-                            items: grpitems });
+      $rootScope.egs.push({ title: eggrps[grp].title, items: grpitems,
+                            id: "grp" + grp, idhash: "#grp" + grp });
     }
+
+    $rootScope.pals = { bgr: '0 blue; 0.5 grey; 1 red',
+                        gyo: '0 green; 0.5 yellow; 1 orange' };
   }]);

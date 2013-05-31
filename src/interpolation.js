@@ -1,7 +1,8 @@
 // Process palette directive.
 
 radian.directive('palette',
- ['discPalFn', 'contPalFn', function(discPalFn, contPalFn)
+ ['processAttrs', 'radianEval', 'discPalFn', 'contPalFn',
+  function(processAttrs, radianEval, discPalFn, contPalFn)
 {
   'use strict';
 
@@ -14,13 +15,14 @@ radian.directive('palette',
       elm.hide();
 
       // Process attributes.
-      if (!attrs.name)
+      processAttrs(scope, attrs);
+      if (!scope.name)
         throw Error("<palette> directive without NAME attribute");
-      var name = attrs.name;
-      var typ = attrs.type || 'norm';
-      var interp = attrs.interp || 'hsl';
+      var name = scope.name;
+      var typ = scope.type || 'norm';
+      var interp = scope.interp || 'hsl';
       interp = interp.toLowerCase();
-      var banded = attrs.hasOwnProperty("banded");
+      var banded = scope.hasOwnProperty("banded");
 
       // Process content -- all text children are appended together
       // for parsing.
@@ -31,6 +33,7 @@ radian.directive('palette',
 
       // Normalise content: line separators are equivalent to
       // semicolons.
+      paltext = radianEval(scope, paltext.trim());
       paltext = paltext.replace(/\n/g, ';');
 
       // Generate palette function.
@@ -49,8 +52,11 @@ radian.directive('palette',
         throw Error("invalid <palette> type: " + typ);
       }
 
-      // Install palette function.
-      scope[name] = fn;
+      // Install palette function on nearest enclosing scope that
+      // isn't associated with an ng-repeat.
+      var s = scope;
+      while (s.$parent && s.hasOwnProperty('$index')) s = s.$parent;
+      s[name] = fn;
     }
   };
 }]);

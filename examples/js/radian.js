@@ -61,25 +61,29 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
       // re-evaluate and rearrange the free variable watchers.
       as.$observe(a, function(v) {
         entry.expr = v;
-        var val = radianEval(scope, v, true);
-        scope[a] = val[0];
-        entry.fvs = val[1];
-        Object.keys(entry.fvwatchers).forEach(function(v) {
-          // The new free variables are already in entry.fvs.  If this
-          // one isn't in there, deregister the watch and remove it.
-          if (entry.fvs.indexOf(v) == -1) {
-            entry.fvwatchers[v]();
-            delete entry.fvwatchers[v];
-          }
-        });
-        // Add watchers for any new free variables.
-        entry.fvs.forEach(function(v) {
-          if (!entry.fvwatchers[v])
-            entry.fvwatchers[v] = scope.$watch(v, function() {
-              scope[a] = radianEval(scope, entry.expr);
-            }, true);
-        });
-      });
+        try {
+          var val = radianEval(scope, v, true);
+          scope[a] = val[0];
+          entry.fvs = val[1];
+          Object.keys(entry.fvwatchers).forEach(function(v) {
+            // The new free variables are already in entry.fvs.  If
+            // this one isn't in there, deregister the watch and
+            // remove it.
+            if (entry.fvs.indexOf(v) == -1) {
+              entry.fvwatchers[v]();
+              delete entry.fvwatchers[v];
+            }
+          });
+          // Add watchers for any new free variables.
+          entry.fvs.forEach(function(v) {
+            if (!entry.fvwatchers[v])
+              entry.fvwatchers[v] = scope.$watch(v, function() {
+                scope[a] = radianEval(scope, entry.expr);
+              }, true);
+          });
+        } catch (e) {
+          console.log("Exception in radianEval watcher.  Skipping...");
+        }});
     });
   };
 }]);
@@ -3240,7 +3244,7 @@ radian.factory('layoutDirective',
     function postLink(sc, elm) {
       var items = { type: container, items: sc.layoutItems };
       if (sc.hasOwnProperty('layoutTop')) {
-        var spacing = sc.layoutSpacing || 0;
+        var spacing = sc.spacing || 0;
         var layedout = layoutSizes(sc.width, sc.height, spacing, items);
         var frames = extractFrames(0, sc.width, sc.height, layedout);
         frames.forEach(function(fr) {
@@ -3314,7 +3318,7 @@ radian.directive('plotGrid',
     }
     var items = { type: 'vbox', items: rows };
     if (sc.hasOwnProperty('layoutTop')) {
-      var spacing = sc.layoutSpacing || 0;
+      var spacing = sc.spacing || 0;
       var layedout = layoutSizes(sc.width, sc.height, spacing, items);
       var frames = extractFrames(0, sc.width, sc.height, layedout);
       frames.forEach(function(fr) {
@@ -3590,7 +3594,8 @@ radian.directive('area',
 // Process palette directive.
 
 radian.directive('palette',
- ['discPalFn', 'contPalFn', function(discPalFn, contPalFn)
+ ['processAttrs', 'radianEval', 'discPalFn', 'contPalFn',
+  function(processAttrs, radianEval, discPalFn, contPalFn)
 {
   'use strict';
 
@@ -3603,13 +3608,14 @@ radian.directive('palette',
       elm.hide();
 
       // Process attributes.
-      if (!attrs.name)
+      processAttrs(scope, attrs);
+      if (!scope.name)
         throw Error("<palette> directive without NAME attribute");
-      var name = attrs.name;
-      var typ = attrs.type || 'norm';
-      var interp = attrs.interp || 'hsl';
+      var name = scope.name;
+      var typ = scope.type || 'norm';
+      var interp = scope.interp || 'hsl';
       interp = interp.toLowerCase();
-      var banded = attrs.hasOwnProperty("banded");
+      var banded = scope.hasOwnProperty("banded");
 
       // Process content -- all text children are appended together
       // for parsing.
@@ -3620,6 +3626,7 @@ radian.directive('palette',
 
       // Normalise content: line separators are equivalent to
       // semicolons.
+      paltext = radianEval(scope, paltext.trim());
       paltext = paltext.replace(/\n/g, ';');
 
       // Generate palette function.
@@ -3638,8 +3645,11 @@ radian.directive('palette',
         throw Error("invalid <palette> type: " + typ);
       }
 
-      // Install palette function.
-      scope[name] = fn;
+      // Install palette function on nearest enclosing scope that
+      // isn't associated with an ng-repeat.
+      var s = scope;
+      while (s.$parent && s.hasOwnProperty('$index')) s = s.$parent;
+      s[name] = fn;
     }
   };
 }]);
