@@ -156,7 +156,27 @@ radian.directive('plot',
       addToLayout(scope, scope, scope.layoutShare);
     }
     scope.strokesel = as.hasOwnProperty('strokeSwitch') ? 0 : undefined;
-    scope.fontSize = as.fontSize || 12;
+
+    // Font attributes.
+    scope.fontSize = Number(as.fontSize) || 12;
+    scope.titleFontSize = 1.25 * scope.fontSize;
+    if (as.titleFontSize) {
+      if (as.titleFontSize.indexOf('%') != -1)
+        scope.titleFontSize =
+        parseFloat(as.titleFontSize) / 100.0 * scope.fontSize;
+      else if (as.titleFontSize.indexOf('.') != -1)
+        scope.titleFontSize = Number(as.titleFontSize) * scope.fontSize;
+      else
+        scope.titleFontSize = Number(as.titleFontSize) || 1.25 * scope.fontSize;
+    }
+    scope.fontFamily = as.fontFamily || null;
+    scope.fontStyle = as.fontStyle || null;
+    scope.fontWeight = as.fontWeight || null;
+    scope.fontVariant = as.fontVariant || null;
+    scope.titleFontFamily = as.titleFontFamily || scope.fontFamily;
+    scope.titleFontStyle = as.titleFontStyle || scope.fontStyle;
+    scope.titleFontWeight = as.titleFontWeight || 'bold';
+    scope.titleFontVariant = as.titleFontVariant || scope.fontVariant;
 
     // Set up view list and function for child elements to add plots.
     scope.views = [];
@@ -567,6 +587,13 @@ radian.directive('plot',
     return v;
   };
 
+  function setFont(lab, scope) {
+    if (scope.fontFamily) lab.style('font-family', scope.fontFamily);
+    if (scope.fontStyle) lab.style('font-style', scope.fontStyle);
+    if (scope.fontWeight) lab.style('font-weight', scope.fontWeight);
+    if (scope.fontVariant) lab.style('font-variant', scope.fontVariant);
+  };
+
   function draw(v, scope) {
     // Clean out any pre-existing plots.
     $(v.svg[0]).empty();
@@ -602,15 +629,17 @@ radian.directive('plot',
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.realheight + v.margin.top + del1) + ')')
         .call(axis);
-      if (v.xlabel)
-        outsvg.append('g').attr('class', 'axis-label')
-        .attr('transform', 'translate(' +
-              (+v.margin.left + v.realwidth / 2) +
-              ',' + (+v.realheight + v.margin.top) + ')')
-        .append('text')
-        .attr('x', 0).attr('y', del2)
-        .style('font-size', scope.fontSize)
-        .attr('text-anchor', 'middle').text(v.xlabel);
+      if (v.xlabel) {
+        var lab = outsvg.append('g').attr('class', 'axis-label')
+          .attr('transform', 'translate(' +
+                (+v.margin.left + v.realwidth / 2) +
+                ',' + (+v.realheight + v.margin.top) + ')')
+          .append('text')
+          .attr('x', 0).attr('y', del2)
+          .style('font-size', scope.fontSize)
+          .attr('text-anchor', 'middle').text(v.xlabel);
+        setFont(lab, scope);
+      }
     }
     if (v.x2axis && v.x2) {
       var axis = d3.svg.axis()
@@ -631,15 +660,17 @@ radian.directive('plot',
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.margin.top + del1) + ')')
         .call(axis);
-      if (v.x2label)
-        outsvg.append('g').attr('class', 'axis-label')
-        .attr('transform', 'translate(' +
-              (+v.margin.left + v.realwidth / 2) + ',' +
-              (+v.margin.top) + ')')
-        .append('text')
-        .attr('x', 0).attr('y', del2)
-        .style('font-size', scope.fontSize)
-        .attr('text-anchor', 'middle').text(v.x2label);
+      if (v.x2label) {
+        var lab = outsvg.append('g').attr('class', 'axis-label')
+          .attr('transform', 'translate(' +
+                (+v.margin.left + v.realwidth / 2) + ',' +
+                (+v.margin.top) + ')')
+          .append('text')
+          .attr('x', 0).attr('y', del2)
+          .style('font-size', scope.fontSize)
+          .attr('text-anchor', 'middle').text(v.x2label);
+        setFont(lab, scope);
+      }
     }
     if (v.yaxis && v.y) {
       var axis = d3.svg.axis()
@@ -651,12 +682,13 @@ radian.directive('plot',
         .call(axis);
       if (v.ylabel) {
         var xpos = scope.fontSize, ypos = +v.margin.top + v.realheight / 2;
-        outsvg.append('g').attr('class', 'axis-label')
+        var lab = outsvg.append('g').attr('class', 'axis-label')
         .append('text')
         .attr('x', xpos).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
         .style('font-size', scope.fontSize)
         .attr('text-anchor', 'middle').text(v.ylabel);
+        setFont(lab, scope);
       }
     }
     if (v.y2axis && v.y2) {
@@ -672,26 +704,31 @@ radian.directive('plot',
         var xpos = v.realwidth + v.margin.left +
           Math.floor(3.3 * scope.fontSize);
         var ypos = +v.margin.top + v.realheight / 2;
-        outsvg.append('g').attr('class', 'axis-label')
+        var lab = outsvg.append('g').attr('class', 'axis-label')
         .append('text')
         .attr('x', xpos).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
         .style('font-size', scope.fontSize)
         .attr('text-anchor', 'middle').text(v.y2label);
+        setFont(lab, scope);
       }
     }
-    d3.selectAll('.axis text').style('font-size', scope.fontSize);
+    setFont(d3.selectAll('.axis text'), scope);
 
     // Plot title.
     if (v.title && !v.noTitle) {
-      outsvg.append('g').attr('class', 'axis-label')
+      var t = outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
               (+v.margin.left + v.realwidth / 2) + ',0)')
         .append('text')
-        .attr('x', 0).attr('y', Math.floor(1.7 * scope.fontSize))
-        .style('font-weight', 'bold')
-        .style('font-size', Math.floor(1.25 * scope.fontSize))
+        .attr('x', 0).attr('y', Math.floor(1.35 * scope.titleFontSize))
+        .style('font-size', Math.floor(scope.titleFontSize))
         .attr('text-anchor', 'middle').text(v.title);
+      if (scope.titleFontFamily) t.style('font-family', scope.titleFontFamily);
+      if (scope.titleFontStyle) t.style('font-style', scope.titleFontStyle);
+      if (scope.titleFontWeight) t.style('font-weight', scope.titleFontWeight);
+      if (scope.titleFontVariant)
+        t.style('font-variant', scope.titleFontVariant);
     }
 
     // Loop over plots, calling their draw functions one by one.
