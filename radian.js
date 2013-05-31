@@ -220,18 +220,13 @@ radian.directive('plot',
         svgs[0].attr('height', mainHeight);
 
         setupBrush = function() {
-          svgelm.append('defs').append('clipPath')
-            .attr('id', 'xzoomclip')
-            .append('rect')
-            .attr('width', scope.views[0].realwidth)
-            .attr('height', scope.views[0].realheight);
-          scope.views[0].clip = 'xzoomclip';
           var brush = d3.svg.brush().x(scope.views[1].x);
           brush.on('brush', function() {
             scope.views[0].x.domain(brush.empty() ?
                                     scope.views[1].x.domain() : brush.extent());
             draw(scope.views[0], scope);
           });
+          scope.views[1].noTitle = true;
           scope.views[1].post = function(svg) {
             svg.append('g')
               .attr('class', 'x brush')
@@ -328,40 +323,32 @@ radian.directive('plot',
     if (hasdate)
       v.x = d3.time.scale().range([0, v.realwidth]).domain(scope.xextent);
     else if (xform == "log")
-      v.x = d3.scale.log().range([0, v.realwidth])
-      .domain(scope.xextent).clamp(true);
+      v.x = d3.scale.log().range([0, v.realwidth]).domain(scope.xextent);
     else
-      v.x = d3.scale.linear().range([0, v.realwidth])
-      .domain(scope.xextent).clamp(true);
+      v.x = d3.scale.linear().range([0, v.realwidth]).domain(scope.xextent);
   };
   function makeX2Scaler(scope, v, hasdate) {
     var xform = scope.axisXTransform || "linear";
     if (hasdate)
       v.x2 = d3.time.scale().range([0, v.realwidth]).domain(scope.x2extent);
     else if (xform == "log")
-      v.x2 = d3.scale.log().range([0, v.realwidth])
-      .domain(scope.x2extent).clamp(true);
+      v.x2 = d3.scale.log().range([0, v.realwidth]).domain(scope.x2extent);
     else
-      v.x2 = d3.scale.linear().range([0, v.realwidth])
-      .domain(scope.x2extent).clamp(true);
+      v.x2 = d3.scale.linear().range([0, v.realwidth]).domain(scope.x2extent);
   };
   function makeYScaler(scope, v) {
     var xform = scope.axisYTransform || "linear";
     if (xform == "log")
-      v.y = d3.scale.log().range([v.realheight, 0])
-      .domain(scope.yextent).clamp(true);
+      v.y = d3.scale.log().range([v.realheight, 0]).domain(scope.yextent);
     else
-      v.y = d3.scale.linear().range([v.realheight, 0])
-      .domain(scope.yextent).clamp(true);
+      v.y = d3.scale.linear().range([v.realheight, 0]).domain(scope.yextent);
   };
   function makeY2Scaler(scope, v) {
     var xform = scope.axisYTransform || "linear";
     if (xform == "log")
-      v.y2 = d3.scale.log().range([v.realheight, 0])
-      .domain(scope.y2extent).clamp(true);
+      v.y2 = d3.scale.log().range([v.realheight, 0]).domain(scope.y2extent);
     else
-      v.y2 = d3.scale.linear().range([v.realheight, 0])
-      .domain(scope.y2extent).clamp(true);
+      v.y2 = d3.scale.linear().range([v.realheight, 0]).domain(scope.y2extent);
   };
 
   function setup(scope, topgroup, idx, nviews) {
@@ -500,7 +487,7 @@ radian.directive('plot',
     if (v.xaxis) v.margin.bottom += del1 + (showXAxisLabel ? del2 : 0);
     if (v.yaxis) v.margin.left += del3 + (showYAxisLabel ? del4 : 0);
     if (v.x2axis) v.margin.top += del1 + (showX2AxisLabel ? del2 : 0);
-    if (v.title) v.margin.top += del3;
+    if (v.title && !v.noTitle) v.margin.top += del3;
     if (v.y2axis) v.margin.right += del3 + (showY2AxisLabel ? del4 : 0);
     v.realwidth = v.svg.attr('width') - v.margin.left - v.margin.right;
     v.realheight = v.svg.attr('height') - v.margin.top - v.margin.bottom;
@@ -567,6 +554,15 @@ radian.directive('plot',
     if (showY2AxisLabel)
       v.y2label = axisLabel(scope.axisY2Label, 'y2',
                             'yidx', 'selectY2', 'Y2 Axis');
+
+    if (idx == 0) {
+      var svgelm = d3.select(scope.svg);
+      svgelm.select('#mainclip').remove();
+      svgelm.append('defs').append('clipPath')
+        .attr('id', 'mainclip').append('rect')
+        .attr('width', v.realwidth).attr('height', v.realheight);
+      v.clip = 'mainclip';
+    }
 
     return v;
   };
@@ -687,7 +683,7 @@ radian.directive('plot',
     d3.selectAll('.axis text').style('font-size', scope.fontSize);
 
     // Plot title.
-    if (v.title) {
+    if (v.title && !v.noTitle) {
       outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
               (+v.margin.left + v.realwidth / 2) + ',0)')
