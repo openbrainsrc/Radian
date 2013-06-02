@@ -64,6 +64,17 @@ radian.directive('palette',
 
 radian.factory('discPalFn', function()
 {
+  // Mmmmmm...  I love the smell of regular expressions in the
+  // morning.  Smells like... VICTORY!  Not.
+  var renoquotes = '[^"\\s]+', requotes = '"[^"]*"';
+  var reids = renoquotes + '|' + requotes;
+  var resplits = '(?:(' + reids + ')\\s+)?([^\\s;]+)';
+  var resings = '(?:(?:' + reids + ')\\s+)?(?:[^\\s;]+)';
+  var remults = '(' + resings + ')((?:\\s*;\\s*' + resings + ')*)';
+  var resplit = new RegExp(resplits);
+  var remult = new RegExp(remults);
+  var restripsemi = /\s*;\s*(.*)/;
+
   return function(txt) {
     // Prototype palette function for discrete palette with no keys,
     // i.e. just a list of colours.
@@ -89,31 +100,46 @@ radian.factory('discPalFn', function()
         v.map(function(x) { return cs[x]; }) : cs[v];
     };
 
-    // Palette entries are separated by semicolons: split them and
-    // trim them for further processing.
-    var cs = txt.split(';').
-      map(function(s) { return s.trim(); }).
-      filter(function(s) { return s.length > 0; });
+    // Palette entries consist either of a key value or a key value
+    // and a colour, and are separated by semicolons.  Key values may
+    // be quoted using double quotes.
+    txt = txt.trim();
+    var ks = [], cs = [], nks = 0, ms;
+    while (true) {
+      ms = txt.match(remult);
+      if (!ms) throw Error("invalid palette definition");
+      var m = ms[1];
+      var ss = m.match(resplit);
+      if (!ss) throw Error("invalid palette definition");
+      if (ss[1]) {
+        ks.push(ss[1].charAt(0) == '"' ? ss[1].slice(1, -1) : ss[1]);
+        ++nks;
+      }
+      cs.push(ss[2]);
+      if (ms[2] == '') break;
+      var tmp = ms[2].match(restripsemi);
+      if (!tmp) throw Error("invalid palette definition");
+      txt = tmp[1];
+    }
 
-    // A palette with keys will have entries with a key, then a space,
-    // then a colour value.
-    if (cs[0].indexOf(' ') != -1) {
-      // Set up the key to colour mapping and return a function based
-      // on the "with keys" prototype.
-      var thiscs = { };
-      cs.forEach(function(x) {
-        var css = x.split(' '), k = css[0].trim(), c = css[1].trim();
-        thiscs[k] = c;
-      });
-      return function(v) { return protoWithKeys(thiscs, v); };
-    } else {
-      // Extract a simple colour list and return a function based
-      // on the "no keys" prototype.
+    // At this point, ks is an array of key values and cs is an array
+    // of colour values.  If all the colours have keys, then we set up
+    // the key to colour mapping and return a function based on the
+    // "with keys" prototype.  If none of the colours have keys, we
+    // return a function based on the "no keys" prototype.  Any other
+    // situation is an error.
+    if (nks == 0) {
+      // Return a function based on the "no keys" prototype.
       var thisn = cs.length;
       var thiscs =
         '[' + cs.map(function(c) { return '"' + c + '"' }).join(',') + ']';
       return function(v) { return protoNoKeys(thisn, thiscs, v); };
-    }
+    } else if (nks == cs.length) {
+      // Return a function based on "with keys" prototype.
+      var thiscs = { };
+      for (var i = 0; i < cs.length; ++i) thiscs[ks[i]] = cs[i];
+      return function(v) { return protoWithKeys(thiscs, v); };
+    } else throw Error("invalid palette definition");
   };
 });
 
