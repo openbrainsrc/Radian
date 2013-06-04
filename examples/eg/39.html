@@ -18,6 +18,7 @@
       range-x="300,100000" range-y="10,90"
       popint="[[interpolate(pop,[1,1000],'sqrt')]]"
       axis-x-label="Per capita GDP" axis-x-transform="log"
+      axis-x-format=",.0d" axis-x-ticks=10
       axis-y-label="Life expectancy">
   <points x="[[gdp.map(function(d) { return d[yidx]; })]]"
           y="[[life.map(function(d) { return d[yidx]; })]]"

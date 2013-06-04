@@ -69,7 +69,8 @@ radian.directive('lines',
     scope: true,
     link: function(scope, elm, as) {
       scope.$on('setupExtra', function() {
-        var width = scope.strokeWidth instanceof Array ?
+        var width = scope.strokeWidth instanceof Array &&
+                    scope.strokeWidth.length > 0 ?
           scope.strokeWidth.reduce(function(x,y) {
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.strokeWidth) || 1);
@@ -122,12 +123,14 @@ radian.directive('points',
     scope: true,
     link: function(scope, elm, as) {
       scope.$on('setupExtra', function() {
-        var width = scope.strokeWidth instanceof Array ?
+        var width = scope.strokeWidth instanceof Array &&
+                    scope.strokeWidth.length > 0 ?
           scope.strokeWidth.reduce(function(x,y) {
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.strokeWidth) || 1);
         if (scope.stroke == 'none') width = 0;
-        var size = scope.markerSize instanceof Array ?
+        var size = scope.markerSize instanceof Array &&
+                   scope.markerSize.length > 0 ?
           scope.markerSize.reduce(function(x,y) {
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.markerSize) || 1);
@@ -221,7 +224,8 @@ radian.directive('bars',
         });
         scope.rangeXExtend = [scope.barWidths[0] / 2,
                               scope.barWidths[scope.x.length - 1] / 2];
-        var width = scope.strokeWidth instanceof Array ?
+        var width = scope.strokeWidth instanceof Array &&
+                    scope.strokeWidth.length > 0 ?
           scope.strokeWidth.reduce(function(x,y) {
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.strokeWidth) || 1);

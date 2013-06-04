@@ -523,6 +523,14 @@ radian.directive('plot',
                  bottom: scope.bottomMargin || 2, left: scope.leftMargin || 2 };
     var xAxisTransform = scope.axisXTransform || "linear";
     var yAxisTransform = scope.axisYTransform || "linear";
+    v.xaxisticks = scope.axisXTicks || null;
+    v.yaxisticks = scope.axisYTicks || null;
+    v.x2axisticks = scope.axisX2Ticks || null;
+    v.y2axisticks = scope.axisY2Ticks || null;
+    v.xaxisfmt = scope.axisXFormat || null;
+    v.yaxisfmt = scope.axisYFormat || null;
+    v.x2axisfmt = scope.axisX2Format || null;
+    v.y2axisfmt = scope.axisY2Format || null;
     v.title = scope.title;
 
     // Set up plot margins.
@@ -637,9 +645,7 @@ radian.directive('plot',
     var del1 = Math.floor(scope.fontSize / 3.0);
     var del2 = Math.floor(3.0 * scope.fontSize);
     if (v.xaxis && v.x) {
-      var axis = d3.svg.axis()
-        .scale(v.x).orient('bottom')
-        .ticks(outsvg.attr('width') / 100);
+      var axis = d3.svg.axis().scale(v.x).orient('bottom');
       var dformat = '%Y-%m-%d';
       var has_date = false;
       dft(scope, function(s) {
@@ -650,7 +656,17 @@ radian.directive('plot',
         }
         has_date = false;
       });
-      if (has_date) axis.tickFormat(d3.time.format(dformat));
+      var fmt =
+        scope.axisXFormat ? d3.format(scope.axisXFormat) :
+        has_date ? d3.time.format(dformat) : null;
+      if (scope.axisXTicks && fmt)
+        axis.ticks(scope.axisXTicks, fmt);
+      else if (scope.axisXTicks)
+        axis.ticks(scope.axisXTicks)
+      else {
+        axis.ticks(outsvg.attr('width') / 100);
+        if (fmt) axis.tickFormat(fmt);
+      }
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.realheight + v.margin.top + del1) + ')')
@@ -668,9 +684,7 @@ radian.directive('plot',
       }
     }
     if (v.x2axis && v.x2) {
-      var axis = d3.svg.axis()
-        .scale(v.x2).orient('top')
-        .ticks(outsvg.attr('width') / 100);
+      var axis = d3.svg.axis().scale(v.x2).orient('top');
       var dformat = '%Y-%m-%d';
       var has_date = false;
       dft(scope, function(s) {
@@ -681,7 +695,17 @@ radian.directive('plot',
         }
         has_date = false;
       });
-      if (has_date) axis.tickFormat(d3.time.format(dformat));
+      var fmt =
+        scope.axisX2Format ? d3.format(scope.axisX2Format) :
+        has_date ? d3.time.format(dformat) : null;
+      if (scope.axisX2Ticks && fmt)
+        axis.ticks(scope.axisX2Ticks, fmt);
+      else if (scope.axisX2Ticks)
+        axis.ticks(scope.axisX2Ticks)
+      else {
+        axis.ticks(outsvg.attr('width') / 100);
+        if (fmt) axis.tickFormat(fmt);
+      }
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.margin.top + del1) + ')')
@@ -699,9 +723,16 @@ radian.directive('plot',
       }
     }
     if (v.yaxis && v.y) {
-      var axis = d3.svg.axis()
-        .scale(v.y).orient('left')
-        .ticks(outsvg.attr('height') / 36);
+      var axis = d3.svg.axis().scale(v.y).orient('left');
+      var fmt = scope.axisYFormat ? d3.format(scope.axisYFormat) : null;
+      if (scope.axisYTicks && fmt)
+        axis.ticks(scope.axisYTicks, fmt);
+      else if (scope.axisYTicks)
+        axis.ticks(scope.axisYTicks)
+      else {
+        axis.ticks(outsvg.attr('height') / 36);
+        if (fmt) axis.tickFormat(fmt);
+      }
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + (+v.margin.left - del1) + ',' +
               (+v.margin.top) + ')')
@@ -718,9 +749,16 @@ radian.directive('plot',
       }
     }
     if (v.y2axis && v.y2) {
-      var axis = d3.svg.axis()
-        .scale(v.y2).orient('right')
-        .ticks(outsvg.attr('height') / 36);
+      var axis = d3.svg.axis().scale(v.y2).orient('right');
+      var fmt = scope.axisY2Format ? d3.format(scope.axisY2Format) : null;
+      if (scope.axisY2Ticks && fmt)
+        axis.ticks(scope.axisY2Ticks, fmt);
+      else if (scope.axisY2Ticks)
+        axis.ticks(scope.axisY2Ticks)
+      else {
+        axis.ticks(outsvg.attr('height') / 36);
+        if (fmt) axis.tickFormat(fmt);
+      }
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' +
               (+v.realwidth + v.margin.left) + ',' +
@@ -3489,7 +3527,8 @@ radian.directive('lines',
     scope: true,
     link: function(scope, elm, as) {
       scope.$on('setupExtra', function() {
-        var width = scope.strokeWidth instanceof Array ?
+        var width = scope.strokeWidth instanceof Array &&
+                    scope.strokeWidth.length > 0 ?
           scope.strokeWidth.reduce(function(x,y) {
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.strokeWidth) || 1);
@@ -3542,12 +3581,14 @@ radian.directive('points',
     scope: true,
     link: function(scope, elm, as) {
       scope.$on('setupExtra', function() {
-        var width = scope.strokeWidth instanceof Array ?
+        var width = scope.strokeWidth instanceof Array &&
+                    scope.strokeWidth.length > 0 ?
           scope.strokeWidth.reduce(function(x,y) {
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.strokeWidth) || 1);
         if (scope.stroke == 'none') width = 0;
-        var size = scope.markerSize instanceof Array ?
+        var size = scope.markerSize instanceof Array &&
+                   scope.markerSize.length > 0 ?
           scope.markerSize.reduce(function(x,y) {
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.markerSize) || 1);
@@ -3641,7 +3682,8 @@ radian.directive('bars',
         });
         scope.rangeXExtend = [scope.barWidths[0] / 2,
                               scope.barWidths[scope.x.length - 1] / 2];
-        var width = scope.strokeWidth instanceof Array ?
+        var width = scope.strokeWidth instanceof Array &&
+                    scope.strokeWidth.length > 0 ?
           scope.strokeWidth.reduce(function(x,y) {
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.strokeWidth) || 1);
