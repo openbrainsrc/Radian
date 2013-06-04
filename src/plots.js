@@ -154,7 +154,23 @@ radian.directive('bars',
     var fillOpacity = s.fillOpacity || 1.0;
     var fill = s.fill || 'none';
     var barWidth = s.barWidth || 1.0;
+    var pxBarWidth, pxWidth = false;
+    if (typeof barWidth == 'string' &&
+        barWidth.trim().substr(-2,2) == 'px') {
+      pxBarWidth =
+        Number(barWidth.trim().substr(0, barWidth.trim().length - 2));
+      barWidth = xs.invert(pxBarWidth) - xs.invert(0);
+      pxWidth = true;
+    }
     var barOffset = s.barOffset || 0.0;
+    var pxOffset = false;
+    if (typeof barOffset == 'string' &&
+        barOffset.trim().substr(-2,2) == 'px') {
+      var pxoffset =
+        Number(barOFfset.trim().substr(0, barOffset.trim().length - 2));
+      barOffset = xs.invert(pxoffset) - xs.invert(0);
+      pxOffset = true;
+    }
 
     // Plot bars: plot attributes are either single values or arrays
     // of values, one per bar.
@@ -167,16 +183,22 @@ radian.directive('bars',
       .attr('x', function(d, i) {
         return d[0] instanceof Date ?
           xs(new Date(d[0].valueOf() -
-                      s.barWidths[i] * (barWidth / 2.0 + barOffset))) :
-          xs(d[0] - s.barWidths[i] * (barWidth / 2.0 + barOffset));
+                      (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 -
+                      (pxOffset ? barOffset : s.barWidths[i] * barOffset))) :
+          xs(d[0] -
+             (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 -
+             (pxOffset ? barOffset : s.barWidths[i] * barOffset));
       })
       .attr('y', function(d, i) { return ys(d[1]); })
       .attr('width', function(d, i) {
-        return d[0] instanceof Date ?
-          xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0)) -
-          xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0)) :
-          xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
-          xs(d[0] - s.barWidths[i] * barWidth / 2.0);
+        if (pxWidth)
+          return pxBarWidth;
+        else
+          return d[0] instanceof Date ?
+            xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0)) -
+            xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0)) :
+            xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
+            xs(d[0] - s.barWidths[i] * barWidth / 2.0);
       })
       .attr('height', function(d, i) { return h - ys(d[1]); })
       .style('fill', sty(fill))
