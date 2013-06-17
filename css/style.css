@@ -1,4 +1,4 @@
-@import url("pygments.css");
+@import url("syntax.css");
 
 * {
   margin: 0px;
@@ -13,7 +13,7 @@ code, code span {
 
 .date, .download {
   border-radius: 2px;
-  color: #ffffff;
+  color: #111;
   padding: 0.25em;
   background-color: #e85d00;
   font-size: 90%;
@@ -26,14 +26,6 @@ code, code span {
   margin-left: -3em;
   float: left;
   width: 2em;
-}
-
-.dateday {
-  font-size: 150%;
-}
-
-.dateyear {
-  font-size: 75%;
 }
 
 .download {
@@ -50,11 +42,11 @@ code, code span {
 }
 
 body {
-  background-color: #171717;
+  background-color: white;
 }
 
 h1, h2, h3, h4 {
-  color: #ffffff;
+  color: #111;
 }
 
 h3, h4 {
@@ -102,36 +94,37 @@ td, th {
 }
 
 .content, th, tr:nth-child(even) {
-  background-color: #4d4d4d;
+  background-color: #eee;
 }
 
 a, .navbar a:hover, .footer a:hover, tr:hover {
-  color: #ffb380;
+  color: #c85;
   text-decoration: none;
   transition: .35s ease;
 }
 
 a:hover {
-  text-shadow: 0px 0px 8px #ff6600;
+  text-shadow: 0px 0px 2px #d96;
 }
 
 .navbar a, .footer a {
   color: #b3b3b3;
 }
 
-.page, hr, table, blockquote, code, .highlight {
-  background-color: #424242;
+.page, hr, table, blockquote, pre, .highlight {
+  background-color: #ddd;
 }
 
 .page {
-  width: 920px;
+  width: 960px;
   margin: 32px auto 32px auto;
   box-shadow: 0px 0px 8px #000000;
 }
 
 .header {
   height: 64px;
-  background-image: url("radian_header.png"), url("bar_header.png");
+  background-image: url("../images/radian_header.png"),
+                    url("../images/bar_header.png");
   background-position: left top, left top;
   background-repeat: no-repeat, repeat-x;
 }
@@ -172,7 +165,7 @@ a:hover {
 .content {
   min-height: 590px;
   padding: 32px;
-  color: #e6e6e6;
+  color: #111;
   font-size: 16px;
 }
 
@@ -187,7 +180,7 @@ a:hover {
 
 .footer {
   height: 64px;
-  background-image: url("bar_footer.png");
+  background-image: url("../images/bar_footer.png");
   background-position: right bottom;
   background-repeat: repeat-x;
 }
@@ -198,3 +191,15 @@ a:hover {
   font-size: 12px;
   text-align: center;
 }
+
+.left50pct {
+    float: left;
+    width: 49%;
+    margin: 0;
+}
+.right50pct {
+    float: right;
+    width: 49%;
+    margin: 0;
+}
+.clear50pct { clear: both; }

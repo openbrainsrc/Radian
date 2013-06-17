@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Home</title>
+  <link rel="stylesheet" href="./css/style.css" type="text/css" />
+  <link rel="stylesheet" href="./css/radian.css" type="text/css" />
+</head>
+<body ng-controller="DummyCtrl">
+  <div class="page">
+    <div class="header">
+      <a href="./index.html" id="radian_home">Radian</a>
+      <ul class="navbar">
+        <li><a href="./documentation.html">Documentation</a></li>
+        <li><a href="./download.html">Download</a></li>
+        <li><a href="./community.html">Community</a></li>
+        <li><a href="./gallery">Gallery</a></li>
+        <li><a href="./license.html">License</a></li>
+        <li><a href="./faq.html">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="content">
+      <p><strong>Radian</strong> is an open source JavaScript library that makes it easy to embed plots in HTML documents. Instead of writing JavaScript plotting code yourself, you use custom HTML elements to represent plots. For instance, the HTML code on the left produces the plot on the right:</p>
+<div class="left50pct">
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">200</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> stroke-width=</span><span class="st">2</span>
+<span class="ot">      x=</span><span class="st">&quot;[[seq(0,4*PI,101)]]&quot;</span>
+<span class="ot">      axis-x-label=</span><span class="st">&quot;Time&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;sin(x) / cos(x)&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+</div>
+
+<div class="right50pct">
+<plot height="200" aspect="2" stroke-width="2" x="[[seq(0,4*PI,101)]]" axis-x-label="Time" axis-y-label="sin(x) / cos(x)"> <lines y="[[sin(x)]]" stroke="red"></lines> <lines y="[[cos(x)]]" stroke="blue"></lines> </plot>
+</div>
+
+<div class="clear50pct"></div>
+
+<p>Radian uses the <a href="http://angularjs.org/">AngularJS</a> JavaScript framework to provide the machinery to implement custom HTML elements, and to allow two-way binding between attributes in HTML elements and JavaScript variables, and it uses the <a href="http://d3js.org/">D3.js</a> plotting library for graphics generation. Plots are generated as SVG elements embedded directly in the page, so can be rendered by most modern browsers.</p>
+<p>Radian is licensed under the <a href="license.html">Mozilla public license</a>.</p>
+<h3 id="features">Features</h3>
+<ul>
+<li>Easy to use for both functional and data-based plots</li>
+<li>No need to write any JavaScript</li>
+<li>Most common plot types supported: lines, points, bar charts, area plots, heatmaps (WIP)</li>
+<li>Integrates with AngularJS for more complicated interactive applications</li>
+<li>Open source with a liberal <a href="license.html">license</a></li>
+<li>Examples and comprehensive <a href="documentation.html">documentation</a></li>
+</ul>
+    </div>
+
+    <div class="footer">
+      <a href>Copyright © (2013) OpenBrain Ltd.</a>
+    </div>
+  </div>
+  <script src="./js/jquery.js"></script>
+  <script src="./js/jquery.csv.js"></script>
+  <script src="./js/escodegen.browser.js"></script>
+  <script src="./js/estraverse.js"></script>
+  <script src="./js/d3.v2.js"></script>
+  <script src="./js/angular.min.js"></script>
+  <script src="./js/radian.min.js"></script>
+  <script>
+angular.module('radianDocs', ['radian']);
+function DummyCtrl() { };
+  </script>
+</body>
+</html>

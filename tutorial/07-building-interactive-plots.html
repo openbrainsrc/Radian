@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial - Building interactive plots</title>
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="DummyCtrl">
+  <div class="page">
+    <div class="header">
+      <a href="../index.html" id="radian_home">Radian</a>
+      <ul class="navbar">
+        <li><a href="../documentation.html">Documentation</a></li>
+        <li><a href="../download.html">Download</a></li>
+        <li><a href="../community.html">Community</a></li>
+        <li><a href="../gallery">Gallery</a></li>
+        <li><a href="../license.html">License</a></li>
+        <li><a href="../faq.html">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="content">
+      <h2 id="building-interactive-plots">7. Building interactive plots</h2>
+<h3 id="built-in-interactive-elements">Built-in interactive elements</h3>
+<h3 id="data-binding-and-interactivity">Data binding and interactivity</h3>
+<h3 id="some-examples">Some examples</h3>
+<hr>
+<p><a href="06-other-plot-types.html">« Section 6</a>    <a href="08-miscellaneous-topics.html">Section 8 »</a></p>
+    </div>
+
+    <div class="footer">
+      <a href>Copyright © (2013) OpenBrain Ltd.</a>
+    </div>
+  </div>
+  <script src="../js/jquery.js"></script>
+  <script src="../js/jquery.csv.js"></script>
+  <script src="../js/escodegen.browser.js"></script>
+  <script src="../js/estraverse.js"></script>
+  <script src="../js/d3.v2.js"></script>
+  <script src="../js/angular.min.js"></script>
+  <script src="../js/radian.min.js"></script>
+  <script>
+angular.module('radianDocs', ['radian']);
+function DummyCtrl() { };
+  </script>
+</body>
+</html>

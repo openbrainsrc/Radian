@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Download</title>
+  <link rel="stylesheet" href="./css/style.css" type="text/css" />
+  <link rel="stylesheet" href="./css/radian.css" type="text/css" />
+</head>
+<body ng-controller="DummyCtrl">
+  <div class="page">
+    <div class="header">
+      <a href="./index.html" id="radian_home">Radian</a>
+      <ul class="navbar">
+        <li><a href="./documentation.html">Documentation</a></li>
+        <li><a href="./download.html">Download</a></li>
+        <li><a href="./community.html">Community</a></li>
+        <li><a href="./gallery">Gallery</a></li>
+        <li><a href="./license.html">License</a></li>
+        <li><a href="./faq.html">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="content">
+      <p>{% for post in site.tags.changelog limit:1 %}</p>
+<h2 id="download">Download</h2>
+<p>The current version is <strong>{{ post.title }}</strong>, which was released on {{ post.date | date: “%B %e, %Y” }}. See the <a href="changelog.html">version history</a> for a list of changes.</p>
+<table>
+<col width="3%" />
+<tbody>
+<tr class="odd">
+<td align="left">### Source archive</td>
+</tr>
+<tr class="even">
+<td align="left"><a class="download" href="http://somewhere/{{ post.title }}/Radian-{{ post.title }}.zip/download" title="Download Source (ZIP)">Download</a></td>
+</tr>
+<tr class="odd">
+<td align="left">This contains:</td>
+</tr>
+<tr class="even">
+<td align="left">- The complete source code for the Radian library - A collection of example plots - Full <a href="documentation.html">documentation</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="git-repository">Git repository</h2>
+<p>The latest version of the source code, including tags for all releases, is always available in our <a href="https://github.com/openbrainsrc/Radian">Git repository</a>.</p>
+<p>{% endfor %}</p>
+    </div>
+
+    <div class="footer">
+      <a href>Copyright © (2013) OpenBrain Ltd.</a>
+    </div>
+  </div>
+  <script src="./js/jquery.js"></script>
+  <script src="./js/jquery.csv.js"></script>
+  <script src="./js/escodegen.browser.js"></script>
+  <script src="./js/estraverse.js"></script>
+  <script src="./js/d3.v2.js"></script>
+  <script src="./js/angular.min.js"></script>
+  <script src="./js/radian.min.js"></script>
+  <script>
+angular.module('radianDocs', ['radian']);
+function DummyCtrl() { };
+  </script>
+</body>
+</html>
