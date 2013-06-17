@@ -19,7 +19,7 @@ instance, the HTML code on the left produces the plot on the right:
 {% endhighlight %}
 
 <plot height=200 aspect=2 stroke-width=2 x="[[seq(0,4*PI,101)]]"
-      axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
+       axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
   <lines y="[[sin(x)]]" stroke="red"></lines>
   <lines y="[[cos(x)]]" stroke="blue"></lines>
 </plot>
