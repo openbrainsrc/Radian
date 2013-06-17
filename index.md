@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Radian
+title: Home
 ---
 
 ## Welcome
