@@ -1,0 +1,13 @@
+---
+layout: default
+---
+
+<h2>{{ page.title }}</h2>
+
+<span class="date">
+<div class="dateday">{{ page.date | date: "%e" }}</div>
+<div>{{ page.date | date: "%b" }}</div>
+<div class="dateyear">{{ page.date | date: "%Y" }}</div>
+</span>
+
+<p>{{ content }}</p>
