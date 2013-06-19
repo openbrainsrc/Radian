@@ -1,0 +1,17 @@
+.left50pct {
+    float: left;
+    width: 49%;
+    margin: 0;
+}
+.right50pct {
+    float: right;
+    width: 49%;
+    margin: 0;
+}
+.clear50pct { clear: both; }
+
+.navbar-inner { background-image: url("../img/radian-logo-small.png");
+                background-repeat: no-repeat; background-position: 15px 5px; }
+.navbar .brand { margin-left: 15px; }
+
+footer { background-color: #eee; color: #555; margin: 5px 10px; }
