@@ -157,7 +157,7 @@ radian.directive('plot',
       $(elm.children()[1]).remove();
       addToLayout(scope, scope, scope.layoutShare);
     }
-    scope.strokesel = as.hasOwnProperty('strokeSwitch') ? 0 : undefined;
+    if (as.hasOwnProperty('strokeSwitch')) scope.strokesel = 0;
 
     // Font attributes.
     scope.fontSize = Number(as.fontSize) || 12;
