@@ -157,7 +157,7 @@ couple of variables next to a scatter plot of those variables.
   </plot>
 </plot-row>
 
-<plot-data name="vic2012ooa" src="/tutorial/data/vic2012.csv"
+<plot-data name="vic2012ooa" src="/data/vic2012.csv"
            format="csv" cols="day,tmp,prc">
   <metadata name="day" label="Day of year" units="d"></metadata>
   <metadata name="tmp" label="Temperature" units="&deg;C"></metadata>
@@ -172,6 +172,68 @@ labelling of plot axes based on metadata.
 
 ### Getting set up to work with Radian
 
+#### Browser
+
+Radian should work with most recent browsers.  The two main
+requirements on the browser are that it render SVG images and that it
+support recent JavaScript (ECMAScript 5) constructs.  Radian has been
+tested in recent versions of Chrome, Firefox and Opera, and is known
+to at least partially work in some recent versions of Internet
+Explorer.  (We have not made an effort to support earlier versions of
+Internet Explorer, which did not render SVG images.  We'd suggest that
+you use another browser if you can.)
+
+We would welcome information from users about experiences with other
+browsers!
+
+#### Libraries
+
+Radian requires a number of JavaScript libraries: most obviously
+AngularJS and D3.js, but a number of other utility libraries too.
+Suitable versions of the needed libraries are provided in the Radian
+distribution, and the template page (see below) shows how to access
+these libraries in your HTML pages.
+
+#### Page template
+
+A small amount of JavaScript setup code is needed to activate the
+AngularJS framework in a web page.  The file
+`resources/page-template.html` in the Radian distribution shows what
+is needed.  It looks like this:
+
+~~~~ {.html}
+<!doctype html>
+<html lang="en" ng-app="myApp">
+<head>
+  ...
+  <link rel="stylesheet" href="/css/radian.css" type="text/css"></link>
+  ...
+</head>
+<body ng-controller="DummyCtrl">
+  ...
+  <script src="/js/jquery.js"></script>
+  <script src="/js/jquery.csv.js"></script>
+  <script src="/js/escodegen.browser.js"></script>
+  <script src="/js/estraverse.js"></script>
+  <script src="/js/d3.v2.js"></script>
+  <script src="/js/angular.min.js"></script>
+  <script src="/js/radian.min.js"></script>
+  <script>
+angular.module('myApp', ['radian']);
+function DummyCtrl() { };
+  </script>
+</body>
+</html>
+~~~~
+
+This just imports the Radian CSS stylesheet in the page header, loads
+the required JavaScript libraries, and does a minimal amount of work
+to trigger Angular's HTML compiler to process the page (the `ng-app`
+and `ng-controller` attributes and the small script at the bottom).
+
+With this little bit of infrastructure in place, Radian plot
+directives within the body of the HTML page will be processed and SVG
+plot images inserted.
 
 <hr>
 [Section 2 &raquo;](02-simple-functional-plots.html)

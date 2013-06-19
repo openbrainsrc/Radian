@@ -63,6 +63,10 @@ main = hakyllWith hakyllConf $ do
     route idRoute
     compile copyFileCompiler
 
+  match "data/*" $ do
+    route idRoute
+    compile copyFileCompiler
+
   match "posts/*.markdown" $ do
     route $ setExtension ".html"
     compile $ pandocCompiler
