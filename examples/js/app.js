@@ -54,7 +54,7 @@ function EgCtrl(plotLib, $http, $scope, $location) {
 }
 EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
-var negs = 51;
+var negs = 52;
 
 var eggrps = [ { title: "Plot types",
                  items: [["Basic plot; CSV data",   1],
@@ -70,7 +70,8 @@ var eggrps = [ { title: "Plot types",
                          ["Bar chart (px width)",  51],
                          ["Test",                  22],
                          ["Histogram",             32],
-                         ["Simple area plot",      35]] },
+                         ["Simple area plot",      35],
+                         ["Simple heatmap",        52]] },
 
                { title: "UI examples",
                  items: [["Int. legend; fading",    3],
