@@ -3,25 +3,30 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Radian - Home</title>
+  <link rel="stylesheet" href="./css/bootstrap.css" type="text/css" />
   <link rel="stylesheet" href="./css/style.css" type="text/css" />
+  <link rel="stylesheet" href="./css/syntax.css" type="text/css" />
   <link rel="stylesheet" href="./css/radian.css" type="text/css" />
 </head>
 <body ng-controller="DummyCtrl">
-  <div class="page">
-    <div class="header">
-      <a href="./index.html" id="radian_home">Radian</a>
-      <ul class="navbar">
-        <li><a href="./documentation.html">Documentation</a></li>
-        <li><a href="./download.html">Download</a></li>
-        <li><a href="./community.html">Community</a></li>
-        <li><a href="./gallery">Gallery</a></li>
-        <li><a href="./license.html">License</a></li>
-        <li><a href="./faq.html">FAQ</a></li>
-      </ul>
+  <div class="container">
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="./index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="./index.html">Home</a></li>
+          <li><a href="./documentation.html">Documentation</a></li>
+          <li><a href="./download.html">Download</a></li>
+          <li><a href="./community.html">Community</a></li>
+          <li><a href="./gallery">Gallery</a></li>
+          <li><a href="./license.html">License</a></li>
+          <li><a href="./faq.html">FAQ</a></li>
+        </ul>
+      </div>
     </div>
 
-    <div class="content">
-      <p><strong>Radian</strong> is an open source JavaScript library that makes it easy to embed plots in HTML documents. Instead of writing JavaScript plotting code yourself, you use custom HTML elements to represent plots. For instance, the HTML code on the left produces the plot on the right:</p>
+    <p><strong>Radian</strong> is an open source JavaScript library that makes it easy to embed plots in HTML documents.</p>
+<p>Instead of writing JavaScript plotting code yourself, you use custom HTML elements to represent plots. For instance, the HTML code on the left produces the plot on the right:</p>
 <div class="left50pct">
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">200</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> stroke-width=</span><span class="st">2</span>
 <span class="ot">      x=</span><span class="st">&quot;[[seq(0,4*PI,101)]]&quot;</span>
@@ -48,11 +53,14 @@
 <li>Open source with a liberal <a href="license.html">license</a></li>
 <li>Examples and comprehensive <a href="documentation.html">documentation</a></li>
 </ul>
-    </div>
 
-    <div class="footer">
-      <a href>Copyright © (2013) OpenBrain Ltd.</a>
-    </div>
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
   </div>
   <script src="./js/jquery.js"></script>
   <script src="./js/jquery.csv.js"></script>
@@ -61,6 +69,7 @@
   <script src="./js/d3.v2.js"></script>
   <script src="./js/angular.min.js"></script>
   <script src="./js/radian.min.js"></script>
+  <script src="./js/bootstrap.min.js"></script>
   <script>
 angular.module('radianDocs', ['radian']);
 function DummyCtrl() { };

@@ -3,25 +3,29 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Radian - Radian Tutorial - Simple data plots</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
   <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
   <link rel="stylesheet" href="../css/radian.css" type="text/css" />
 </head>
 <body ng-controller="DummyCtrl">
-  <div class="page">
-    <div class="header">
-      <a href="../index.html" id="radian_home">Radian</a>
-      <ul class="navbar">
-        <li><a href="../documentation.html">Documentation</a></li>
-        <li><a href="../download.html">Download</a></li>
-        <li><a href="../community.html">Community</a></li>
-        <li><a href="../gallery">Gallery</a></li>
-        <li><a href="../license.html">License</a></li>
-        <li><a href="../faq.html">FAQ</a></li>
-      </ul>
+  <div class="container">
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../documentation.html">Documentation</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../community.html">Community</a></li>
+          <li><a href="../gallery">Gallery</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../faq.html">FAQ</a></li>
+        </ul>
+      </div>
     </div>
 
-    <div class="content">
-      <h2 id="simple-data-plots">3. Simple data plots</h2>
+    <h2 id="simple-data-plots">3. Simple data plots</h2>
 <h3 id="the-plot-data-directive">The <code>&lt;plot-data&gt;</code> directive</h3>
 <h3 id="using-lines-with-data">Using <code>&lt;lines&gt;</code> with data</h3>
 <h3 id="the-points-directive">The <code>&lt;points&gt;</code> directive</h3>
@@ -31,11 +35,14 @@
 <h3 id="more-plot-styling">More plot styling</h3>
 <hr>
 <p><a href="02-simple-functional-plots.html">« Section 2</a>    <a href="04-radian-expressions.html">Section 4 »</a></p>
-    </div>
 
-    <div class="footer">
-      <a href>Copyright © (2013) OpenBrain Ltd.</a>
-    </div>
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
   </div>
   <script src="../js/jquery.js"></script>
   <script src="../js/jquery.csv.js"></script>
@@ -44,6 +51,7 @@
   <script src="../js/d3.v2.js"></script>
   <script src="../js/angular.min.js"></script>
   <script src="../js/radian.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
   <script>
 angular.module('radianDocs', ['radian']);
 function DummyCtrl() { };

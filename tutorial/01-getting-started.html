@@ -3,25 +3,29 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Radian - Radian Tutorial - Getting started</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
   <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
   <link rel="stylesheet" href="../css/radian.css" type="text/css" />
 </head>
 <body ng-controller="DummyCtrl">
-  <div class="page">
-    <div class="header">
-      <a href="../index.html" id="radian_home">Radian</a>
-      <ul class="navbar">
-        <li><a href="../documentation.html">Documentation</a></li>
-        <li><a href="../download.html">Download</a></li>
-        <li><a href="../community.html">Community</a></li>
-        <li><a href="../gallery">Gallery</a></li>
-        <li><a href="../license.html">License</a></li>
-        <li><a href="../faq.html">FAQ</a></li>
-      </ul>
+  <div class="container">
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../documentation.html">Documentation</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../community.html">Community</a></li>
+          <li><a href="../gallery">Gallery</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../faq.html">FAQ</a></li>
+        </ul>
+      </div>
     </div>
 
-    <div class="content">
-      <h2 id="getting-started">1. Getting started</h2>
+    <h2 id="getting-started">1. Getting started</h2>
 <h3 id="what-is-radian">What is Radian?</h3>
 <p>There are many JavaScript plotting and graphing libraries out there, ranging in complexity from quick-and-easy things like <a href="http://www.flotcharts.org/">Flot</a> up to extremely powerful but complex-to-use things like <a href="http://d3js.org/">D3.js</a>. These things are great, and produce attractive graphs, but they do require you to write JavaScript. Radian is a plotting API that works in a different way: plots are defined declaratively using custom HTML elements. Apart from a tiny bit of boilerplate setup code, you don’t need to write any JavaScript. This has a couple of benefits:</p>
 <ul>
@@ -77,16 +81,50 @@
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
 <p><br></p>
 <p><plot-row width="850" aspect="3"> <plot layout-share="3"> <lines x="[[vic2012ooa.day]]" y="[[vic2012ooa.tmp]]" stroke="red"></lines> <lines x="[[vic2012ooa.day]]" y2="[[vic2012ooa.prc]]" stroke="blue"></lines> </plot> <plot layout-share="2" marker-size="30" stroke="none" fill="rgba(0,0,255,0.4)"> <points x="[[vic2012ooa.tmp]]" y="[[vic2012ooa.prc]]"></points> </plot> </plot-row></p>
-<p><plot-data name="vic2012ooa" src="../tutorial/data/vic2012.csv" format="csv" cols="day,tmp,prc"> <metadata name="day" label="Day of year" units="d"></metadata> <metadata name="tmp" label="Temperature" units="°C"></metadata> <metadata name="prc" label="Rainfall" units="mm/day"></metadata> </plot-data></p>
+<p><plot-data name="vic2012ooa" src="../data/vic2012.csv" format="csv" cols="day,tmp,prc"> <metadata name="day" label="Day of year" units="d"></metadata> <metadata name="tmp" label="Temperature" units="°C"></metadata> <metadata name="prc" label="Rainfall" units="mm/day"></metadata> </plot-data></p>
 <p>As well as loading data from a URL, this example also illustrates some of Radian’s plot layout facilities (the <code>&lt;plot-row&gt;</code> element and the <code>layout-share</code> attributes on the individual plots), and the automatic labelling of plot axes based on metadata.</p>
 <h3 id="getting-set-up-to-work-with-radian">Getting set up to work with Radian</h3>
+<h4 id="browser">Browser</h4>
+<p>Radian should work with most recent browsers. The two main requirements on the browser are that it render SVG images and that it support recent JavaScript (ECMAScript 5) constructs. Radian has been tested in recent versions of Chrome, Firefox and Opera, and is known to at least partially work in some recent versions of Internet Explorer. (We have not made an effort to support earlier versions of Internet Explorer, which did not render SVG images. We’d suggest that you use another browser if you can.)</p>
+<p>We would welcome information from users about experiences with other browsers!</p>
+<h4 id="libraries">Libraries</h4>
+<p>Radian requires a number of JavaScript libraries: most obviously AngularJS and D3.js, but a number of other utility libraries too. Suitable versions of the needed libraries are provided in the Radian distribution, and the template page (see below) shows how to access these libraries in your HTML pages.</p>
+<h4 id="page-template">Page template</h4>
+<p>A small amount of JavaScript setup code is needed to activate the AngularJS framework in a web page. The file <code>resources/page-template.html</code> in the Radian distribution shows what is needed. It looks like this:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="er">&lt;</span>!doctype html&gt;
+<span class="kw">&lt;html</span><span class="ot"> lang=</span><span class="st">&quot;en&quot;</span><span class="ot"> ng-app=</span><span class="st">&quot;myApp&quot;</span><span class="kw">&gt;</span>
+<span class="kw">&lt;head&gt;</span>
+  ...
+  <span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;stylesheet&quot;</span><span class="ot"> href=</span><span class="st">&quot;/css/radian.css&quot;</span><span class="ot"> type=</span><span class="st">&quot;text/css&quot;</span><span class="kw">&gt;&lt;/link&gt;</span>
+  ...
+<span class="kw">&lt;/head&gt;</span>
+<span class="kw">&lt;body</span><span class="ot"> ng-controller=</span><span class="st">&quot;DummyCtrl&quot;</span><span class="kw">&gt;</span>
+  ...
+  <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;/js/jquery.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span>
+  <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;/js/jquery.csv.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span>
+  <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;/js/escodegen.browser.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span>
+  <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;/js/estraverse.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span>
+  <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;/js/d3.v2.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span>
+  <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;/js/angular.min.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span>
+  <span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;/js/radian.min.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span>
+  <span class="kw">&lt;script&gt;</span>
+<span class="er">angular.module('myApp', ['radian']);</span>
+<span class="er">function DummyCtrl() { };</span>
+  <span class="kw">&lt;/script&gt;</span>
+<span class="kw">&lt;/body&gt;</span>
+<span class="kw">&lt;/html&gt;</span></code></pre>
+<p>This just imports the Radian CSS stylesheet in the page header, loads the required JavaScript libraries, and does a minimal amount of work to trigger Angular’s HTML compiler to process the page (the <code>ng-app</code> and <code>ng-controller</code> attributes and the small script at the bottom).</p>
+<p>With this little bit of infrastructure in place, Radian plot directives within the body of the HTML page will be processed and SVG plot images inserted.</p>
 <hr>
 <p><a href="02-simple-functional-plots.html">Section 2 »</a></p>
-    </div>
 
-    <div class="footer">
-      <a href>Copyright © (2013) OpenBrain Ltd.</a>
-    </div>
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
   </div>
   <script src="../js/jquery.js"></script>
   <script src="../js/jquery.csv.js"></script>
@@ -95,6 +133,7 @@
   <script src="../js/d3.v2.js"></script>
   <script src="../js/angular.min.js"></script>
   <script src="../js/radian.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
   <script>
 angular.module('radianDocs', ['radian']);
 function DummyCtrl() { };

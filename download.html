@@ -3,25 +3,29 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Radian - Download</title>
+  <link rel="stylesheet" href="./css/bootstrap.css" type="text/css" />
   <link rel="stylesheet" href="./css/style.css" type="text/css" />
+  <link rel="stylesheet" href="./css/syntax.css" type="text/css" />
   <link rel="stylesheet" href="./css/radian.css" type="text/css" />
 </head>
 <body ng-controller="DummyCtrl">
-  <div class="page">
-    <div class="header">
-      <a href="./index.html" id="radian_home">Radian</a>
-      <ul class="navbar">
-        <li><a href="./documentation.html">Documentation</a></li>
-        <li><a href="./download.html">Download</a></li>
-        <li><a href="./community.html">Community</a></li>
-        <li><a href="./gallery">Gallery</a></li>
-        <li><a href="./license.html">License</a></li>
-        <li><a href="./faq.html">FAQ</a></li>
-      </ul>
+  <div class="container">
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="./index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="./index.html">Home</a></li>
+          <li><a href="./documentation.html">Documentation</a></li>
+          <li><a href="./download.html">Download</a></li>
+          <li><a href="./community.html">Community</a></li>
+          <li><a href="./gallery">Gallery</a></li>
+          <li><a href="./license.html">License</a></li>
+          <li><a href="./faq.html">FAQ</a></li>
+        </ul>
+      </div>
     </div>
 
-    <div class="content">
-      <p>{% for post in site.tags.changelog limit:1 %}</p>
+    <p>{% for post in site.tags.changelog limit:1 %}</p>
 <h2 id="download">Download</h2>
 <p>The current version is <strong>{{ post.title }}</strong>, which was released on {{ post.date | date: “%B %e, %Y” }}. See the <a href="changelog.html">version history</a> for a list of changes.</p>
 <table>
@@ -44,11 +48,14 @@
 <h2 id="git-repository">Git repository</h2>
 <p>The latest version of the source code, including tags for all releases, is always available in our <a href="https://github.com/openbrainsrc/Radian">Git repository</a>.</p>
 <p>{% endfor %}</p>
-    </div>
 
-    <div class="footer">
-      <a href>Copyright © (2013) OpenBrain Ltd.</a>
-    </div>
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
   </div>
   <script src="./js/jquery.js"></script>
   <script src="./js/jquery.csv.js"></script>
@@ -57,6 +64,7 @@
   <script src="./js/d3.v2.js"></script>
   <script src="./js/angular.min.js"></script>
   <script src="./js/radian.min.js"></script>
+  <script src="./js/bootstrap.min.js"></script>
   <script>
 angular.module('radianDocs', ['radian']);
 function DummyCtrl() { };
