@@ -247,7 +247,7 @@ radian.directive('plot',
         zfrac = Math.min(0.95, Math.max(0.05, zfrac));
         var zoomHeight = (scope.height - 6) * zfrac;
         var mainHeight = (scope.height - 6) * (1 - zfrac);
-        var zoomsvg = svgelm.append('g')
+        var zoomsvg = svgelm.append('g').classed('radian-zoom-x', true)
           .attr('transform', 'translate(0,' + (mainHeight + 6) + ')')
           .attr('width', scope.width).attr('height', zoomHeight);
         svgs.push(zoomsvg);
