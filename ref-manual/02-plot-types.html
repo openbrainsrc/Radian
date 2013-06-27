@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Reference manual - Plot types</title>
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="DummyCtrl">
+  <div class="container">
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../documentation.html">Documentation</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../community.html">Community</a></li>
+          <li><a href="../gallery">Gallery</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 id="plot-types">Plot types</h2>
+<h3 id="the-plot-directive">The <code>&lt;plot&gt;</code> directive</h3>
+<p><strong>Not done: y-zooming, 2D pan and zoom, proper legend management.</strong></p>
+<h6 id="attributes">Attributes</h6>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>RANGE-X</code></td>
+<td align="left">Specify <span class="math"><em>x</em></span>-coordinate range for plot</td>
+</tr>
+<tr class="even">
+<td align="left"><code>RANGE-Y</code></td>
+<td align="left">Specify <span class="math"><em>y</em></span>-coordinate range for plot</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>RANGE</code></td>
+<td align="left">Specify both <span class="math"><em>x</em></span>- and <span class="math"><em>y</em></span>-coordinate ranges for plot together</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-X</code></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis display, or a tick specification</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-X-TRANSFORM</code></td>
+<td align="left">If present, one of <code>linear</code> (default) or <code>log</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-X2</code></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow or suppress (default) axis display, or a tick specification</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-Y</code></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis display, or a tick specification</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-Y-TRANSFORM</code></td>
+<td align="left">If present, one of <code>linear</code> (default) or <code>log</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-Y2</code></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow or suppress (default) axis display, or a tick specification</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-X-LABEL</code></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis labelling, or a label string (when <code>on</code> is used, the axis label is taken from metadata where possible)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-X2-LABEL</code></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow or suppress (default) axis labelling, or a label string (when <code>on</code> is used, the axis label is taken from metadata where possible)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-Y-LABEL</code></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis labelling, or a label string (when <code>on</code> is used, the axis label is taken from metadata where possible)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-Y2-LABEL</code></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow or suppress (default) axis labelling, or a label string (when <code>on</code> is used, the axis label is taken from metadata where possible)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>X</code></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>Y</code></td>
+<td align="left">Data path defining y-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>X2</code></td>
+<td align="left">Data path defining x2-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>Y2</code></td>
+<td align="left">Data path defining y2-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TITLE</code></td>
+<td align="left">Plot title</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>WIDTH</code></td>
+<td align="left">Plot width in pixels</td>
+</tr>
+<tr class="even">
+<td align="left"><code>HEIGHT</code></td>
+<td align="left">Plot height in pixels</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>ASPECT</code></td>
+<td align="left">Plot aspect ratio</td>
+</tr>
+<tr class="even">
+<td align="left"><code>ZOOM-X</code></td>
+<td align="left">Presence/absence or fraction: enable X-zooming</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>ZOOM-Y</code></td>
+<td align="left">Presence/absence or fraction: enable X-zooming</td>
+</tr>
+<tr class="even">
+<td align="left"><code>ZOOM-2D</code></td>
+<td align="left">Presence/absence: enable 2-D pan and zoom</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>LEGEND-SWITCHES</code></td>
+<td align="left">Enable interactive on/off switching of traces via the plot legend</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-SWITCH</code></td>
+<td align="left">Labels for stroke switching UI</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>SELECT-X</code></td>
+<td align="left">Provide UI for selecting between x-variables of plot</td>
+</tr>
+<tr class="even">
+<td align="left"><code>SELECT-Y</code></td>
+<td align="left">Provide UI for selecting between y-variables of plot</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MARKER</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER-SIZE</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-WIDTH</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p>The coordinate ranges for the plot are controlled by the <code>RANGE-X</code>, <code>RANGE-Y</code> and <code>RANGE</code> attributes. These can be specified either explicitly (e.g. <code>range-x=&quot;0,20&quot;</code> or <code>range=&quot;0,20;0,50&quot;</code>), via a data path (in which case the range is taken from the extent of the data values, excluding infinite and NaN values) or via a URL (in which case the range is taken from the coordinate range of the SVG image the URL points to).</p></li>
+<li><p>The actual plot dimensions are determined from a combination of the <code>WIDTH</code>, <code>HEIGHT</code> and <code>ASPECT</code> attributes and CSS dimension styles for the <code>bh-plot</code> CSS class.</p></li>
+<li><p>Only one of <code>ZOOM-X</code>, <code>ZOOM-Y</code> or <code>ZOOM-2D</code> may be specified on a plot. The <code>ZOOM-X</code> and <code>ZOOM-Y</code> attributes can specify a fraction of the plot viewport to be used for the zoom component.</p></li>
+<li><p>The <code>STROKE-SWITCH</code> attribute gives a semicolon separated list of labels used to refer to the possible stroke values in subsidiary plots. If a single string is given (i.e. no semicolons), a simple switch between “on” and “off” is provided as a UI element and selection is performed between the first and second stroke possibilities for each subsidiary plot. If more than one label is provided, a selection UI is used, and as many stroke possibilities can be selected as labels are given.</p></li>
+<li><p>The <code>SELECT-X</code> and <code>SELECT-Y</code> UI elements interact in such a way as to provide a reasonable interface for managing the variables shown in an x-vs.-y plot: it is never possible to select the same variable for the x and y variable, and switching between plot variables is handled sensibly.</p></li>
+</ul>
+<h6 id="body">Body</h6>
+<p>The body of a <code>&lt;plot&gt;</code> directive should contain directives specifying the data to be drawn into the plot (using <code>&lt;lines&gt;</code>, <code>&lt;points&gt;</code>, etc.). There may also be a <code>&lt;plot-options&gt;</code> directive specifying paint and calculational attributes common to all plot directives.</p>
+<h3 id="option-defaulting-and-the-plot-options-directive">Option defaulting and the <code>&lt;plot-options&gt;</code> directive</h3>
+<p>The <code>&lt;plot-options&gt;</code> directive can be used to wrap inner plotting directives that share plotting options. For instance, the following example plots two line graphs that share a stroke width value. Note how attribute variables defined in the main <code>&lt;plot&gt;</code> directive propagate down to the inner plotting directives, and also how attributes set in <code>&lt;plot-options&gt;</code> can be overridden by the inner plotting directives:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> xs=</span><span class="st">&quot;[[seq(-1,1,100)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;plot-options</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[xs]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[-x**3+x+1]]&quot;</span><span class="kw">/&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[xs]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[x**2]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;/plot-options&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<h3 id="paint-attributes">Paint attributes</h3>
+<p><strong>Need to separate this out and document the interpolation choices for these clearly.</strong></p>
+<h3 id="line-plots-and-the-lines-directive">Line plots and the <code>&lt;lines&gt;</code> directive</h3>
+<h6 id="attributes-1">Attributes</h6>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>X</code></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y</code></td>
+<td align="left">Data path defining y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>X2</code></td>
+<td align="left">Data path defining x2-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y2</code></td>
+<td align="left">Data path defining y2-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-WIDTH</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>LABEL</code></td>
+<td align="left">Label for line in plot legend</td>
+</tr>
+</tbody>
+</table>
+<h6 id="body-1">Body</h6>
+<p>None</p>
+<h6 id="interpretation">Interpretation</h6>
+<p>Produces a line plot from the given x and y coordinate data.</p>
+<h6 id="examples">Examples</h6>
+<p>Simple plot with two line graphs – note the inheritance of the <code>STROKE-WIDTH</code> standard paint attribute from the containing <code>&lt;plot&gt;</code> directive:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[vic2012ooa.day]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[vic2012ooa.tmp]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[vic2012ooa.day]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[vic2012ooa.prc]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<h3 id="area-plots-and-the-area-directive">Area plots and the <code>&lt;area&gt;</code> directive</h3>
+<h6 id="attributes-2">Attributes</h6>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>X</code></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y</code></td>
+<td align="left">Data path defining upper y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>YMIN</code></td>
+<td align="left">Data path or constant value defining lower y-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>X2</code></td>
+<td align="left">Data path defining x2-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>Y2</code></td>
+<td align="left">Data path defining upper y2-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y2MIN</code></td>
+<td align="left">Data path or constant value defining lower y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>LABEL</code></td>
+<td align="left">Label for area plot in plot legend</td>
+</tr>
+</tbody>
+</table>
+<h6 id="body-2">Body</h6>
+<p>None</p>
+<h6 id="interpretation-1">Interpretation</h6>
+<p>Produces an area line plot from the given x and y coordinate data. It is possible to specify both upper (<code>Y</code> or <code>Y2</code>) and lower (<code>YMIN</code> or <code>Y2MIN</code>) bounds for the area display, either as a data path or as a constant value (default 0).</p>
+<h6 id="examples-1">Examples</h6>
+<p>Area plot used to show monthly precipitation range along with line graph of monthly means and temperature data:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> range-y2=</span><span class="st">&quot;-10&quot;</span>
+<span class="ot">      axis-y-label=</span><span class="st">&quot;Precipitation (mm/month)&quot;</span>
+<span class="ot">      mmonths=</span><span class="st">&quot;[[midMonths(unique(vic2012ooa.date#getMonth()),2012)]]&quot;</span>
+<span class="ot">      mprecip=</span><span class="st">&quot;[[sumBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]&quot;</span>
+<span class="ot">      msd=</span><span class="st">&quot;[[sdevBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;area</span><span class="ot"> x=</span><span class="st">&quot;[[mmonths]]&quot;</span><span class="ot"> y2min=</span><span class="st">&quot;[[mprecip-msd]]&quot;</span><span class="ot"> y2=</span><span class="st">&quot;[[mprecip+msd]]&quot;</span>
+<span class="ot">        fill=</span><span class="st">&quot;lightblue&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[mmonths]]&quot;</span><span class="ot"> y2=</span><span class="st">&quot;[[mprecip]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[vic2012ooa.date]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[vic2012ooa.tmp]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<h3 id="marker-plots-and-the-points-directive">Marker plots and the <code>&lt;points&gt;</code> directive</h3>
+<p><strong>Not done: marker orientation</strong></p>
+<h6 id="attributes-3">Attributes</h6>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>X</code></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y</code></td>
+<td align="left">Data path defining y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MARKER</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER-SIZE</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-WIDTH</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>ORIENTATION</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>LABEL</code></td>
+<td align="left">Label for points in plot legend</td>
+</tr>
+</tbody>
+</table>
+<h6 id="body-3">Body</h6>
+<p>None</p>
+<h6 id="interpretation-2">Interpretation</h6>
+<p>Produces a scatter/bubble plot from the given x and y coordinate data. Points are placed at the positions given by the <code>X</code> and <code>Y</code> attributes, using markers of the type specified by the <code>MARKER</code> attribute oriented according to the <code>ORIENTATION</code> attribute, coloured according to the <code>STROKE</code> and <code>FILL</code> attributes (which are not necessarily appropriate for all marker types) and sized according to the <code>MARKER-SIZE</code> attribute (which is a linear size whose exact interpretation depends on the marker used). All of the paint attributes can either be fixed or be functions of arbitrary variables that are in scope in Radian expressions defining the attributes.</p>
+<h6 id="examples-2">Examples</h6>
+<p>Simple scatter plot with fixed styling:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> marker-size=</span><span class="st">1.5</span><span class="ot"> marker=</span><span class="st">&quot;circle&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[ctrl.pred1]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[ctrl.resp]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;black&quot;</span><span class="kw">&gt;&lt;/points&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[treat.pred1]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[treat.resp]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/points&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>More complex plot with calculation of attributes from data – note the inheritance of the <code>STROKE</code> and <code>STROKE-WIDTH</code> standard paint attributes from the containing <code>&lt;plot&gt;</code> directive, the extraction of timeslices of data for the x- and y-coordinate values, the allocation of fill colours from a standard palette based on a categorical variable in the country data, and the generation of markers whose areas are linearly related to country population for the current year, normalised by the population across the whole dataset (this example uses an additional custom <code>fillIn</code> function for data pre-processing):</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">500</span><span class="ot"> stroke=</span><span class="st">&quot;black&quot;</span><span class="ot"> stroke-width=</span><span class="st">1</span>
+<span class="ot">      gdp=</span><span class="st">&quot;[[nat#income.map(function(d){return fillIn(d,1800,2009);}))]]&quot;</span>
+<span class="ot">      life=</span><span class="st">&quot;[[nat#lifeExpectancy.map(function(d){return fillIn(d,1800,2009);}))]]&quot;</span>
+<span class="ot">      pop=</span><span class="st">&quot;[[nat#population.map(function(d){return fillIn(d,1800,2009);}))]]&quot;</span>
+<span class="ot">      region=</span><span class="st">&quot;[[nat#region]]&quot;</span><span class="ot"> yidx=</span><span class="st">&quot;[[year-1800]]&quot;</span>
+<span class="ot">      range-x=</span><span class="st">&quot;300,100000&quot;</span><span class="ot"> range-y=</span><span class="st">&quot;10,90&quot;</span>
+<span class="ot">      popint=</span><span class="st">&quot;[[interpolate(pop,[1,1000],'sqrt')]]&quot;</span>
+<span class="ot">      axis-x-label=</span><span class="st">&quot;Per capita GDP&quot;</span><span class="ot"> axis-x-transform=</span><span class="st">&quot;log&quot;</span>
+<span class="ot">      axis-y-label=</span><span class="st">&quot;Life expectancy&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[gdp.map(function(d) { return d[yidx]; })]]&quot;</span>
+<span class="ot">          y=</span><span class="st">&quot;[[life.map(function(d) { return d[yidx]; })]]&quot;</span>
+<span class="ot">          fill=</span><span class="st">&quot;[[category10(region)]]&quot;</span>
+<span class="ot">          marker-size=</span><span class="st">&quot;[[popint(pop.map(function(d) { return d[yidx]; }))]])&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;/points&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<h3 id="bar-charts-and-the-bars-directive">Bar charts and the <code>&lt;bars&gt;</code> directive</h3>
+<h6 id="attributes-4">Attributes</h6>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>X</code></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y</code></td>
+<td align="left">Data path defining y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>X2</code></td>
+<td align="left">Data path defining x2-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y2</code></td>
+<td align="left">Data path defining y2-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>BAR-WIDTH</code></td>
+<td align="left">Width for bars (single pixel value or fractions)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>BAR-OFFSET</code></td>
+<td align="left">Offsets for bars (single pixel value or fractions)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-WIDTH</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>LABEL</code></td>
+<td align="left">Label for bars in plot legend</td>
+</tr>
+</tbody>
+</table>
+<h6 id="body-4">Body</h6>
+<p>None</p>
+<h6 id="interpretation-3">Interpretation</h6>
+<p>Produces a bar chart from the given x and y coordinate data. The x-coordinates give the bar centres and the y coordinates the bar heights.</p>
+<h6 id="examples-3">Examples</h6>
+<p>Simple bar chart with fixed bar widths:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> range-y=</span><span class="st">&quot;0&quot;</span>
+<span class="ot">      stroke=</span><span class="st">&quot;blue&quot;</span><span class="ot"> fill=</span><span class="st">&quot;skyblue&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[test.x]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[test.y]]&quot;</span><span class="ot"> bar-width=</span><span class="st">&quot;50px&quot;</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;test&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;x,y&quot;</span><span class="kw">&gt;</span>
+  1, 2
+  2, 4
+  3, 8
+  4, 16
+  5, 32
+  6, 48
+  7, 24
+  8, 12
+  9, 6
+ 10, 3
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<h3 id="the-background-directive">The <code>&lt;background&gt;</code> directive</h3>
+<p><strong>NOT DONE</strong></p>
+<p>It can be useful to display a background image behind plot data. This is particularly useful for geospatial data where it’s important to show a map image to help locate data. Since plots are rendered as SVG, this is the easiest format to deal with (made easier by the fact that SVG files define a coordinate system), but it’s also important to handle raster image formats (only PNG for now).</p>
+<p>Given a background image, we may need to assign coordinate ranges (mandatory for PNG files) or clip the image within the plot frame. Background images are implemented using the <code>&lt;background&gt;</code> directive.</p>
+<h6 id="attributes-5">Attributes</h6>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>SRC</code></td>
+<td align="left">URL for background source (either an SVG or a PNG)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>X</code></td>
+<td align="left">Data path or range defining <span class="math"><em>x</em></span>-coordinate range for image (overrides any native coordinates in SVG files)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>Y</code></td>
+<td align="left">Data path or range defining <span class="math"><em>y</em></span>-coordinate range for image (overrides any native coordinates in SVG files)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>CLIP-X</code></td>
+<td align="left">Data path or range defining clipping x-coordinate range for image</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>CLIP-Y</code></td>
+<td align="left">Data path or range defining clipping y-coordinate range for image</td>
+</tr>
+</tbody>
+</table>
+<h6 id="body-5">Body</h6>
+<p>None</p>
+<h6 id="interpretation-4">Interpretation</h6>
+<p>The background image is loaded from the given URL and is rendered into the plot area. For SVG files, if <code>X</code> and <code>Y</code> attributes are not specified, the coordinates defined in the SVG file are assumed to refer directly to plot coordinates. The <code>X</code> and <code>Y</code> attributes can be used to override this coordinate range assignment. For PNG files, the use of the <code>X</code> and <code>Y</code> attributes to assign coordinate ranges is mandatory.</p>
+<p>The background image can further be clipped by specifying values for the <code>CLIP-X</code> and/or <code>CLIP-Y</code> attributes.</p>
+<h6 id="examples-4">Examples</h6>
+<p>Basic SVG example with clipping to the latitude/longitude range of a set of case data:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot&gt;</span>
+  <span class="kw">&lt;background</span><span class="ot"> src=</span><span class="st">&quot;http://www.bayeshive.com/assets/maps/europe-political.svg&quot;</span>
+<span class="ot">               clip-x=</span><span class="st">&quot;[[cases#lon]]&quot;</span><span class="ot"> clip-y=</span><span class="st">&quot;[[cases#lat]]&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[cases#lon]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[cases#lat]]&quot;</span>
+<span class="ot">          marker=</span><span class="st">&quot;[[{circle;square}(cases#sex)]]&quot;</span>
+<span class="ot">          size=</span><span class="st">&quot;[[{linear 1 3}(cases#age)]]&quot;</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>Basic PNG example using UK National Grid coordinates to show GPS track data over a background map:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot&gt;</span>
+  <span class="kw">&lt;background</span><span class="ot"> src=</span><span class="st">&quot;http://www.bayeshive.com/assets/maps/central-london.png&quot;</span>
+<span class="ot">              x=</span><span class="st">&quot;520520,540520&quot;</span><span class="ot"> clip-y=</span><span class="st">&quot;151830,171830&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[track#ng_x]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[track#ng_y]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;black&quot;</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../js/jquery.js"></script>
+  <script src="../js/jquery.csv.js"></script>
+  <script src="../js/escodegen.browser.js"></script>
+  <script src="../js/estraverse.js"></script>
+  <script src="../js/d3.v2.js"></script>
+  <script src="../js/angular.min.js"></script>
+  <script src="../js/radian.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <script>
+angular.module('radianDocs', ['radian']);
+function DummyCtrl() { };
+  </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Reference manual - Use cases</title>
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="DummyCtrl">
+  <div class="container">
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../documentation.html">Documentation</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../community.html">Community</a></li>
+          <li><a href="../gallery">Gallery</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 id="use-cases">Use cases</h2>
+<h3 id="historical-time-series">Historical time series</h3>
+<p>First thing to note is that data for plots is separated out from the representation of individual plots. This allows the same data to be used for multiple plots. The <code>&lt;plot-data&gt;</code> directive is used to specify data sets for plotting, either directly within the directive, or indirectly via a URL using the <code>SRC</code> attribute (one of the examples below demonstrates this). The <code>&lt;plot-data&gt;</code> directive is given an ID which is used to refer to the data set in plots.</p>
+<p>Other attributes on the <code>&lt;plot-data&gt;</code> directive specify the data format (defaults to JSON, with <code>&quot;csv&quot;</code> being another possibility, and perhaps some forms of binary data encoded as CDATA) and other information needed to parse the data (a list of column names for CSV files, for instance).</p>
+<p>Within the body of the <code>&lt;plot-data&gt;</code> directive are optional <code>&lt;metadata&gt;</code> directives which encoded information about default label names and units for individual data fields, and the data (when it’s not specified via a URL).</p>
+<p>The following example gives a CSV data set of historical global temperature data:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-data</span><span class="ot"> id=</span><span class="st">&quot;globaltemp&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;date,temp,error&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;date&quot;</span><span class="ot"> format=</span><span class="st">&quot;isodate&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;temp&quot;</span><span class="ot"> label=</span><span class="st">&quot;Global mean temperature&quot;</span><span class="ot"> units=</span><span class="st">&quot;</span><span class="dv">&amp;deg;</span><span class="st">C&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;error&quot;</span><span class="ot"> error-for=</span><span class="st">&quot;temp&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+&quot;1970-01-15&quot;, 17.352, 0.100
+&quot;1970-02-14&quot;, 16.936, 0.090
+&quot;1970-03-15&quot;, 17.029, 0.095
+&quot;1970-04-15&quot;, 17.550, 0.087
+...
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>Plots are specified within a <code>&lt;plot&gt;</code> directive, which represents any number of data sets displayed on common axes. The ranges of the axes are normally determined from the plot data, but can also be specified using <code>range-x</code> and <code>range-y</code> (or <code>range</code>) attributes if required. In these attributes, as in other locations, values from plot data sets are represented by data paths, which are expressions in JavaScript with the addition of a “pluck” operator (represented by <code>#</code>). Data access paths are normally pluck or member access expressions, e.g. <code>id#var#field</code> where <code>id</code> is the ID of a <code>&lt;plot-data&gt;</code> directive, and <code>var#field</code> is a path through hierarchical data objects. The pluck operator is useful for arrays of objects whose fields need to be plucked out to form arrays of plot values. In the simple cases here, <code>globaltemp#date</code> accesses the date column of the plot data specified above. Other attributes on the <code>&lt;plot&gt;</code> directive control axis transforms, e.g. <code>axis-y-transform=&quot;log&quot;</code> (or <code>&quot;z-score&quot;</code> or <code>&quot;invlogit&quot;</code> or other reasonable possibilities).</p>
+<p>Within a <code>&lt;plot&gt;</code> directive, the display of individual data sets is controlled by directives like <code>&lt;lines&gt;</code>, the attributes of which specify data sets to be plotted (in order from bottom to top in terms of z-order) and plot attributes (e.g. <code>stroke</code> and <code>stroke-width</code>). Plot values are either given as dataset paths or as JavaScript functions.</p>
+<p>This example plots a time series based on the given data (including error bars, which for a line plot are displayed as bands around the data, and for a point data set are displayed as normal error bars), with an exponential fit line superimposed. Axis labels and units will be taken from the defaults provided in the <code>&lt;plot-data&gt;</code> directive.</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[globaltemp#date]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[globaltemp#temp]]&quot;</span>
+<span class="ot">         y-error=</span><span class="st">&quot;[[globaltemp#error]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="ot"> stroke-width=</span><span class="st">1</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> ref=</span><span class="st">&quot;[[(new Date(&quot;</span><span class="er">1970-01-01&quot;)).jd]]&quot;</span><span class="ot"> x=</span><span class="st">&quot;[[globaltemp#date]]&quot;</span>
+<span class="ot">         y=</span><span class="st">&quot;[[17.0 + 0.0012 * exp((x.jd - ref.jd) / 1453)]]&quot;</span>
+<span class="ot">         stroke=</span><span class="st">&quot;black&quot;</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<h3 id="simulation-time-series-from-ds-builder">Simulation time series (from DS builder)</h3>
+<p>Being able to include data sets directly into a document makes it easy to include data sets created on the fly, for instance:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-data</span><span class="ot"> id=</span><span class="st">&quot;sim1&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;t,x,y,z&quot;</span><span class="kw">&gt;</span>
+0.00,1.000,1.000,1.000
+0.01,1.001,1.002,0.995
+...
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>To handle compositing of plots, a single <code>&lt;plot-grid&gt;</code> directive is provided. This has attributes <code>rows</code>, <code>cols</code> and <code>tabs</code> that control, respectively, horizontal and vertical juxtaposition of plots and “stacking” of plots (using labelled tabs within the browser). Nesting of <code>&lt;plot-grid&gt;</code> elements allows for arbitrary juxtaposition of plots.</p>
+<p>In the following example, two plots are stacked with tabs to switch between them. The first is a time series plot with a zoom panel and a legend allowing for individual traces to be switched on or off, and the second is an X/Y line plot where the variable plotted on the X and Y axes can be selected from a drop-down list, and where colour fading along the traces is available as an option:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-grid</span><span class="ot"> tabs</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;plot</span><span class="ot"> zoom-x title=</span><span class="st">&quot;Time series&quot;</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> legend-switches</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[sim1.t]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sim1.x]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;orange&quot;</span><span class="kw">/&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[sim1.t]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sim1.y]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">/&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[sim1.t]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sim1.z]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;green&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;/plot&gt;</span>
+  <span class="kw">&lt;plot</span><span class="ot"> title=</span><span class="st">&quot;Trajectories&quot;</span><span class="ot"> stroke-switch=</span><span class="st">&quot;Fade&quot;</span>
+<span class="ot">        select-x=</span><span class="st">&quot;x,y,z&quot;</span><span class="ot"> select-y=</span><span class="st">&quot;x,y,z&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[[sim1.x,sim1.y,sim1.z]]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[[sim1.x,sim1.y,sim1.z]]]&quot;</span>
+<span class="ot">           stroke=</span><span class="st">&quot;blue;red:grey&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;/plot&gt;</span>
+<span class="kw">&lt;/plot-grid&gt;</span></code></pre>
+<h3 id="broad-street-cholera-map">Broad Street cholera map</h3>
+<p>Including JSON data is simple, as is accessing data from a URL:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-data</span><span class="ot"> id=</span><span class="st">&quot;pumps&quot;</span><span class="kw">&gt;</span>
+  [ { &quot;name&quot;: &quot;Broad Street&quot;, &quot;lat&quot;: 51.02345, &quot;lon&quot;: 0.02345 },
+    { &quot;name&quot;: &quot;Other&quot;,        &quot;lat&quot;: 51.05445, &quot;lon&quot;: 0.04538 } ]
+<span class="kw">&lt;/plot-data&gt;</span>
+<span class="kw">&lt;plot-data</span><span class="ot"> id=</span><span class="st">&quot;cases&quot;</span><span class="ot"> src=</span><span class="st">&quot;http://.../cholera-cases.csv&quot;</span>
+<span class="ot">           format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;date,lat,lon&quot;</span><span class="kw">/&gt;</span></code></pre>
+<p>Since plots are rendered as SVG, it is possible to include SVG background images. Here, the coordinate range of a plot is taken from the bounding box of the SVG file used as a background, thus clipping the other data plotted to this coordinate range. Axis display is suppressed (the SVG file is supposed to be a map of the streets in the area of John Snow’s cholera study). Superimposed on the background image are points representing water pumps (rendered as image specified by a URL) and points representing cholera case occurrence (coloured by hues linearly interpolated between red and blue covering the range of dates of occurrence):</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> range=</span><span class="st">&quot;http://.../basemap.svg&quot;</span><span class="ot"> axis-x=</span><span class="st">&quot;off&quot;</span><span class="ot"> y-axis=</span><span class="st">&quot;off&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;background</span><span class="ot"> src=</span><span class="st">&quot;http://.../basemap.svg&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[pumps#lon]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[pumps#lat]]&quot;</span><span class="ot"> marker-size=</span><span class="st">&quot;16px&quot;</span>
+<span class="ot">          marker=</span><span class="st">&quot;http://.../pump.png&quot;</span><span class="ot"> legend=</span><span class="st">&quot;Pumps&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[cases#lon]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[cases#lat]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span>
+<span class="ot">          fill=</span><span class="st">&quot;[[{red:blue}(cases#date)]]&quot;</span><span class="ot"> marker-size=</span><span class="st">&quot;2px&quot;</span><span class="ot"> legend=</span><span class="st">&quot;Cases&quot;</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<h3 id="categorical-bar-chart">Categorical bar chart</h3>
+<p>Here, we have some JSON data with discrete labels in three different directions, plus real-valued measurements:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-data</span><span class="ot"> id=</span><span class="st">&quot;d1&quot;</span><span class="kw">&gt;</span>
+  [ { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;50-54&quot;, &quot;rate&quot;: 15.5 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;55-59&quot;, &quot;rate&quot;: 20.2 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;60-64&quot;, &quot;rate&quot;: 32.1 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;65-69&quot;, &quot;rate&quot;: 48.0 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;70-74&quot;, &quot;rate&quot;: 65.5 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;50-54&quot;, &quot;rate&quot;: 15.5 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;55-59&quot;, &quot;rate&quot;: 20.2 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;60-64&quot;, &quot;rate&quot;: 32.1 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;65-69&quot;, &quot;rate&quot;: 48.0 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;70-74&quot;, &quot;rate&quot;: 65.5 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;50-54&quot;, &quot;rate&quot;: 15.5 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;55-59&quot;, &quot;rate&quot;: 20.2 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;60-64&quot;, &quot;rate&quot;: 32.1 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;65-69&quot;, &quot;rate&quot;: 48.0 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;70-74&quot;, &quot;rate&quot;: 65.5 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;50-54&quot;, &quot;rate&quot;: 15.5 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;55-59&quot;, &quot;rate&quot;: 20.2 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;60-64&quot;, &quot;rate&quot;: 32.1 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;65-69&quot;, &quot;rate&quot;: 48.0 },
+    { &quot;sex&quot;: &quot;male&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;70-74&quot;, &quot;rate&quot;: 65.5 } ]
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>A simple bar plot can be constructed that displays categorical relationships in the data. Here, the specification <code>d1#age;d1#env,d1#sex</code> for the X-value indicates that data groups distinguished by age range should be separated while bars for different values of the environment and gender should be plotted together (see http://gallery.r-enthusiasts.com/graph/standard_bar_plot,58):</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[[[d1#age,d1#env],d1#sex]]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[d1#rate]]&quot;</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<h3 id="miscellaneous-unclassified">Miscellaneous unclassified</h3>
+<p>Background map with marker plot and track:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> zoom-2d x1-axis=</span><span class="st">&quot;none&quot;</span><span class="ot"> y1-axis=</span><span class="st">&quot;none&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;background</span><span class="ot"> src=</span><span class="st">&quot;http://www.bayeshive.com/data/1/map1.svg&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;plot-options</span><span class="ot"> stroke-width=</span><span class="st">1</span><span class="ot"> stroke=</span><span class="st">&quot;#000&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[stations#lon]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[stations#lat]]&quot;</span><span class="ot"> marker=</span><span class="st">&quot;circle&quot;</span>
+<span class="ot">            fill=</span><span class="st">&quot;[[{#terrain}(stations#elevation)]]&quot;</span>
+<span class="ot">            marker-size=</span><span class="st">&quot;[[{linear 1 3}(stations#temp)]]&quot;</span><span class="kw">/&gt;</span>
+    <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[model#lon]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[model#lat]]&quot;</span><span class="ot"> marker=</span><span class="st">&quot;diamond&quot;</span>
+<span class="ot">            fill=</span><span class="st">&quot;none&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span>
+<span class="ot">            marker-size=</span><span class="st">&quot;[[{linear 1 3}(model#temp)]]&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;/plot-options&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[track#lon]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[track#lat]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;grey&quot;</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>Bubble chart with scrubbable UI:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> width=</span><span class="st">500</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> year=</span><span class="st">1870</span><span class="ot"> stroke=</span><span class="st">&quot;black&quot;</span><span class="ot"> stroke-width=</span><span class="st">1</span>
+<span class="ot">      axis-x-label=</span><span class="st">&quot;GDP&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Life expectancy&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> i=</span><span class="st">&quot;[[year-1870]]&quot;</span><span class="ot"> x=</span><span class="st">&quot;[[dat[i].gdp]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat[i].lifeexp]]&quot;</span>
+<span class="ot">          marker=</span><span class="st">&quot;circle&quot;</span><span class="ot"> fill=</span><span class="st">&quot;[[dat[i].continent]]&quot;</span>
+<span class="ot">          size=</span><span class="st">&quot;[[{quadratic(dat#pop) 0 10}(dat[i].pop)]]&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;scrubbable</span><span class="ot"> ng-model=</span><span class="st">&quot;year&quot;</span><span class="ot"> lower=</span><span class="st">&quot;1870&quot;</span><span class="ot"> upper=</span><span class="st">&quot;2010&quot;</span><span class="ot"> round=</span><span class="st">0</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>(Here, CSS would be used to position the <code>&lt;scrubbable&gt;</code> within the plot frame.)</p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../js/jquery.js"></script>
+  <script src="../js/jquery.csv.js"></script>
+  <script src="../js/escodegen.browser.js"></script>
+  <script src="../js/estraverse.js"></script>
+  <script src="../js/d3.v2.js"></script>
+  <script src="../js/angular.min.js"></script>
+  <script src="../js/radian.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <script>
+angular.module('radianDocs', ['radian']);
+function DummyCtrl() { };
+  </script>
+</body>
+</html>
