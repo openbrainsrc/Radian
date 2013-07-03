@@ -137,6 +137,17 @@ radian.factory('plotLib', function()
     return function(x) { return x.map(ret); };
   };
 
+  // Variadic array range function.
+  function multiExtent() {
+    if (arguments.length == 0) return [];
+    var ret = d3.extent(arguments[0]);
+    for (var i = 1; i < arguments.length; ++i) {
+      var e = d3.extent(arguments[i]);
+      ret = d3.extent([ret[0], ret[1], e[0], e[1]]);
+    }
+    return ret;
+  };
+
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -164,7 +175,7 @@ radian.factory('plotLib', function()
            pow: Math.pow,
            min: d3.min,
            max: d3.max,
-           extent: d3.extent,
+           extent: multiExtent,
            sum: d3.sum,
            mean: d3.mean,
            median: d3.median,
