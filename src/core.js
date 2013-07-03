@@ -531,39 +531,20 @@ radian.directive('plot',
     v.y2axisfmt = scope.axisY2Format || null;
     v.title = scope.title;
 
-    // Set up plot margins.
+    // Set up top and bottom plot margins.
     var del1 = Math.floor(1.75 * scope.fontSize);
     var del2 = Math.floor(1.25 * scope.fontSize);
     var del3 = Math.floor(2.5 * scope.fontSize);
-    var del4 = Math.floor(2.0 * scope.fontSize);
     if (v.xaxis) v.margin.bottom += del1 + (showXAxisLabel ? del2 : 0);
-    if (v.yaxis) v.margin.left += del3 + (showYAxisLabel ? del4 : 0);
     if (v.x2axis) v.margin.top += del1 + (showX2AxisLabel ? del2 : 0);
     if (v.title && !v.noTitle) v.margin.top += del3;
-    if (v.y2axis) v.margin.right += del3 + (showY2AxisLabel ? del4 : 0);
-    v.realwidth = v.svg.attr('width') - v.margin.left - v.margin.right;
     v.realheight = v.svg.attr('height') - v.margin.top - v.margin.bottom;
-    v.outw = v.realwidth + v.margin.left + v.margin.right;
     v.outh = v.realheight + v.margin.top + v.margin.bottom;
 
-    // Set up D3 data ranges.
-    if (scope.xextent) makeXScaler(scope, v, hasdate);
+    // Set up D3 Y data ranges.
     if (scope.yextent) makeYScaler(scope, v, hasdate2);
-    if (scope.x2extent) makeX2Scaler(scope, v);
     if (scope.y2extent) makeY2Scaler(scope, v);
-    if (scope.hasOwnProperty("axisXTransform"))
-      if (!scope.watchXTransform)
-        scope.watchXTransform = scope.$watch('axisXTransform', function(n, o) {
-          if (n == undefined || n == xAxisTransform) return;
-          xAxisTransform = n || "linear";
-          scope.views.forEach(function(v) {
-            makeXScaler(scope, v, hasdate);
-            if (scope.x2) makeX2Scaler(scope, v, hasdate2);
-            draw(v, scope);
-          });
-        });
-    if (scope.hasOwnProperty("axisYTransform"))
-    if (!scope.watchYTransform) {
+    if (scope.hasOwnProperty("axisYTransform") && !scope.watchYTransform)
       scope.watchYTransform = scope.$watch('axisYTransform', function(n, o) {
         if (n == undefined || n == yAxisTransform) return;
         yAxisTransform = n || "linear";
@@ -573,7 +554,52 @@ radian.directive('plot',
           draw(v, scope);
         });
       });
+
+    // Set up left and right plot margins.
+    var yoffset = del3, y2offset = del3;
+    if (v.yaxis && v.y) {
+      var tmp = v.y.copy();
+      var fmt = scope.axisYFormat ? d3.format(scope.axisYFormat) : null;
+      var nticks =
+        scope.axisYTicks ? scope.axisYTicks : v.svg.attr('height') / 36;
+      var fmtfn = tmp.tickFormat(nticks, fmt);
+      var maxlen = 0;
+      tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
+        if (s.length > maxlen) maxlen = s.length;
+      });
+      yoffset = Math.max(del3, maxlen * 0.7 * scope.fontSize);
     }
+    if (v.y2axis && v.y2) {
+      var tmp = v.y2.copy();
+      var fmt = scope.axisY2Format ? d3.format(scope.axisY2Format) : null;
+      var nticks =
+        scope.axisY2Ticks ? scope.axisY2Ticks : v.svg.attr('height') / 36;
+      var fmtfn = tmp.tickFormat(nticks, fmt);
+      var maxlen = 0;
+      tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
+        if (s.length > maxlen) maxlen = s.length;
+      });
+      y2offset = Math.max(del3, maxlen * 0.7 * scope.fontSize);
+    }
+    var del4 = Math.floor(2.0 * scope.fontSize);
+    if (v.yaxis) v.margin.left += yoffset + (showYAxisLabel ? del4 : 0);
+    if (v.y2axis) v.margin.right += y2offset + (showY2AxisLabel ? del4 : 0);
+    v.realwidth = v.svg.attr('width') - v.margin.left - v.margin.right;
+    v.outw = v.realwidth + v.margin.left + v.margin.right;
+
+    // Set up D3 X data ranges.
+    if (scope.xextent) makeXScaler(scope, v, hasdate);
+    if (scope.x2extent) makeX2Scaler(scope, v);
+    if (scope.hasOwnProperty("axisXTransform") && !scope.watchXTransform)
+      scope.watchXTransform = scope.$watch('axisXTransform', function(n, o) {
+        if (n == undefined || n == xAxisTransform) return;
+        xAxisTransform = n || "linear";
+        scope.views.forEach(function(v) {
+          makeXScaler(scope, v, hasdate);
+          if (scope.x2) makeX2Scaler(scope, v, hasdate2);
+          draw(v, scope);
+        });
+      });
 
     // Figure out axis labels.
     function axisLabel(labelText, v, idxvar, selectvar, def) {
@@ -763,8 +789,8 @@ radian.directive('plot',
               (+v.margin.top) + ')')
         .call(axis);
       if (v.y2label) {
-        var xpos = v.realwidth + v.margin.left +
-          Math.floor(3.3 * scope.fontSize);
+        var xpos = v.realwidth + v.margin.left + v.margin.right -
+          scope.fontSize;
         var ypos = +v.margin.top + v.realheight / 2;
         var lab = outsvg.append('g').attr('class', 'axis-label')
         .append('text')
