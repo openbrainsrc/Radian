@@ -1103,8 +1103,8 @@ radian.factory('radianEval',
           };
         }}});
 
-    // Replace free variables in JS expression by calls
-    // to"scope.$eval".  We do things this way rather than using
+    // Replace free variables in JS expression by calls to
+    // "scope.$eval".  We do things this way rather than using
     // Angular's "scope.$eval" on the whole JS expression because the
     // Angular expression parser only deals with a relatively small
     // subset of JS (no anonymous functions, for instance).
@@ -1123,7 +1123,8 @@ radian.factory('radianEval',
           });
           break;
         case "Identifier":
-          if (!exc[v.name] && fvs[v.name]) {
+          if (!(w.hasOwnProperty('key') && v == w.key) &&
+              !exc[v.name] && fvs[v.name]) {
             // We have a free variable, so replace the reference to it
             // with a call to 'scope.$eval'.
             return {
@@ -3615,6 +3616,8 @@ radian.directive('bars',
     var stroke = s.stroke || '#000';
     var fillOpacity = s.fillOpacity || 1.0;
     var fill = s.fill || 'none';
+    var barMin = s.barMin || null;
+    var barMax = s.barMax || null;
     var barWidth = s.barWidth || 1.0;
     var pxBarWidth, pxWidth = false;
     if (typeof barWidth == 'string' &&
@@ -3639,22 +3642,31 @@ radian.directive('bars',
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
-    svg.selectAll('rect').data(d3.zip(x, y))
+    var dat;
+    if (barMin && barMax)
+      dat = d3.zip(barMin, barMax, y);
+    else
+      dat = d3.zip(x, y);
+    svg.selectAll('rect').data(dat)
       .enter().append('rect')
       .attr('class', 'bar')
       .attr('x', function(d, i) {
-        return d[0] instanceof Date ?
+        if (d.length == 3)
+          return xs(d[0]);
+        else return d[0] instanceof Date ?
           xs(new Date(d[0].valueOf() -
-                      (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 -
+                      (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
                       (pxOffset ? barOffset : s.barWidths[i] * barOffset))) :
           xs(d[0] -
-             (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 -
+             (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
              (pxOffset ? barOffset : s.barWidths[i] * barOffset));
       })
-      .attr('y', function(d, i) { return ys(d[1]); })
+      .attr('y', function(d, i) { return ys(d[d.length-1]); })
       .attr('width', function(d, i) {
         if (pxWidth)
           return pxBarWidth;
+        else if (d.length == 3)
+          return xs(d[1]) - xs(d[0]);
         else
           return d[0] instanceof Date ?
             xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0)) -
@@ -3662,7 +3674,7 @@ radian.directive('bars',
             xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
             xs(d[0] - s.barWidths[i] * barWidth / 2.0);
       })
-      .attr('height', function(d, i) { return h - ys(d[1]); })
+      .attr('height', function(d, i) { return h - ys(d[d.length-1]); })
       .style('fill', sty(fill))
       .style('fill-opacity', sty(fillOpacity))
       .style('stroke-width', sty(strokeWidth))
@@ -3675,14 +3687,23 @@ radian.directive('bars',
     scope: true,
     link: function(scope, elm, as) {
       scope.$on('setupExtra', function() {
-        scope.barWidths = scope.x.map(function(xval, i) {
-          if (i == 0) return scope.x[1] - xval;
-          else if (i == scope.x.length - 1)
-            return xval - scope.x[scope.x.length - 2];
-          else return (scope.x[i+1] - scope.x[i-1]) / 2;
-        });
-        scope.rangeXExtend = [scope.barWidths[0] / 2,
-                              scope.barWidths[scope.x.length - 1] / 2];
+        if (scope.barMin && scope.barMax) {
+          scope.barWidths = scope.barMax.map(function(mx, i) {
+            return mx - scope.barMin[i];
+          });
+          var last = scope.x.length - 1;
+          scope.rangeXExtend = [scope.x[0] - scope.barMin[0],
+                                scope.barMax[last] - scope.x[last]];
+        } else {
+          scope.barWidths = scope.x.map(function(xval, i) {
+            if (i == 0) return scope.x[1] - xval;
+            else if (i == scope.x.length - 1)
+              return xval - scope.x[scope.x.length - 2];
+            else return (scope.x[i+1] - scope.x[i-1]) / 2;
+          });
+          scope.rangeXExtend = [scope.barWidths[0] / 2,
+                                scope.barWidths[scope.x.length - 1] / 2];
+        }
         var width = scope.strokeWidth instanceof Array &&
                     scope.strokeWidth.length > 0 ?
           scope.strokeWidth.reduce(function(x,y) {
@@ -4092,18 +4113,70 @@ radian.factory('plotLib', function()
   };
 
   // Histogramming function.
-  function histogram(xs, nbins) {
-    var rng = d3.extent(xs), binwidth = (rng[1] - rng[0]) / nbins;
-    var cs = [], ns = [];
-    for (var i = 0; i < nbins; ++i) {
-      ns.push(0);  cs.push(rng[0] + binwidth * (i + 0.5));
+  function histogram(xs, opts) {
+    // Deal with special case where just the number of bins is given
+    // as an argument.
+    if (typeof opts == 'number' || typeof opts == 'string')
+      opts = { nbins: Number(opts) };
+
+    // Coordinate transforms: forwards.
+    function idfn(x) { return x; }
+    var hxs = xs, xform = null;
+    if (opts.hasOwnProperty('transform')) {
+      xform = opts.transform;
+      if (typeof xform == 'string') {
+        switch (xform) {
+          case 'linear': xform = [idfn, idfn];          break;
+          case 'log':    xform = [Math.log, Math.exp];  break;
+          default: throw Error("unknown coordinate transform in histogram");
+        }
+      }
+      if (!(xform instanceof Array && xform.length == 2))
+        throw Error("invalid coordinate transform in histogram");
+      hxs = xs.map(xform[0]);
     }
-    for (var i = 0; i < xs.length; ++i)
+
+    // Bin width calculations.  Performed in transformed coordinates.
+    var rng = d3.extent(hxs);
+    if (opts.hasOwnProperty('binrange')) rng = opts.binrange;
+    var binwidth = null, nbins = null;
+    if (opts.hasOwnProperty('nbins')) {
+      nbins = opts.nbins;
+      binwidth = (rng[1] - rng[0]) / nbins;
+    } else if (opts.hasOwnProperty('binwidth')) {
+      binwidth = opts.binwidth;
+      nbins = Math.floor((rng[1] - rng[0]) / binwidth);
+    }
+
+    // Calculate counts and frequencies per bin.
+    var ns = [], fs = [];
+    for (var i = 0; i < nbins; ++i) ns.push(0);
+    for (var i = 0; i < hxs.length; ++i)
       ++ns[Math.min(nbins-1, Math.max
-                    (0, Math.floor((xs[i] - rng[0]) / binwidth)))];
-    var fs = [];
-    for (var i = 0; i < nbins; ++i) fs.push(ns[i] / xs.length);
-    return { centres:cs, counts:ns, freqs:fs };
+                    (0, Math.floor((hxs[i] - rng[0]) / binwidth)))];
+    for (var i = 0; i < nbins; ++i) fs.push(ns[i] / hxs.length);
+
+    // Coordinate transforms: backwards (bin centres and extents).
+    var cs = [], bins = [], w2 = 0.5 * binwidth;
+    for (var i = 0; i < nbins; ++i) {
+      var c = rng[0] + binwidth * (i + 0.5);
+      var mn = c - w2, mx = c + w2;
+      if (xform) {
+        c = xform[1](c);
+        mn = xform[1](mn);
+        mx = xform[1](mx);
+      }
+      cs.push(c);
+      bins.push([mn, mx]);
+    }
+
+    // Calculate normalised probability values in input coordinates.
+    var tot = 0, ps = [];
+    for (var i = 0; i < nbins; ++i) tot += fs[i] * (bins[i][1] - bins[i][0]);
+    for (var i = 0; i < nbins; ++i) ps.push(fs[i] / tot);
+
+    var ret = { centres:cs, bins:bins, counts:ns, freqs:fs, probs:ps };
+    return ret;
   };
 
   // Helper function to find minimum and maximum values in a
@@ -4137,6 +4210,17 @@ radian.factory('plotLib', function()
     return function(x) { return x.map(ret); };
   };
 
+  // Variadic array range function.
+  function multiExtent() {
+    if (arguments.length == 0) return [];
+    var ret = d3.extent(arguments[0]);
+    for (var i = 1; i < arguments.length; ++i) {
+      var e = d3.extent(arguments[i]);
+      ret = d3.extent([ret[0], ret[1], e[0], e[1]]);
+    }
+    return ret;
+  };
+
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -4164,7 +4248,7 @@ radian.factory('plotLib', function()
            pow: Math.pow,
            min: d3.min,
            max: d3.max,
-           extent: d3.extent,
+           extent: multiExtent,
            sum: d3.sum,
            mean: d3.mean,
            median: d3.median,

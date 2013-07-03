@@ -157,6 +157,8 @@ radian.directive('bars',
     var stroke = s.stroke || '#000';
     var fillOpacity = s.fillOpacity || 1.0;
     var fill = s.fill || 'none';
+    var barMin = s.barMin || null;
+    var barMax = s.barMax || null;
     var barWidth = s.barWidth || 1.0;
     var pxBarWidth, pxWidth = false;
     if (typeof barWidth == 'string' &&
@@ -181,22 +183,31 @@ radian.directive('bars',
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
-    svg.selectAll('rect').data(d3.zip(x, y))
+    var dat;
+    if (barMin && barMax)
+      dat = d3.zip(barMin, barMax, y);
+    else
+      dat = d3.zip(x, y);
+    svg.selectAll('rect').data(dat)
       .enter().append('rect')
       .attr('class', 'bar')
       .attr('x', function(d, i) {
-        return d[0] instanceof Date ?
+        if (d.length == 3)
+          return xs(d[0]);
+        else return d[0] instanceof Date ?
           xs(new Date(d[0].valueOf() -
-                      (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 -
+                      (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
                       (pxOffset ? barOffset : s.barWidths[i] * barOffset))) :
           xs(d[0] -
-             (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 -
+             (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
              (pxOffset ? barOffset : s.barWidths[i] * barOffset));
       })
-      .attr('y', function(d, i) { return ys(d[1]); })
+      .attr('y', function(d, i) { return ys(d[d.length-1]); })
       .attr('width', function(d, i) {
         if (pxWidth)
           return pxBarWidth;
+        else if (d.length == 3)
+          return xs(d[1]) - xs(d[0]);
         else
           return d[0] instanceof Date ?
             xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0)) -
@@ -204,7 +215,7 @@ radian.directive('bars',
             xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
             xs(d[0] - s.barWidths[i] * barWidth / 2.0);
       })
-      .attr('height', function(d, i) { return h - ys(d[1]); })
+      .attr('height', function(d, i) { return h - ys(d[d.length-1]); })
       .style('fill', sty(fill))
       .style('fill-opacity', sty(fillOpacity))
       .style('stroke-width', sty(strokeWidth))
@@ -217,14 +228,23 @@ radian.directive('bars',
     scope: true,
     link: function(scope, elm, as) {
       scope.$on('setupExtra', function() {
-        scope.barWidths = scope.x.map(function(xval, i) {
-          if (i == 0) return scope.x[1] - xval;
-          else if (i == scope.x.length - 1)
-            return xval - scope.x[scope.x.length - 2];
-          else return (scope.x[i+1] - scope.x[i-1]) / 2;
-        });
-        scope.rangeXExtend = [scope.barWidths[0] / 2,
-                              scope.barWidths[scope.x.length - 1] / 2];
+        if (scope.barMin && scope.barMax) {
+          scope.barWidths = scope.barMax.map(function(mx, i) {
+            return mx - scope.barMin[i];
+          });
+          var last = scope.x.length - 1;
+          scope.rangeXExtend = [scope.x[0] - scope.barMin[0],
+                                scope.barMax[last] - scope.x[last]];
+        } else {
+          scope.barWidths = scope.x.map(function(xval, i) {
+            if (i == 0) return scope.x[1] - xval;
+            else if (i == scope.x.length - 1)
+              return xval - scope.x[scope.x.length - 2];
+            else return (scope.x[i+1] - scope.x[i-1]) / 2;
+          });
+          scope.rangeXExtend = [scope.barWidths[0] / 2,
+                                scope.barWidths[scope.x.length - 1] / 2];
+        }
         var width = scope.strokeWidth instanceof Array &&
                     scope.strokeWidth.length > 0 ?
           scope.strokeWidth.reduce(function(x,y) {
