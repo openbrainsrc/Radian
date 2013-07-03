@@ -196,8 +196,8 @@ radian.factory('radianEval',
           };
         }}});
 
-    // Replace free variables in JS expression by calls
-    // to"scope.$eval".  We do things this way rather than using
+    // Replace free variables in JS expression by calls to
+    // "scope.$eval".  We do things this way rather than using
     // Angular's "scope.$eval" on the whole JS expression because the
     // Angular expression parser only deals with a relatively small
     // subset of JS (no anonymous functions, for instance).
@@ -216,7 +216,8 @@ radian.factory('radianEval',
           });
           break;
         case "Identifier":
-          if (!exc[v.name] && fvs[v.name]) {
+          if (!(w.hasOwnProperty('key') && v == w.key) &&
+              !exc[v.name] && fvs[v.name]) {
             // We have a free variable, so replace the reference to it
             // with a call to 'scope.$eval'.
             return {
