@@ -92,18 +92,70 @@ radian.factory('plotLib', function()
   };
 
   // Histogramming function.
-  function histogram(xs, nbins) {
-    var rng = d3.extent(xs), binwidth = (rng[1] - rng[0]) / nbins;
-    var cs = [], ns = [];
-    for (var i = 0; i < nbins; ++i) {
-      ns.push(0);  cs.push(rng[0] + binwidth * (i + 0.5));
+  function histogram(xs, opts) {
+    // Deal with special case where just the number of bins is given
+    // as an argument.
+    if (typeof opts == 'number' || typeof opts == 'string')
+      opts = { nbins: Number(opts) };
+
+    // Coordinate transforms: forwards.
+    function idfn(x) { return x; }
+    var hxs = xs, xform = null;
+    if (opts.hasOwnProperty('transform')) {
+      xform = opts.transform;
+      if (typeof xform == 'string') {
+        switch (xform) {
+          case 'linear': xform = [idfn, idfn];          break;
+          case 'log':    xform = [Math.log, Math.exp];  break;
+          default: throw Error("unknown coordinate transform in histogram");
+        }
+      }
+      if (!(xform instanceof Array && xform.length == 2))
+        throw Error("invalid coordinate transform in histogram");
+      hxs = xs.map(xform[0]);
     }
-    for (var i = 0; i < xs.length; ++i)
+
+    // Bin width calculations.  Performed in transformed coordinates.
+    var rng = d3.extent(hxs);
+    if (opts.hasOwnProperty('binrange')) rng = opts.binrange;
+    var binwidth = null, nbins = null;
+    if (opts.hasOwnProperty('nbins')) {
+      nbins = opts.nbins;
+      binwidth = (rng[1] - rng[0]) / nbins;
+    } else if (opts.hasOwnProperty('binwidth')) {
+      binwidth = opts.binwidth;
+      nbins = Math.floor((rng[1] - rng[0]) / binwidth);
+    }
+
+    // Calculate counts and frequencies per bin.
+    var ns = [], fs = [];
+    for (var i = 0; i < nbins; ++i) ns.push(0);
+    for (var i = 0; i < hxs.length; ++i)
       ++ns[Math.min(nbins-1, Math.max
-                    (0, Math.floor((xs[i] - rng[0]) / binwidth)))];
-    var fs = [];
-    for (var i = 0; i < nbins; ++i) fs.push(ns[i] / xs.length);
-    return { centres:cs, counts:ns, freqs:fs };
+                    (0, Math.floor((hxs[i] - rng[0]) / binwidth)))];
+    for (var i = 0; i < nbins; ++i) fs.push(ns[i] / hxs.length);
+
+    // Coordinate transforms: backwards (bin centres and extents).
+    var cs = [], bins = [], w2 = 0.5 * binwidth;
+    for (var i = 0; i < nbins; ++i) {
+      var c = rng[0] + binwidth * (i + 0.5);
+      var mn = c - w2, mx = c + w2;
+      if (xform) {
+        c = xform[1](c);
+        mn = xform[1](mn);
+        mx = xform[1](mx);
+      }
+      cs.push(c);
+      bins.push([mn, mx]);
+    }
+
+    // Calculate normalised probability values in input coordinates.
+    var tot = 0, ps = [];
+    for (var i = 0; i < nbins; ++i) tot += fs[i] * (bins[i][1] - bins[i][0]);
+    for (var i = 0; i < nbins; ++i) ps.push(fs[i] / tot);
+
+    var ret = { centres:cs, bins:bins, counts:ns, freqs:fs, probs:ps };
+    return ret;
   };
 
   // Helper function to find minimum and maximum values in a
