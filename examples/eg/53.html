@@ -1,20 +1,15 @@
-<h3>Example 32 (histograms #1)</h3>
+<h3>Example 53 (histograms #2)</h3>
 
-<div class="form-inline">
-  <label>Number of bins</label>
-  <select ng-model="nbins" ng-init="nbins=10">
-    <option>5</option>
-    <option>10</option>
-    <option>15</option>
-    <option>20</option>
-    <option>25</option>
-  </select>
-</div>
-<br>
-
-<plot height=300 aspect=2 range-y="0" hist="[[histogram(tstdata.x,nbins)]]">
-  <bars x="[[hist.centres]]" y="[[hist.freqs]]"></bars>
+<plot height=300 aspect=2 range-y="0" axis-x-transform="log"
+      hist="[[histogram(abs(tstdata.x), {transform:'log',nbins:10})]]">
+  <bars x="[[hist.centres]]" bar-min="[[hist.bins#0]]" bar-max="[[hist.bins#1]]"
+        y="[[hist.freqs]]"></bars>
 </plot>
+
+<p>Here, we have a log-transformed histogram: the histogram bins are
+  calculated on log-transformed data, and the plot uses a
+  log-transformed X-axis so we end up with equal sized bins in log
+  coordinates.</p>
 
 <plot-data name="tstdata" format="csv" cols="n,x">
 1,0.581304505340074
