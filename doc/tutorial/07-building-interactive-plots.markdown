@@ -3,13 +3,13 @@ layout: default
 title: Radian Tutorial - Building interactive plots
 ---
 
-## 7. Building interactive plots
+# 7. Building interactive plots
 
-### Built-in interactive elements
+## Built-in interactive elements
 
-### Data binding and interactivity
+## Data binding and interactivity
 
-### Some examples
+## Some examples
 
 
 <hr>

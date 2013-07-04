@@ -3,21 +3,21 @@ layout: default
 title: Radian Tutorial - Palettes and interpolation
 ---
 
-## 5. Palettes and interpolation
+# 5. Palettes and interpolation
 
-### Palette types
+## Palette types
 
-### Palette definitions
+## Palette definitions
 
-### Compact palette syntax
+## Compact palette syntax
 
-### Continuous palettes
+## Continuous palettes
 
-### Categorical palettes
+## Categorical palettes
 
-### Palettes for markers
+## Palettes for markers
 
-### Yet more plot styling...
+## Yet more plot styling...
 
 
 <hr>

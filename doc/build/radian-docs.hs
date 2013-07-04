@@ -47,6 +47,10 @@ main = hakyllWith hakyllConf $ do
     route idRoute
     compile copyFileCompiler
 
+  match "gallery/eg/*" $ do
+    route idRoute
+    compile copyFileCompiler
+
   match "favicon.ico" $ do
     route idRoute
     compile copyFileCompiler

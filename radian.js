@@ -519,10 +519,10 @@ radian.directive('plot',
     var showX2AxisLabel = (nviews == 1 || nviews == 2 && idx == 1) &&
       (!scope.axisX2Label || scope.axisX2Label != 'off');
     var showY2AxisLabel = !scope.axisY2Label || scope.axisY2Label != 'off';
-    v.margin = { top: scope.topMargin || 2,
-                 right: scope.rightMargin || 2,
-                 bottom: scope.bottomMargin || 2,
-                 left: scope.leftMargin || 2 };
+    v.margin = { top: +scope.topMargin || 2,
+                 right: +scope.rightMargin || 2,
+                 bottom: +scope.bottomMargin || 2,
+                 left: +scope.leftMargin || 2 };
     var xAxisTransform = scope.axisXTransform || "linear";
     var yAxisTransform = scope.axisYTransform || "linear";
     v.xaxisticks = scope.axisXTicks || null;
@@ -537,8 +537,8 @@ radian.directive('plot',
 
     // Set up top and bottom plot margins.
     var axisspace = 15;
-    var del1 = axisspace + scope.fontSize;
-    var del2 = 5 + scope.fontSize;
+    var del1 = axisspace + (+scope.fontSize);
+    var del2 = 5 + (+scope.fontSize);
     var del3 = Math.floor(2.5 * scope.fontSize);
     if (v.xaxis) v.margin.bottom += del1 + (showXAxisLabel ? del2 : 0);
     if (v.x2axis) v.margin.top += del1 + (showX2AxisLabel ? del2 : 0);
@@ -778,7 +778,7 @@ radian.directive('plot',
               (+v.margin.top) + ')')
         .call(axis);
       if (v.ylabel) {
-        var xpos = scope.fontSize, ypos = +v.margin.top + v.realheight / 2;
+        var xpos = +scope.fontSize, ypos = +v.margin.top + v.realheight / 2;
         var lab = outsvg.append('g').attr('class', 'axis-label')
         .append('text')
         .attr('x', xpos).attr('y', ypos)

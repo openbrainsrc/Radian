@@ -3,16 +3,16 @@ layout: default
 title: Radian Tutorial - Simple functional plots
 ---
 
-## 2. Simple functional plots
+# 2. Simple functional plots
 
-### Introduction
+## Introduction
 
 Most of the time, we'll be wanting to plot data.  However, it's
 simpler to start with functional plots.  You'll often want to
 superimpose a functional plot on top of data plots anyway, so it's
 useful to see how these work.
 
-#### The `<plot>` directive
+### The `<plot>` directive
 
 All Radian plots live inside a `<plot>` directive.  The represents a
 plot frame, with optional axes, axis labels, plot title and legend.
@@ -24,7 +24,7 @@ as you like.  The plotting directives are processed in order, so you
 can overlay one plot with another just by ordering them
 appriopriately.
 
-#### The `<lines>` directive
+### The `<lines>` directive
 
 We'll start by making some simple line graphs.  These use the
 `<lines>` directive, one per curve that we want to draw.  The
@@ -33,14 +33,14 @@ for our plot, along with paint attributes: stroke colours, stroke
 width and so on.
 
 
-### Simple examples
+## Simple examples
 
 
-### Basic plot expressions
+## Basic plot expressions
 
-### The basics of Radian attribute handling
+## The basics of Radian attribute handling
 
-### Plot styling
+## Plot styling
 
 
 <hr>

@@ -3,9 +3,9 @@ layout: default
 title: Radian Tutorial - Getting started
 ---
 
-## 1. Getting started
+# 1. Getting started
 
-### What is Radian?
+## What is Radian?
 
 There are many JavaScript plotting and graphing libraries out there,
 ranging in complexity from quick-and-easy things like
@@ -38,7 +38,7 @@ write any JavaScript.  This has a couple of benefits:
    needed something like Radian to allow us to do this with a minimum
    of pain.
 
-### AngularJS + D3.js + some other things
+## AngularJS + D3.js + some other things
 
 Radian leverages the power of two very cool JavaScript libraries:
 
@@ -73,11 +73,11 @@ and the [estraverse](https://github.com/Constellation/estraverse) and
 [escodegen](https://github.com/Constellation/escodegen) libraries for
 parsing and processing Radian expressions.
 
-### Some motivating examples
+## Some motivating examples
 
 To whet you appetite, here are a couple of examples:
 
-#### An interactive functional plot
+### An interactive functional plot
 
 Here, we set up a couple of range controls, using Angular's `ng-model`
 attribute to bind their values to JavaScript variables.  These values
@@ -118,7 +118,7 @@ It's worth emphasising that the code displayed above is *all* you need
 to do this.  There is no extra JavaScript code required to make this
 work.
 
-#### Plotting data loaded from a URL
+### Plotting data loaded from a URL
 
 Of course, most of the time, we'll be interested in plotting data, not
 just functions.  Radian provides a `<plot-data>` directive for
@@ -170,9 +170,9 @@ of Radian's plot layout facilities (the `<plot-row>` element and the
 labelling of plot axes based on metadata.
 
 
-### Getting set up to work with Radian
+## Getting set up to work with Radian
 
-#### Browser
+### Browser
 
 Radian should work with most recent browsers.  The two main
 requirements on the browser are that it render SVG images and that it
@@ -186,7 +186,7 @@ you use another browser if you can.)
 We would welcome information from users about experiences with other
 browsers!
 
-#### Libraries
+### Libraries
 
 Radian requires a number of JavaScript libraries: most obviously
 AngularJS and D3.js, but a number of other utility libraries too.
@@ -194,7 +194,7 @@ Suitable versions of the needed libraries are provided in the Radian
 distribution, and the template page (see below) shows how to access
 these libraries in your HTML pages.
 
-#### Page template
+### Page template
 
 A small amount of JavaScript setup code is needed to activate the
 AngularJS framework in a web page.  The file

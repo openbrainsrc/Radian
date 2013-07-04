@@ -3,21 +3,21 @@ layout: default
 title: Radian Tutorial - Simple data plots
 ---
 
-## 3. Simple data plots
+# 3. Simple data plots
 
-### The `<plot-data>` directive
+## The `<plot-data>` directive
 
-### Using `<lines>` with data
+## Using `<lines>` with data
 
-### The `<points>` directive
+## The `<points>` directive
 
-### Data formats
+## Data formats
 
-### Loading data from URLs
+## Loading data from URLs
 
-### Second axes
+## Second axes
 
-### More plot styling
+## More plot styling
 
 
 <hr>

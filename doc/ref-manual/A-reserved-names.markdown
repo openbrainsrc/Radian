@@ -3,16 +3,18 @@ layout: default
 title: Reference manual - Appendix: reserved names
 ---
 
-## Appendix: Reserved names
+# Appendix: Reserved names
 
-### Directives
+<hr>
+## Directives
 
 The following directive names are reserved and implemented by the
 plotting library: `<area>`, `<background>`, `<bars>`, `<lines>`,
-`<metadata>`, `<palette>`, `<plot>`, `<plot-data>`, `<plot-grid>`,
-`<plot-options>`, `<points>`.
+`<metadata>`, `<palette>`, `<plot>`, `<plot-col>`, `<plot-data>`,
+`<plot-grid>`, `<plot-options>`, `<plot-row>`, `<points>`.
 
-### Attributes
+<hr>
+## Attributes
 
 The following attributes names are reserved for use by plotting
 library directives: `axis-x`, `axis-x-label`, `axis-x2`, `axis-y`,

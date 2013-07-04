@@ -1,0 +1,19 @@
+<h3>Example 47 (layout #6)</h3>
+
+<p>Laid out as a 2 &times; 2 grid (automatic):
+
+<plot-grid width=800 aspect=1 rows=2 cols=2 stroke-width=2
+          x="[[seq(0,2*PI,101)]]" axis-x-label="Time">
+  <plot title="Top left" axis-y-label="sin(x)">
+    <lines y="[[sin(x)]]" stroke="red"></lines>
+  </plot>
+  <plot title="Top right" axis-y-label="cos(x)">
+    <lines y="[[cos(x)]]" stroke="blue"></lines>
+  </plot>
+  <plot title="Bottom left" axis-y-label="cos(x)">
+    <lines y="[[cos(x)]]" stroke="blue"></lines>
+  </plot>
+  <plot title="Bottom right" axis-y-label="sin(x)">
+    <lines y="[[sin(x)]]" stroke="red"></lines>
+  </plot>
+</plot-grid>

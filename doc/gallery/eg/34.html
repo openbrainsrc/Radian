@@ -1,0 +1,26 @@
+<h3>Example 34 (data access via URL)</h3>
+
+<plot height=300 aspect=3 stroke-width=2>
+  <lines x="[[vic2012ooa.day]]" y="[[vic2012ooa.tmp]]" stroke="red"/>
+  <lines x="[[vic2012ooa.day]]" y="[[vic2012ooa.prc]]" stroke="blue"/>
+</plot>
+
+<plot-data name="vic2012ooa" src="/data/vic2012.csv"
+           format="csv" cols="day,tmp,prc">
+  <metadata name="day" label="Day of year" units="d"></metadata>
+  <metadata name="tmp" label="Temperature" units="&deg;C"></metadata>
+  <metadata name="prc" label="Rainfall" units="mm/day"></metadata>
+</plot-data>
+
+
+<plot height=300 aspect=3 stroke-width=2>
+  <lines x="[[vic2012aoo#date#doy]]" y="[[vic2012aoo#tmp]]" stroke="red"/>
+  <lines x="[[vic2012aoo#date#doy]]" y="[[vic2012aoo#prc]]" stroke="blue"/>
+</plot>
+
+<plot-data name="vic2012aoo" src="/data/vic2012.json">
+  <metadata name="doy" label="Day of year" units="d"></metadata>
+  <metadata name="month" label="Month"></metadata>
+  <metadata name="tmp" label="Temperature" units="&deg;C"></metadata>
+  <metadata name="prc" label="Rainfall" units="mm/day"></metadata>
+</plot-data>

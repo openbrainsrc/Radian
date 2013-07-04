@@ -1,0 +1,15 @@
+<h3>Using <code>&lt;plot-options&gt;</code></h3>
+
+<p>The <code>&lt;plot-options&gt;</code> directive can be used to
+  capture common attributes that are shared between a group of plots,
+  or just to make things clearer.  Here, we just set up some paint
+  attributes for two simple plots.</p>
+<plot height=300 aspect=3 xs="[[seq(0,4*PI,101)]]"
+      axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
+  <plot-options marker-size="30" marker="circle" fill="red" stroke="none">
+    <points x="[[xs]]" y="[[sin(x)]]"></points>
+  </plot-options>
+  <plot-options stroke-opacity="0.2" stroke-width="2">
+    <lines x="[[xs]]" y="[[cos(x)]]"></lines>
+  </plot-options>
+</plot>

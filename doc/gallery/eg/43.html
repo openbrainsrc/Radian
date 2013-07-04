@@ -1,0 +1,13 @@
+<h3>Example 43 (layout #2)</h3>
+
+<p>Laid out as a column:
+
+<plot-col width=300 aspect=0.5 stroke-width=2
+          x="[[seq(0,2*PI,101)]]" axis-x-label="Time">
+  <plot axis-y-label="sin(x)">
+    <lines y="[[sin(x)]]" stroke="red"></lines>
+  </plot>
+  <plot axis-y-label="cos(x)">
+    <lines y="[[cos(x)]]" stroke="blue"></lines>
+  </plot>
+</plot-col>

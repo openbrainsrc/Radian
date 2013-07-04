@@ -1,0 +1,17 @@
+<h3>Log axes</h3>
+
+<p>This example shows how to do very simple binding to user interface
+  elements in a web page using Angular's data binding capabilities.
+  It also shows the use of the <code>AXIS-Y-TRANSFORM</code> attribute
+  to plot data on logarithmic axes.</p>
+<div class="form-inline"
+     ng-init="axis='linear'; axes=[{name:'Linear',val:'linear'},{name:'Log',val:'log'}]">
+  <label>Axis type</label>
+  <select ng-model="axis" ng-options="a.val as a.name for a in axes">
+  </select>
+</div>
+<br>
+
+<plot height=300 aspect=3 stroke-width=1 zoom-x axis-y-transform="{{axis}}">
+  <lines x="[[seq(0.01,1,10001)]]" y="[[1.1 + sin(1/x)]]" stroke="red"/>
+</plot>

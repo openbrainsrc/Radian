@@ -1,0 +1,13 @@
+<h3>Function plots #1</h3>
+
+<p>Here we plot some simple functions.  The <i>x</i> values which we
+  generate using Radian's <code>seq</code> function are shared between
+  the two plots by setting them in the
+  surrounding <code>&lt;plot&gt;</code> directive.  The <i>y</i>
+  values are calculated using the vectorised <code>sin</code>
+  and <code>cos</code> functions.</p>
+<plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
+      axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
+  <lines y="[[sin(x)]]" stroke="red"></lines>
+  <lines y="[[cos(x)]]" stroke="blue"></lines>
+</plot>

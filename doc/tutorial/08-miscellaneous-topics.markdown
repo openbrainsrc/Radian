@@ -3,13 +3,13 @@ layout: default
 title: Radian Tutorial - Miscellaneous topics
 ---
 
-## 8. Miscellaneous topics
+# 8. Miscellaneous topics
 
-### Adding extra library functions
+## Adding extra library functions
 
-### Names, scoping and evaluation order
+## Names, scoping and evaluation order
 
-### The `<plot-options>` directive
+## The `<plot-options>` directive
 
 
 <hr>

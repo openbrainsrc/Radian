@@ -3,15 +3,15 @@ layout: default
 title: Radian Tutorial - Other plot types
 ---
 
-## 6. Other plot types
+# 6. Other plot types
 
-### Bar charts
+## Bar charts
 
-### Histograms
+## Histograms
 
-### Area plots
+## Area plots
 
-### Plot layout directives
+## Plot layout directives
 
 
 <hr>

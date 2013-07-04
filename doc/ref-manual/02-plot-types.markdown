@@ -3,63 +3,82 @@ layout: default
 title: Reference manual - Plot types
 ---
 
-## Plot types
+# 2. Plot types
 
-### The `<plot>` directive
+Radian supports a number of common plot types (lines, points, bars,
+areas, etc.), and these plots can be composed in a number of ways.
+Multiple plots can be superimposed on a single plot frame, or multiple
+plot frames can be laid out using a VBox/HBox layout scheme (ADD
+LINK).
 
-**Not done: y-zooming, 2D pan and zoom, proper legend management.**
+Each plot frame is defined by a `<plot>` directive, which contains a
+number of plot type directives (e.g. `<lines>`, `<points>`, etc.).
+The attributes of the `<plot>` directive provide information about the
+overall structure of the plot such as its size, axis labelling, title,
+and so on.  As with all Radian directives, extra variables for use in
+Radian expressions within the plot can also be specified as
+attributes.
 
-###### Attributes
+<hr>
+## The `<plot>` directive
 
-|Name              |Description                                                                                                                                                  |
-|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|`RANGE-X`         |Specify $x$-coordinate range for plot                                                                                                                        |
-|`RANGE-Y`         |Specify $y$-coordinate range for plot                                                                                                                        |
-|`RANGE`           |Specify both $x$- and $y$-coordinate ranges for plot together                                                                                                |
-|`AXIS-X`          |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification                                                                       |
-|`AXIS-X-TRANSFORM`|If present, one of `linear` (default) or `log`                                                                                                               |
-|`AXIS-X2`         |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification                                                                       |
-|`AXIS-Y`          |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification                                                                       |
-|`AXIS-Y-TRANSFORM`|If present, one of `linear` (default) or `log`                                                                                                               |
-|`AXIS-Y2`         |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification                                                                       |
-|`AXIS-X-LABEL`    |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible) |
-|`AXIS-X2-LABEL`   |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible) |
-|`AXIS-Y-LABEL`    |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible) |
-|`AXIS-Y2-LABEL`   |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible) |
-|`X`               |Data path defining x-coordinate for plot data                                                                                                                |
-|`Y`               |Data path defining y-coordinate for plot data                                                                                                                |
-|`X2`              |Data path defining x2-coordinate for plot data                                                                                                               |
-|`Y2`              |Data path defining y2-coordinate for plot data                                                                                                               |
-|`TITLE`           |Plot title                                                                                                                                                   |
-|`WIDTH`           |Plot width in pixels                                                                                                                                         |
-|`HEIGHT`          |Plot height in pixels                                                                                                                                        |
-|`ASPECT`          |Plot aspect ratio                                                                                                                                            |
-|`ZOOM-X`          |Presence/absence or fraction: enable X-zooming                                                                                                               |
-|`ZOOM-Y`          |Presence/absence or fraction: enable X-zooming                                                                                                               |
-|`ZOOM-2D`         |Presence/absence: enable 2-D pan and zoom                                                                                                                    |
-|`LEGEND-SWITCHES` |Enable interactive on/off switching of traces via the plot legend                                                                                            |
-|`STROKE-SWITCH`   |Labels for stroke switching UI                                                                                                                               |
-|`SELECT-X`        |Provide UI for selecting between x-variables of plot                                                                                                         |
-|`SELECT-Y`        |Provide UI for selecting between y-variables of plot                                                                                                         |
-|`MARKER`          |Standard paint attribute                                                                                                                                     |
-|`MARKER-SIZE`     |Standard paint attribute                                                                                                                                     |
-|`FILL`            |Standard paint attribute                                                                                                                                     |
-|`FILL-OPACITY`    |Standard paint attribute                                                                                                                                     |
-|`STROKE`          |Standard paint attribute                                                                                                                                     |
-|`STROKE-WIDTH`    |Standard paint attribute                                                                                                                                     |
-|`STROKE-OPACITY`  |Standard paint attribute                                                                                                                                     |
+The `<plot>` directive has a large number of attributes.  The most
+important are those for specifying plot size (`WIDTH`, `HEIGHT` and
+`ASPECT`) and for specifying axis characteristics.
+
+### Attributes
+
+|Name              |&nbsp;&nbsp;&nbsp;|Description|
+|------------------|-|----------------------------|
+|`RANGE-X`         | |Specify $x$-coordinate range for plot|
+|`RANGE-Y`         | |Specify $y$-coordinate range for plot|
+|`RANGE`           | |Specify both $x$- and $y$-coordinate ranges for plot together|
+|`AXIS-X`          | |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification|
+|`AXIS-X-TRANSFORM`| |If present, one of `linear` (default) or `log`|
+|`AXIS-X2`         | |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification|
+|`AXIS-Y`          | |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification|
+|`AXIS-Y-TRANSFORM`| |If present, one of `linear` (default) or `log`|
+|`AXIS-Y2`         | |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification|
+|`AXIS-X-LABEL`    | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`AXIS-X2-LABEL`   | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`AXIS-Y-LABEL`    | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`AXIS-Y2-LABEL`   | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`X`               | |Data path defining x-coordinate for plot data|
+|`Y`               | |Data path defining y-coordinate for plot data|
+|`X2`              | |Data path defining x2-coordinate for plot data|
+|`Y2`              | |Data path defining y2-coordinate for plot data|
+|`TITLE`           | |Plot title|
+|`WIDTH`           | |Plot width in pixels|
+|`HEIGHT`          | |Plot height in pixels|
+|`ASPECT`          | |Plot aspect ratio|
+|`ZOOM-X`          | |Presence/absence or fraction: enable X-zooming|
+|<span class="nyi">`ZOOM-Y`</span>| |<span class="nyi">Presence/absence or fraction: enable Y-zooming</span>|
+|<span class="nyi">`ZOOM-2D`</span>| |<span class="nyi">Presence/absence: enable 2-D pan and zoom</span>|
+|`LEGEND-SWITCHES` | |Enable interactive on/off switching of traces via the plot legend|
+|`STROKE-SWITCH`   | |Labels for stroke switching UI|
+|`SELECT-X`        | |Provide UI for selecting between x-variables of plot|
+|`SELECT-Y`        | |Provide UI for selecting between y-variables of plot|
+|`MARKER`          | |Standard paint attribute|
+|`MARKER-SIZE`     | |Standard paint attribute|
+|`FILL`            | |Standard paint attribute|
+|`FILL-OPACITY`    | |Standard paint attribute|
+|`STROKE`          | |Standard paint attribute|
+|`STROKE-WIDTH`    | |Standard paint attribute|
+|`STROKE-OPACITY`  | |Standard paint attribute|
+
+<br>
 
 * The coordinate ranges for the plot are controlled by the `RANGE-X`,
   `RANGE-Y` and `RANGE` attributes.  These can be specified either
   explicitly (e.g. `range-x="0,20"` or `range="0,20;0,50"`), via a
   data path (in which case the range is taken from the extent of the
-  data values, excluding infinite and NaN values) or via a URL (in
-  which case the range is taken from the coordinate range of the SVG
-  image the URL points to).
+  data values, excluding infinite and NaN values) <span class="nyi">or
+  via a URL (in which case the range is taken from the coordinate
+  range of the SVG image the URL points to)</span>.
 
 * The actual plot dimensions are determined from a combination of the
   `WIDTH`, `HEIGHT` and `ASPECT` attributes and CSS dimension styles
-  for the `bh-plot` CSS class.
+  for the `<plot>` element.
 
 * Only one of `ZOOM-X`, `ZOOM-Y` or `ZOOM-2D` may be specified on a
   plot.  The `ZOOM-X` and `ZOOM-Y` attributes can specify a fraction
@@ -80,15 +99,16 @@ title: Reference manual - Plot types
   for the x and y variable, and switching between plot variables is
   handled sensibly.
 
-###### Body
+*The user interface elements of Radian will be getting a complete
+overhaul at some point soon, so the behaviour of the zoom and stroke
+and variable selection attributes of `<plot>` are likely to change.*
+
+### Body
 
 The body of a `<plot>` directive should contain directives specifying
 the data to be drawn into the plot (using `<lines>`, `<points>`,
-etc.).  There may also be a `<plot-options>` directive specifying
-paint and calculational attributes common to all plot directives.
-
-
-### Option defaulting and the `<plot-options>` directive
+etc.).  There may also be `<plot-options>` directives specifying paint
+and calculational attributes common to all plot directives.
 
 The `<plot-options>` directive can be used to wrap inner plotting
 directives that share plotting options.  For instance, the following
@@ -107,35 +127,73 @@ plotting directives:
 </plot>
 ~~~~
 
-### Paint attributes
+<hr>
+## Paint attributes
 
-**Need to separate this out and document the interpolation choices for
-these clearly.**
+There are a number of attributes shared among several plotting
+directives, used to specify line stroke, area fill, or plot marker
+styles.  The names of most of these attributes correspond directly to
+attributes from the definition of the SVG image format.
 
-### Line plots and the `<lines>` directive
+|Name            |&nbsp;&nbsp;&nbsp;|Description|
+|----------------|-|-------------------------|
+|`MARKER`        | |Marker name to use for point plots: one of `circle`, `cross`, `diamond`, `square`, `triangle-down`, `triangle-up` <span class="nyi">or a URL referencing an image file to use as a marker|
+|`MARKER-SIZE`   | |Marker size to use for point plots (as an area in square pixels: i.e. `MARKER="square" MARKER-SIZE=100` would give squares 10 pixels by 10 pixels in size|
+|`FILL`          | |Fill colour for markers and area plots (usual CSS syntax for colours, i.e. names, `#XXX`, `#XXXXXX`, `rgb(r, g, b)` or `rgba(r, g, b, a)`|
+|`FILL-OPACITY`  | |Opacity for fill colours for markers and area plots (from 0 to 1)|
+|`STROKE`        | |Stroke colour for line plots and marker outlines (usual CSS syntax for colours, i.e. names, `#XXX`, `#XXXXXX`, `rgb(r, g, b)` or `rgba(r, g, b, a)`|
+|`STROKE-WIDTH`  | |Line width for line plots|
+|`STROKE-OPACITY`| |Opacity for stroke colours for line plots and marker outlines (from 0 to 1)|
 
-###### Attributes
+<br>
 
-|Name            |Description                                   |
-|----------------|----------------------------------------------|
-|`X`             |Data path defining x-coordinate for plot data |
-|`Y`             |Data path defining y-coordinate for plot data |
-|`X2`            |Data path defining x2-coordinate for plot data|
-|`Y2`            |Data path defining y2-coordinate for plot data|
-|`STROKE`        |Standard paint attribute                      |
-|`STROKE-WIDTH`  |Standard paint attribute                      |
-|`STROKE-OPACITY`|Standard paint attribute                      |
-|`LABEL`         |Label for line in plot legend                 |
+All of these attributes can be supplied as single values,
+e.g. `FILL="red"`, or as functions of data expressed as Radian
+expressions, e.g. using a palette expression (ADD LINK):
 
-###### Body
+~~~~ {.html}
+<plot height=600 aspect=1
+      axis-x-label="Age" axis-y-label="Height" stroke="none"
+      marker="circle" marker-size=75>
+  <points x="[[fam.age]]" y="[[fam.height]]"
+          fill="[[@P{D female #FF7F7F; male #7F7FFF}(fam.sex)]]">
+  </points>
+</plot>
+~~~~
+
+Many more examples of the use of paint attributes can be seen in the
+[example gallery](/gallery).
+
+<hr>
+## Line plots and the `<lines>` directive
+
+The `<lines>` directive draws a line plot based on given *x*- and
+*y*-coordinate values.  Line width and stroke colour can be specified,
+and palettes (ADD LINK) can be used to specify colour gradients along
+curves.
+
+### Attributes
+
+|Name            |&nbsp;&nbsp;&nbsp;|Description|
+|----------------|-|----------------------------|
+|`X`             | |Data path defining x-coordinate for plot data|
+|`Y`             | |Data path defining y-coordinate for plot data|
+|`X2`            | |Data path defining x2-coordinate for plot data|
+|`Y2`            | |Data path defining y2-coordinate for plot data|
+|`STROKE`        | |Standard paint attribute|
+|`STROKE-WIDTH`  | |Standard paint attribute|
+|`STROKE-OPACITY`| |Standard paint attribute|
+|`LABEL`         | |Label for line in plot legend|
+
+### Body
 
 None
 
-###### Interpretation
+### Interpretation
 
 Produces a line plot from the given x and y coordinate data.
 
-###### Examples
+### Examples
 
 Simple plot with two line graphs -- note the inheritance of the
 `STROKE-WIDTH` standard paint attribute from the containing `<plot>`
@@ -149,34 +207,39 @@ directive:
 ~~~~
 
 
-### Area plots and the `<area>` directive
+<hr>
+## Area plots and the `<area>` directive
 
-###### Attributes
+Area plots produce "fat lines" where the area between given minimum
+and maximum *y*-coordinates is area filled, as a function of given
+$x$-coordinates.
 
-|Name          |Description                                                           |
-|--------------|----------------------------------------------------------------------|
-|`X`           |Data path defining x-coordinate for plot data                         |
-|`Y`           |Data path defining upper y-coordinate for plot data                   |
-|`YMIN`        |Data path or constant value defining lower y-coordinate for plot data |
-|`X2`          |Data path defining x2-coordinate for plot data                        |
-|`Y2`          |Data path defining upper y2-coordinate for plot data                  |
-|`Y2MIN`       |Data path or constant value defining lower y-coordinate for plot data |
-|`FILL`        |Standard paint attribute                                              |
-|`FILL-OPACITY`|Standard paint attribute                                              |
-|`LABEL`       |Label for area plot in plot legend                                    |
+### Attributes
 
-###### Body
+|Name          |&nbsp;&nbsp;&nbsp;|Description|
+|--------------|-|----------------------------|
+|`X`           | |Data path defining x-coordinate for plot data|
+|`Y`           | |Data path defining upper y-coordinate for plot data|
+|`YMIN`        | |Data path or constant value defining lower y-coordinate for plot data|
+|`X2`          | |Data path defining x2-coordinate for plot data|
+|`Y2`          | |Data path defining upper y2-coordinate for plot data|
+|`Y2MIN`       | |Data path or constant value defining lower y-coordinate for plot data|
+|`FILL`        | |Standard paint attribute|
+|`FILL-OPACITY`| |Standard paint attribute|
+|`LABEL`       | |Label for area plot in plot legend|
+
+### Body
 
 None
 
-###### Interpretation
+### Interpretation
 
 Produces an area line plot from the given x and y coordinate data.  It
 is possible to specify both upper (`Y` or `Y2`) and lower (`YMIN` or
 `Y2MIN`) bounds for the area display, either as a data path or as a
 constant value (default 0).
 
-###### Examples
+### Examples
 
 Area plot used to show monthly precipitation range along with line
 graph of monthly means and temperature data:
@@ -194,47 +257,52 @@ graph of monthly means and temperature data:
 </plot>
 ~~~~
 
-### Marker plots and the `<points>` directive
+<hr>
+## Marker plots and the `<points>` directive
 
-**Not done: marker orientation**
+The `<points>` directive is used to produce scatter plots, bubble
+plots and any other plots where discrete markers are positioned at
+given *x*- and *y*-coordinates.  Bubble plots can be created by making
+marker shape, size and colour functions of data as well as the marker
+positions.
 
-###### Attributes
+### Attributes
 
-|Name            |Description                                  |
-|----------------|---------------------------------------------|
-|`X`             |Data path defining x-coordinate for plot data|
-|`Y`             |Data path defining y-coordinate for plot data|
-|`MARKER`        |Standard paint attribute                     |
-|`MARKER-SIZE`   |Standard paint attribute                     |
-|`STROKE`        |Standard paint attribute                     |
-|`STROKE-WIDTH`  |Standard paint attribute                     |
-|`STROKE-OPACITY`|Standard paint attribute                     |
-|`FILL`          |Standard paint attribute                     |
-|`FILL-OPACITY`  |Standard paint attribute                     |
-|`ORIENTATION`   |Standard paint attribute                     |
-|`LABEL`         |Label for points in plot legend              |
+|Name            |&nbsp;&nbsp;&nbsp;|Description|
+|----------------|-|----------------------------|
+|`X`             | |Data path defining x-coordinate for plot data|
+|`Y`             | |Data path defining y-coordinate for plot data|
+|`MARKER`        | |Standard paint attribute|
+|`MARKER-SIZE`   | |Standard paint attribute|
+|`STROKE`        | |Standard paint attribute|
+|`STROKE-WIDTH`  | |Standard paint attribute|
+|`STROKE-OPACITY`| |Standard paint attribute|
+|`FILL`          | |Standard paint attribute|
+|`FILL-OPACITY`  | |Standard paint attribute|
+|<span class="nyi">`ORIENTATION`</span>| |<span class="nyi">Standard paint attribute</span>|
+|`LABEL`         | |Label for points in plot legend|
 
-###### Body
+### Body
 
 None
 
-###### Interpretation
+### Interpretation
 
-Produces a scatter/bubble plot from the given x and y coordinate data.
-Points are placed at the positions given by the `X` and `Y`
+Produces a scatter/bubble plot from the given *x*- and *y*-coordinate
+data.  Points are placed at the positions given by the `X` and `Y`
 attributes, using markers of the type specified by the `MARKER`
-attribute oriented according to the `ORIENTATION` attribute, coloured
-according to the `STROKE` and `FILL` attributes (which are not
-necessarily appropriate for all marker types) and sized according to
-the `MARKER-SIZE` attribute (which is a linear size whose exact
-interpretation depends on the marker used).  All of the paint
-attributes can either be fixed or be functions of arbitrary variables
-that are in scope in Radian expressions defining the attributes.
+attribute <span class="nyi">oriented according to the `ORIENTATION`
+attribute</span>, coloured according to the `STROKE` and `FILL`
+attributes (which are not necessarily appropriate for all marker
+types) and sized according to the `MARKER-SIZE` attribute (which is an
+area-based size measure whose exact interpretation depends on the
+marker used).  All of the paint attributes can either be fixed or be
+functions of arbitrary variables that are in scope in Radian
+expressions defining the attributes.
 
+### Examples
 
-###### Examples
-
-Simple scatter plot with fixed styling:
+#### Simple scatter plot with fixed styling
 
 ~~~~ {.html}
 <plot height=300 marker-size=1.5 marker="circle" stroke="none">
@@ -243,8 +311,9 @@ Simple scatter plot with fixed styling:
 </plot>
 ~~~~
 
-More complex plot with calculation of attributes from data -- note the
-inheritance of the `STROKE` and `STROKE-WIDTH` standard paint
+#### More complex plot with calculation of attributes from data
+
+Note the inheritance of the `STROKE` and `STROKE-WIDTH` standard paint
 attributes from the containing `<plot>` directive, the extraction of
 timeslices of data for the x- and y-coordinate values, the allocation
 of fill colours from a standard palette based on a categorical
@@ -260,7 +329,7 @@ uses an additional custom `fillIn` function for data pre-processing):
       pop="[[nat#population.map(function(d){return fillIn(d,1800,2009);}))]]"
       region="[[nat#region]]" yidx="[[year-1800]]"
       range-x="300,100000" range-y="10,90"
-      popint="[[interpolate(pop,[1,1000],'sqrt')]]"
+      popint="[[interpolate(pop,[1,1000])]]"
       axis-x-label="Per capita GDP" axis-x-transform="log"
       axis-y-label="Life expectancy">
   <points x="[[gdp.map(function(d) { return d[yidx]; })]]"
@@ -271,38 +340,39 @@ uses an additional custom `fillIn` function for data pre-processing):
 </plot>
 ~~~~
 
-### Bar charts and the `<bars>` directive
+<hr>
+## Bar charts and the `<bars>` directive
 
-###### Attributes
+### Attributes
 
-|Name            |Description                                       |
-|----------------|--------------------------------------------------|
-|`X`             |Data path defining x-coordinate for plot data     |
-|`Y`             |Data path defining y-coordinate for plot data     |
-|`X2`            |Data path defining x2-coordinate for plot data    |
-|`Y2`            |Data path defining y2-coordinate for plot data    |
-|`BAR-WIDTH`     |Width for bars (single pixel value or fractions)  |
-|`BAR-OFFSET`    |Offsets for bars (single pixel value or fractions)|
-|`FILL`          |Standard paint attribute                          |
-|`FILL-OPACITY`  |Standard paint attribute                          |
-|`STROKE`        |Standard paint attribute                          |
-|`STROKE-WIDTH`  |Standard paint attribute                          |
-|`STROKE-OPACITY`|Standard paint attribute                          |
-|`LABEL`         |Label for bars in plot legend                     |
+|Name            |&nbsp;&nbsp;&nbsp;|Description|
+|----------------|-|----------------------------|
+|`X`             | |Data path defining x-coordinate for plot data|
+|`Y`             | |Data path defining y-coordinate for plot data|
+|`X2`            | |Data path defining x2-coordinate for plot data|
+|`Y2`            | |Data path defining y2-coordinate for plot data|
+|`BAR-WIDTH`     | |Width for bars (single pixel value or fractions)|
+|`BAR-OFFSET`    | |Offsets for bars (single pixel value or fractions)|
+|`FILL`          | |Standard paint attribute|
+|`FILL-OPACITY`  | |Standard paint attribute|
+|`STROKE`        | |Standard paint attribute|
+|`STROKE-WIDTH`  | |Standard paint attribute|
+|`STROKE-OPACITY`| |Standard paint attribute|
+|`LABEL`         | |Label for bars in plot legend|
 
-###### Body
+### Body
 
 None
 
-###### Interpretation
+### Interpretation
 
-Produces a bar chart from the given x and y coordinate data.  The
-x-coordinates give the bar centres and the y coordinates the bar
+Produces a bar chart from the given *x*- and *y*-coordinate data.  The
+*x*-coordinates give the bar centres and the *y* coordinates the bar
 heights.
 
-###### Examples
+### Examples
 
-Simple bar chart with fixed bar widths:
+#### Simple bar chart with fixed bar widths
 
 ~~~~ {.html}
 <plot height=300 aspect=3 stroke-width=2 range-y="0"
@@ -324,72 +394,23 @@ Simple bar chart with fixed bar widths:
 </plot-data>
 ~~~~
 
+#### Histograms
 
-### The `<background>` directive
-
-**NOT DONE**
-
-It can be useful to display a background image behind plot data.  This
-is particularly useful for geospatial data where it's important to
-show a map image to help locate data.  Since plots are rendered as
-SVG, this is the easiest format to deal with (made easier by the fact
-that SVG files define a coordinate system), but it's also important to
-handle raster image formats (only PNG for now).
-
-Given a background image, we may need to assign coordinate ranges
-(mandatory for PNG files) or clip the image within the plot frame.
-Background images are implemented using the `<background>`
-directive.
-
-###### Attributes
-
-|Name    |Description                                                                                               |
-|--------|----------------------------------------------------------------------------------------------------------|
-|`SRC`   |URL for background source (either an SVG or a PNG)                                                        |
-|`X`     |Data path or range defining $x$-coordinate range for image (overrides any native coordinates in SVG files)|
-|`Y`     |Data path or range defining $y$-coordinate range for image (overrides any native coordinates in SVG files)|
-|`CLIP-X`|Data path or range defining clipping x-coordinate range for image                                         |
-|`CLIP-Y`|Data path or range defining clipping y-coordinate range for image                                         |
-
-###### Body
-
-None
-
-###### Interpretation
-
-The background image is loaded from the given URL and is rendered into
-the plot area.  For SVG files, if `X` and `Y` attributes are not
-specified, the coordinates defined in the SVG file are assumed to
-refer directly to plot coordinates.  The `X` and `Y` attributes can be
-used to override this coordinate range assignment.  For PNG files, the
-use of the `X` and `Y` attributes to assign coordinate ranges is
-mandatory.
-
-The background image can further be clipped by specifying values for
-the `CLIP-X` and/or `CLIP-Y` attributes.
-
-###### Examples
-
-Basic SVG example with clipping to the latitude/longitude range of a
-set of case data:
+The `histogram` function in the Radian standard library can be used to
+pre-process data for plotting bar chart histograms.  This example
+shows how to use the `binrange` option to the histogram function to
+use the same bins for calculating histogram frequencies for multiple
+data sets, so as to be able to plot multiple histograms on the same
+axes in a coherent way.
 
 ~~~~ {.html}
-<plot>
-  <background src="http://www.bayeshive.com/assets/maps/europe-political.svg"
-               clip-x="[[cases#lon]]" clip-y="[[cases#lat]]"/>
-  <points x="[[cases#lon]]" y="[[cases#lat]]"
-          marker="[[{circle;square}(cases#sex)]]"
-          size="[[{linear 1 3}(cases#age)]]"/>
-</plot>
-~~~~
-
-Basic PNG example using UK National Grid coordinates to show GPS track
-data over a background map:
-
-~~~~ {.html}
-<plot>
-  <background src="http://www.bayeshive.com/assets/maps/central-london.png"
-              x="520520,540520" clip-y="151830,171830"/>
-  <lines x="[[track#ng_x]]" y="[[track#ng_y]]" stroke="black" stroke-width=2/>
+<plot height=300 aspect=2 range-y="0" stroke="black"
+      ext="[[extent(dat1.x,dat2.x)]]"
+      h1="[[histogram(dat1.x,{binrange:ext,nbins:20})]]"
+      h2="[[histogram(dat2.x,{binrange:ext,nbins:20})]]">
+  <bars x="[[h1.centres]]" y="[[h1.freqs]]" fill="red"
+        bar-width=0.4 bar-offset=-0.2></bars>
+  <bars x="[[h2.centres]]" y="[[h2.freqs]]" fill="blue"
+        bar-width=0.4 bar-offset=0.2></bars>
 </plot>
 ~~~~
