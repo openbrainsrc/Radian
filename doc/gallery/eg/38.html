@@ -1,5 +1,8 @@
-<h3>Example 38 (functional plots with palettes)</h3>
+<h3>Stroke gradient palette</h3>
 
+<p>This example varies the stroke colour along a curve to reflect the
+  gradient of the curve &mdash; red colours for negative gradients,
+  blue for positive and grey for maxima and minima.</p>
 <plot height=300 aspect=3 stroke-width=2 axis-x="off" axis-y="off"
       xs="[[seq(-10,10,201)]]" ys="[[-xs**3+4*xs**2+50*xs]]"
       dys="[[ys.slice(1)-ys.slice(0,-1)]]">

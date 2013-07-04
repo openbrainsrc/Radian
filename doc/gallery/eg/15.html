@@ -1,5 +1,11 @@
-<h3>Example 15 (data binding)</h3>
+<h3>Data binding</h3>
 
+<p>Binding UI elements to data values is easy with Angular.  Radian
+  exploits this by making all Angular scope variables available within
+  Radian expressions, and by responding to changes in Angular scope
+  variables used in Radian expressions by re-rendering plots.  This
+  makes it possible to build interactive plots without writing a line
+  of JavaScript.</p>
 <div class="form-inline">
   <label>Mean</label>
   <input type="range" min=0 max=10 step=0.01 ng-model="mu" ng-init="mu=5">
@@ -9,5 +15,5 @@
 <br>
 
 <plot height=300 aspect=3 stroke-width=2 stroke="red">
-  <lines x="[[seq(0,10,200)]]" y="[[normal(x,mu,sigma)]]"/>
+  <lines x="[[seq(0,10,200)]]" y="[[normal(x,mu,sigma)]]"></lines>
 </plot>

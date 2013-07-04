@@ -1,8 +1,12 @@
-<h3>Example 34 (data access via URL)</h3>
+<h3>Data access via URL</h3>
 
+<p>Instead of providing data within the body of
+  a <code>&lt;plot-data&gt;</code> directive, we can load it from a
+  URL passed via <code>&lt;plot-data&gt;</code>'s <code>SRC</code>
+  attribute.</p>
 <plot height=300 aspect=3 stroke-width=2>
-  <lines x="[[vic2012ooa.day]]" y="[[vic2012ooa.tmp]]" stroke="red"/>
-  <lines x="[[vic2012ooa.day]]" y="[[vic2012ooa.prc]]" stroke="blue"/>
+  <lines x="[[vic2012ooa.day]]" y="[[vic2012ooa.tmp]]" stroke="red"></lines>
+  <lines x="[[vic2012ooa.day]]" y="[[vic2012ooa.prc]]" stroke="blue"></lines>
 </plot>
 
 <plot-data name="vic2012ooa" src="/data/vic2012.csv"
@@ -14,8 +18,8 @@
 
 
 <plot height=300 aspect=3 stroke-width=2>
-  <lines x="[[vic2012aoo#date#doy]]" y="[[vic2012aoo#tmp]]" stroke="red"/>
-  <lines x="[[vic2012aoo#date#doy]]" y="[[vic2012aoo#prc]]" stroke="blue"/>
+  <lines x="[[vic2012aoo#date#doy]]" y="[[vic2012aoo#tmp]]" stroke="red"></lines>
+  <lines x="[[vic2012aoo#date#doy]]" y="[[vic2012aoo#prc]]" stroke="blue"></lines>
 </plot>
 
 <plot-data name="vic2012aoo" src="/data/vic2012.json">

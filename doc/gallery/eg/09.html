@@ -1,7 +1,10 @@
-<h3>Example 9 (date handling)</h3>
+<h3>Date handling</h3>
 
+<p>Here we use data with time values expressed as date strings, using
+  the <code>DATE-FORMAT</code> attribute of the <code>metadata</code>
+  directive to set the format used for parsing the dates.</p>
 <plot height=300 aspect=3 stroke-width=2 stroke="red" axis-x-label="off">
-  <lines x="[[vic2012ooa.date]]" y="[[vic2012ooa.tmp]]"/>
+  <lines x="[[vic2012ooa.date]]" y="[[vic2012ooa.tmp]]"></lines>
 </plot>
 
 <plot-data name="vic2012ooa" format="csv" cols="date,tmp,prc">

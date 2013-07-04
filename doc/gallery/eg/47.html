@@ -1,7 +1,8 @@
-<h3>Example 47 (layout #6)</h3>
+<h3>Grid layout</h3>
 
-<p>Laid out as a 2 &times; 2 grid (automatic):
-
+<p>In simple cases, the <code>&lt;plot-grid&gt;</code> directive can
+  be easier to use than a tree of <code>&lt;plot-row&gt;</code>
+  and <code>&lt;plot-col&gt;</code> directives.</p>
 <plot-grid width=800 aspect=1 rows=2 cols=2 stroke-width=2
           x="[[seq(0,2*PI,101)]]" axis-x-label="Time">
   <plot title="Top left" axis-y-label="sin(x)">
