@@ -1,0 +1,20 @@
+<h3>Functions with palettes</h3>
+
+<p>Palettes can be applied to function plots as easily as to data
+  plots.  Here we see an example where the stroke colour is varied
+  along the plotted curves.  Radian attempts to break such curves into
+  a relatively small number of segments for stroking to keep things
+  efficient.</p>
+<palette name="bgr">
+  0 blue; 0.5 grey; 1 red
+</palette>
+
+<palette name="gyo">
+  0 green; 0.5 yellow; 1 orange
+</palette>
+
+<plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
+      axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
+  <lines y="[[sin(x)]]" stroke="[[bgr(y)]]"/>
+  <lines y="[[cos(x)]]" stroke="[[gyo(y)]]"/>
+</plot>

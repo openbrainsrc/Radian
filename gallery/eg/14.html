@@ -1,0 +1,13 @@
+<h3>Expression vectorisation)</h3>
+
+<p>The syntax of Radian expressions is a superset of the JavaScript
+  expression syntax.  Radian performs vectorisation of common
+  arithmetic operators (including the <code>**</code> exponentiation
+  operator) and functions, making it easy to express functions of
+  arrays.  Here, we define <i>x</i>-coordinate values and calculate a
+  polynomial function of <i>x</i> to give the <i>y</i>-coordinates.
+  The expression for <i>y</i> is automatically applied to all of the
+  values in the <i>x</i> array.</p>
+<plot height=300 aspect=3 stroke-width=1>
+  <lines x="[[seq(-1,1,100)]]" y="[[-x**3+x+1]]" stroke="red"></lines>
+</plot>

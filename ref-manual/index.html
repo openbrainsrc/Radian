@@ -7,11 +7,13 @@
   <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
   <link rel="stylesheet" href="../css/style.css" type="text/css" />
   <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../css/hljs.css" type="text/css" />
   <link rel="stylesheet" href="../css/radian.css" type="text/css" />
 </head>
 <body ng-controller="DummyCtrl">
   <div class="container">
-    <div class="navbar">
+    <div class="navbar navbar-main">
       <div class="navbar-inner">
         <a class="brand" href="../index.html">Radian</a>
         <ul class="nav">
@@ -26,20 +28,21 @@
       </div>
     </div>
 
-    <h2 id="reference-manual">Reference manual</h2>
-<p><em>Throughout the body of this manual, text in italics describes functionality that is not yet implemented.</em></p>
+    <h1 id="reference-manual">Reference manual</h1>
+<p class="nyi">
+Throughout the body of this manual, text in grey italics describes functionality that is not yet implemented.
+</p>
+
 <p>The <strong>Radian</strong> plotting library provides a convenient approach to embedding SVG plots in HTML documents. Plots are specified using custom HTML-like elements (e.g. <code>&lt;plot&gt;</code>, <code>&lt;lines&gt;</code>, <code>&lt;plot-data&gt;</code>, etc.) whose attributes and contents are used to control plot appearance and plot data. A flexible expression syntax is provided to make the access of compound JSON datasets simple, and to allow for grouping and simple processing of data for plotting.</p>
-<p><strong>Radian</strong> works by combining the benefits of the AngularJS JavaScript framework with the data visualisation capabilities of the D3.js library. <em>A Haskell combinator library is provided for easy server-side rendering of plots.</em></p>
-<h4 id="javascript-data-access"><a href="01-javascript-data-access.html">1. JavaScript data access</a></h4>
-<h4 id="plot-types"><a href="02-plot-types.html">2. Plot types</a></h4>
-<h4 id="palettes-and-interpolators"><a href="03-palettes-and-interpolators.html">3. Palettes and interpolators</a></h4>
-<h4 id="user-interface-features"><a href="04-user-interface-features.html">4. User interface features</a></h4>
-<h4 id="plot-layout-directives"><a href="05-plot-layout-directives.html">5. Plot layout directives</a></h4>
-<h4 id="use-cases"><a href="06-use-cases.html">6. Use cases</a></h4>
-<h4 id="other-features"><a href="07-other-features.html">7. Other features</a></h4>
-<h4 id="a.-reserved-names"><a href="A-reserved-names.html">A. Reserved names</a></h4>
-<h4 id="mlack"><a href="mlack.html">Mlack</a></h4>
-<h3 id="caveat">Caveat</h3>
+<p><strong>Radian</strong> works by combining the benefits of the AngularJS JavaScript framework with the data visualisation capabilities of the D3.js library. <span class="nyi">A Haskell combinator library is provided for easy server-side rendering of plots.</span></p>
+<h3 id="javascript-data-access"><a href="01-javascript-data-access.html">1. JavaScript data access</a></h3>
+<h3 id="plot-types"><a href="02-plot-types.html">2. Plot types</a></h3>
+<h3 id="palettes-and-interpolators"><a href="03-palettes-and-interpolators.html">3. Palettes and interpolators</a></h3>
+<h3 id="user-interface-features"><a href="04-user-interface-features.html">4. User interface features</a></h3>
+<h3 id="plot-layout-directives"><a href="05-plot-layout-directives.html">5. Plot layout directives</a></h3>
+<h3 id="appendix.-reserved-names"><a href="A-reserved-names.html">Appendix. Reserved names</a></h3>
+<hr>
+<h2 id="caveat">Caveat</h2>
 <p>Because of the way that browsers parse HTML pages, it is, in general, not possible to use XML’s compact tag syntax <code>&lt;tag a=&quot;abc&quot;/&gt;</code> for custom tags that are not part of the HTML standard even if these tags do not have any content. This means that all custom tags must be closed by an explicit close tag, even if there is no content within the tag. For example, <code>&lt;metadata&gt;</code> tags must always be immediately closed by a <code>&lt;/metadata&gt;</code>.</p>
 
     <footer>
@@ -58,9 +61,8 @@
   <script src="../js/angular.min.js"></script>
   <script src="../js/radian.min.js"></script>
   <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/gallery.js"></script>
   <script>
-angular.module('radianDocs', ['radian']);
-function DummyCtrl() { };
   </script>
 </body>
 </html>

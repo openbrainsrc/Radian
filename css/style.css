@@ -10,8 +10,12 @@
 }
 .clear50pct { clear: both; }
 
-.navbar-inner { background-image: url("../img/radian-logo-small.png");
-                background-repeat: no-repeat; background-position: 15px 5px; }
-.navbar .brand { margin-left: 15px; }
+.navbar-main .navbar-inner {
+    background-image: url("../img/radian-logo-small.png");
+    background-repeat: no-repeat; background-position: 15px 5px;
+}
+.navbar-main .brand { margin-left: 15px; }
 
 footer { background-color: #eee; color: #555; margin: 5px 10px; }
+
+.nyi { color: #888; font-style: italic; }

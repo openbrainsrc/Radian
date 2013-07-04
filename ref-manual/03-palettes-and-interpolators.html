@@ -7,11 +7,13 @@
   <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
   <link rel="stylesheet" href="../css/style.css" type="text/css" />
   <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../css/hljs.css" type="text/css" />
   <link rel="stylesheet" href="../css/radian.css" type="text/css" />
 </head>
 <body ng-controller="DummyCtrl">
   <div class="container">
-    <div class="navbar">
+    <div class="navbar navbar-main">
       <div class="navbar-inner">
         <a class="brand" href="../index.html">Radian</a>
         <ul class="nav">
@@ -26,10 +28,11 @@
       </div>
     </div>
 
-    <h2 id="palettes-and-interpolators">Palettes and interpolators</h2>
-<p>The subject of colour palettes and interpolators for properties like stroke width are closely related. A palette is just a sort of colour interpolator. The slightly different uses of palettes compared to general scalar interpolators suggest slightly different syntax and features for the two cases.</p>
-<h3 id="palette-definitions">Palette definitions</h3>
-<p>A palette is used to map input values from some domain to colour values. The mapping may be a discrete mapping (from discrete values taken by a variable to discrete colour values), an absolute mapping (from fixed variable values to colours) or a normalised mapping (from the range [0,1] to a range of colours, with the understanding that data values used with the palette will somehow be normalised to [0,1]). For non-discrete palettes, the interpolation between specified (value,colour) pairs is either linear (in RGB, HSL, HCL or Lab given colour space ) or constant (giving a “banded” palette). For example, a scale for temperatures might have a linear HSL interpolation between blue (for cold temperatures) and red (for warm), while a palette for topographic elevation would be absolute banded, with fixed colours being used for fixed elevation ranges.</p>
+    <h1 id="palettes-and-interpolators">3. Palettes and interpolators</h1>
+<p>The subject of colour palettes and interpolators for properties like stroke width are closely related. A palette is essentially just a sort of colour interpolator.</p>
+<hr>
+<h2 id="palette-definitions">Palette definitions</h2>
+<p>A palette is used to map input values from some domain to colour values. The mapping may be a discrete mapping (from discrete values taken by a variable to discrete colour values), an absolute mapping (from fixed variable values to colours) or a normalised mapping (from the range [0,1] to a range of colours, with the understanding that data values used with the palette will somehow be normalised to [0,1]). For non-discrete palettes, the interpolation between specified <em>(value, colour)</em> pairs is either linear (in RGB, HSL, HCL or Lab colour space) or constant (giving a “banded” palette). For example, a scale for temperatures might have a linear HSL interpolation between blue (for cold temperatures) and red (for warm), while a palette for topographic elevation might be absolute banded, with fixed colours being used for fixed elevation ranges.</p>
 <p>A suitable Haskell datatype to represent palettes is thus:</p>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Colour</span> <span class="fu">=</span> <span class="dt">Colour</span> { colRed, colGreen,<span class="ot"> colBlue ::</span> <span class="dt">Double</span> }
 <span class="kw">data</span> <span class="dt">Banded</span> <span class="fu">=</span> <span class="dt">Banded</span> <span class="fu">|</span> <span class="dt">Linear</span>
@@ -38,77 +41,117 @@
              <span class="fu">|</span> <span class="dt">Normalised</span> <span class="dt">ColInterp</span> <span class="dt">Banded</span> [(<span class="dt">Fraction</span>, <span class="dt">Colour</span>)]
              <span class="fu">|</span> <span class="dt">Absolute</span>   <span class="dt">ColInterp</span> <span class="dt">Banded</span> [(<span class="dt">Double</span>, <span class="dt">Colour</span>)]</code></pre>
 <p>(Here, <code>Fraction</code> is a type representing values lying in [0,1].)</p>
-<p>Palettes are defined in HTML <code>&lt;palette&gt;</code> directives:</p>
-<h6 id="attributes">Attributes</h6>
+<p>Palettes are defined in HTML <code>&lt;palette&gt;</code> directives, which have attributes to specify the palette type, and a body to define the domain and range of the palette interpolation.</p>
+<h3 id="attributes">Attributes</h3>
 <table>
 <thead>
 <tr class="header">
 <th align="left">Name</th>
+<th align="left">   </th>
 <th align="left">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left"><code>NAME</code></td>
-<td align="left">Standard</td>
+<td align="left"></td>
+<td align="left">Name of generated palette function</td>
 </tr>
 <tr class="even">
 <td align="left"><code>TYPE</code></td>
+<td align="left"></td>
 <td align="left">One of <code>discrete</code>, <code>abs</code> or <code>norm</code> (default)</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>BANDED</code></td>
+<td align="left"></td>
 <td align="left">Present/absent</td>
 </tr>
 <tr class="even">
 <td align="left"><code>INTERP</code></td>
+<td align="left"></td>
 <td align="left">One of <code>RGB</code>, <code>HSL</code> (default), <code>HCL</code> or <code>Lab</code></td>
 </tr>
 </tbody>
 </table>
-<h6 id="body">Body</h6>
-<p>If <code>TYPE</code> = “discrete”: either <code>&lt;colour&gt;</code> ( { “<code>;</code>” | “<code>\n</code>” } <code>&lt;colour&gt;</code> )* or <code>&lt;dvalue&gt;</code> <code>&lt;colour&gt;</code> ( { “<code>;</code>” | “<code>\n</code>” } <code>&lt;dvalue&gt;</code> <code>&lt;colour&gt;</code> )*</p>
-<p>Otherwise: <code>&lt;value&gt;</code> <code>&lt;colour&gt;</code> ( { “<code>;</code>” | “<code>\n</code>” } <code>&lt;value&gt;</code> <code>&lt;colour&gt;</code> )*</p>
-<p>Here <code>&lt;value&gt;</code> is a real number, <code>&lt;colour&gt;</code> is a colour specifier (either a colour name, or a <code>#XXX</code> or <code>#XXXXXX</code> value) and <code>&lt;dvalue&gt;</code> is a discrete palette value (normally a value from a set of strings, e.g. <code>male</code> or <code>female</code> – discrete palette values can be quoted with double quotes, in order to allow keys containing spaces).</p>
-<h6 id="interpretation">Interpretation</h6>
-<p>Discrete palettes give a simple list of colours, which are used one-by-one to colour categorical values – this is implemented by deriving a zero-based index <em>i</em> from the data categories and taking the <em>(i mod n)</em>’th colour from the palette, where <em>n</em> is the number of colours in the palette.</p>
-<p>Absolute and normalised palettes both work in a similar fashion, either interpolating linearly between the (value, colour) set points of the palette or (for banded palettes) returning a fixed colour for each value range between set points. The only difference between absolute and normalised palettes is that, for absolute palettes, the actual data values are used to define the set points, while for normalised palettes, the set point values all lie in [0,1] and data values are normalised to this range before calculating colours from the palette (the normalisation is a simple linear mapping of [min <em>D</em>, max <em>D</em>] to [0,1], where <em>D</em> is the set of data values).}</p>
-<h6 id="examples">Examples</h6>
-<p>Palette for display of topographic data:</p>
+<h3 id="body">Body</h3>
+<p>For discrete palettes, the body of the <code>&lt;palette&gt;</code> directive contains either a simple list of colours (separated by newlines or <code>;</code> characters), e.g.</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;palette</span><span class="ot"> name=</span><span class="st">&quot;rainbow&quot;</span><span class="ot"> type=</span><span class="st">&quot;discrete&quot;</span><span class="kw">&gt;</span>
+  red; orange; yellow
+  green; blue; indigo; violet
+<span class="kw">&lt;/palette&gt;</span></code></pre>
+<p>or a list of <em>(value, colour)</em> pairs (separated by newlines or <code>;</code> characters), where the <em>value</em>s are discrete labels (numeric or strings – these string values can be quoted with double quotes, in order to allow keys containing spaces), e.g.</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;palette</span><span class="ot"> name=</span><span class="st">&quot;gender&quot;</span><span class="ot"> type=</span><span class="st">&quot;discrete&quot;</span><span class="kw">&gt;</span>
+  male blue
+  female red
+<span class="kw">&lt;/palette&gt;</span></code></pre>
+<p>For continuous palettes, the body of the palette contains a list of <em>(value, colour)</em> pairs, where the <em>value</em>s are real numbers, e.g.</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;palette</span><span class="ot"> name=</span><span class="st">&quot;rbpal&quot;</span><span class="kw">&gt;</span>
+  0.0 #FF0000; 1.0 #0000FF
+<span class="kw">&lt;/palette&gt;</span></code></pre>
+<p>In all cases, colour specifiers can be any of a colour name, <code>#XXX</code>, <code>#XXXXXX</code>, <code>rgb(r, g, b)</code> or <code>rgba(r, g, b, a)</code>).</p>
+<h3 id="interpretation">Interpretation</h3>
+<p>Discrete palettes either assign given colours to given discrete keys, or give a simple list of colours, which are used one-by-one to colour categorical values – this is implemented by deriving a zero-based index <em>i</em> from the data categories and taking the <em>(i mod n)</em>’th colour from the palette, where <em>n</em> is the number of colours in the palette.</p>
+<p>Absolute and normalised palettes both work in a similar fashion, either interpolating linearly between the <em>(value, colour)</em> set points of the palette or (for banded palettes) returning a fixed colour for each value range between set points. The only difference between absolute and normalised palettes is that, for absolute palettes, the actual data values are used to define the set points, while for normalised palettes, the set point values all lie in [0,1] and data values are normalised to this range before calculating colours from the palette (the normalisation is a simple linear mapping of [min <em>D</em>, max <em>D</em>] to [0,1], where <em>D</em> is the set of data values).}</p>
+<h3 id="examples">Examples</h3>
+<h4 id="palette-for-display-of-topographic-data">Palette for display of topographic data</h4>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;palette</span><span class="ot"> name=</span><span class="st">&quot;terrain&quot;</span><span class="ot"> type=</span><span class="st">&quot;abs&quot;</span><span class="ot"> banded</span><span class="kw">&gt;</span>
   -8000.0 #000066; -4000.0 #4C4CFF; -1000.0 #7F7FFF; -500.0 #66B2FF
    -100.0 #7FFFFF;   -50.0 #66CCB2;    -0.1 #E5FFFF;    0.0 #003300
     100.0 #00B24C;   500.0 #E5FF00;  1200.0 #994C00; 4000.0 #E5E5FF
    5000.0 #FFFFFF
 <span class="kw">&lt;/palette&gt;</span></code></pre>
-<p>Simple discrete colour palette:</p>
+<h4 id="simple-discrete-colour-palette">Simple discrete colour palette</h4>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;palette</span><span class="ot"> name=</span><span class="st">&quot;colours&quot;</span><span class="ot"> type=</span><span class="st">&quot;discrete&quot;</span><span class="kw">&gt;</span>
   orange; green; blue; red; black
 <span class="kw">&lt;/palette&gt;</span></code></pre>
-<p>Palette for blue-to-red temperature scale:</p>
+<h4 id="palette-for-blue-to-red-temperature-scale">Palette for blue-to-red temperature scale</h4>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;palette</span><span class="ot"> name=</span><span class="st">&quot;temppal&quot;</span><span class="ot"> type=</span><span class="st">&quot;norm&quot;</span><span class="kw">&gt;</span>
   0 #0000FF; 1 #FF0000
 <span class="kw">&lt;/palette&gt;</span></code></pre>
 <p>Note that, in the last case, there is a compact direct representation of the palette that <a href="#palette-use">may be used</a>.</p>
-<h3 id="palette-use-and-compact-palette-syntax"><a name="palette-use">Palette use and compact palette syntax</a></h3>
+<hr>
+<h2 id="palette-use-and-compact-palette-syntax"><a name="palette-use">Palette use and compact palette syntax</a></h2>
 <p><strong>Not done: application of palettes to stroke along paths, i.e. passing a palette function as the stroke.</strong></p>
-<p>Palettes are used to specify colours for stroking and filling SVG elements in plots. (Note that in all the following examples, the stroke or fill attribute can actually contain a semicolon-separated list of colour/palette specifiers, allowing for <a href="#ui-stroke-sel">stroke switching</a>. <strong>(Stroke switching is currently broken while I work on palettes.)</strong></p>
+<p>Palettes are used to specify colours for stroking and filling SVG elements in plots. (Note that in all the following examples, the stroke or fill attribute can actually contain a semicolon-separated list of colour/palette specifiers, allowing for <a href="#ui-stroke-sel">stroke switching</a>.)</p>
 <p>Palettes defined using <code>&lt;palette&gt;</code> directives are installed as functions (with names taken from the directive’s <code>NAME</code> attribute) that can be called to assign colours based on Radian variables. For <em>ad hoc</em> palette use, there is a compact syntax for defining palette functions “in place”.</p>
-<p>The most basic instance is using a single colour to specify the stroke or fill for an element: <code>stroke=&quot;red&quot;</code> <code>fill=&quot;#CC3342&quot;</code></p>
-<p>To make use of a palette, we need to provide a palette specifier, <em><code>palspec</code></em> and, optionally, a data path <em><code>dataspec</code></em> describing the data item to be used to generate colours from the palette:</p>
-<p><code>stroke = &quot;@P{</code><em><code>palspec</code></em><code>}(</code><em><code>dataspec</code></em><code>)&quot;</code> <code>fill = &quot;@P{</code><em><code>palspec</code></em><code>}&quot;</code></p>
+<p>The most basic instance is using a single colour to specify the stroke or fill for an element, for example:</p>
+<blockquote>
+<p><code>stroke=&quot;red&quot;</code>  or  <code>fill=&quot;#CC3342&quot;</code>.</p>
+</blockquote>
+<p>To make use of a palette, we need to provide a palette specifier, <em>palspec</em> and, optionally, a data path <em>dataspec</em> describing the data item to be used to generate colours from the palette:</p>
+<blockquote>
+<p><code>stroke = &quot;@P{</code><em>palspec</em><code>}(</code><em>dataspec</em><code>)&quot;</code>  or  <code>fill = &quot;@P{</code><em>palspec</em><code>}&quot;</code>.</p>
+</blockquote>
 <p>In the second case, where no data path is given, the data item index is used to index into the palette. For path stroking, this gives palette interpolation along the path.</p>
 <p>To support the simplest use case, there is a compact syntax for normalised linear interpolation between two colours:</p>
-<p><code>stroke = &quot;@P{grey:red}&quot;</code> <code>fill = &quot;@P{grey:red}(station#startDate)&quot;</code></p>
+<blockquote>
+<p><code>stroke = &quot;@P{grey:red}&quot;</code></p>
+</blockquote>
+<blockquote>
+<p><code>fill = &quot;@P{grey:red}(station#startDate)&quot;</code></p>
+</blockquote>
 <p>These are equivalent to defining a normalised HSL interpolation palette whose 0 value is “grey” and whose 1 value is “red”, the first along the path to be stroked and the second as a function of the <code>station#startDate</code> variable.</p>
 <p>More generally, if a palette is defined by a <code>&lt;palette&gt;</code> element with a suitable <code>NAME</code> attribute, the palette can be accessed directly as a function, for example:</p>
+<blockquote>
 <p><code>fill = &quot;terrainpal(stations#elevation)&quot;</code></p>
+</blockquote>
 <p>Here, the <code>terrainpal</code> palette must be defined within the current document using a <code>&lt;palette&gt;</code> element.</p>
-<p>Palette definitions can also be included inline:</p>
-<p><code>fill = &quot;@P{discrete red;green;blue}(station#type)&quot;</code> <code>fill = &quot;@P{norm 0 blue; 0.5 blue; 0.5 green; 1 red}(x)&quot;</code> <code>fill = &quot;@P{abs rgb -4000 black; 8000 green}(station#elevation)&quot;</code></p>
+<p>More complex palette definitions can also be included inline:</p>
+<blockquote>
+<p><code>fill = &quot;@P{discrete red;green;blue}(station#type)&quot;</code></p>
+</blockquote>
+<blockquote>
+<p><code>fill = &quot;@P{norm 0 blue; 0.5 blue; 0.5 green; 1 red}(x)&quot;</code></p>
+</blockquote>
+<blockquote>
+<p><code>fill = &quot;@P{abs rgb -4000 black; 8000 green}(station#elevation)&quot;</code></p>
+</blockquote>
 <p>The first example here defines a three element discrete palette, the second a normalised HSL interpolation palette and the third an absolute RGB interpolation palette.</p>
 <p>The general syntax of a palette use is:</p>
-<pre><code>  paluse ::= colour | &quot;@P{&quot; palspec &quot;}&quot; [ &quot;(&quot; [datapath] &quot;)&quot; ]
+<pre><code>  paluse ::= colour | palref [ &quot;(&quot; [datapath] &quot;)&quot; ]
+
+  palref ::= palette-function | &quot;@P{&quot; palspec &quot;}&quot;
 
   palspec ::= colour &quot;:&quot; colour
            |  colour ( &quot;;&quot; colour )*
@@ -117,11 +160,12 @@
   type ::= &quot;normalised&quot; | &quot;absolute&quot; | &quot;discrete&quot;
   interp ::= &quot;RGB&quot; | &quot;HSL&quot; | &quot;HCL&quot; | &quot;Lab&quot;</code></pre>
 <p>The <code>type</code> can be abbreviated to <code>n</code>, <code>a</code> or <code>d</code>.</p>
-<h3 id="general-interpolation">General interpolation</h3>
+<hr>
+<h2 id="general-interpolation">General interpolation</h2>
 <p>As well as the specialised interpolation provided by palettes, there is a general interpolation facility exposed via the <code>interpolate</code> function in the Radian plotting library. This function is called as <code>interpolate(domain, range, type)</code> where <code>domain</code> and <code>range</code> are (possibly nested) arrays of values, and <code>type</code> is one of <code>linear</code>, <code>sqrt</code>, <code>log</code> or <code>pow:k</code> (with <code>k</code> a numeric exponent). The return value of a call to <code>interpolate</code> is an interpolation function whose domain covers the values in <code>domain</code>, whose range is the range of values in <code>range</code> and has an interpolation law as specified by <code>type</code>.</p>
-<p>The following example demonstrates how marker <em>areas</em> can be related to plot data:</p>
+<p>The following example demonstrates how marker <em>linear sizes</em> can be related to plot data:</p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">500</span><span class="ot"> stroke-width=</span><span class="st">1</span>
-<span class="ot">      szint=</span><span class="st">&quot;[[interpolate(d#size,[1,1000],'sqrt')]]&quot;</span><span class="kw">&gt;</span>
+<span class="ot">      szint=</span><span class="st">&quot;[[interpolate(d#size,[1,50],'pow:2')]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;d#x&quot;</span><span class="ot"> y=</span><span class="st">&quot;d#y&quot;</span><span class="ot"> fill=</span><span class="st">&quot;[[category10(d#cat)]]&quot;</span>
 <span class="ot">          marker-size=</span><span class="st">&quot;[[szint(d#size)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;/points&gt;</span>
@@ -143,9 +187,8 @@
   <script src="../js/angular.min.js"></script>
   <script src="../js/radian.min.js"></script>
   <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/gallery.js"></script>
   <script>
-angular.module('radianDocs', ['radian']);
-function DummyCtrl() { };
   </script>
 </body>
 </html>

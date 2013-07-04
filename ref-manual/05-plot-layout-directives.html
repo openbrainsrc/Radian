@@ -7,11 +7,13 @@
   <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
   <link rel="stylesheet" href="../css/style.css" type="text/css" />
   <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../css/hljs.css" type="text/css" />
   <link rel="stylesheet" href="../css/radian.css" type="text/css" />
 </head>
 <body ng-controller="DummyCtrl">
   <div class="container">
-    <div class="navbar">
+    <div class="navbar navbar-main">
       <div class="navbar-inner">
         <a class="brand" href="../index.html">Radian</a>
         <ul class="nav">
@@ -26,39 +28,44 @@
       </div>
     </div>
 
-    <h2 id="plot-layout-directives">Plot layout directives</h2>
+    <h1 id="plot-layout-directives">5. Plot layout directives</h1>
 <p>A number of directives are provided for laying out plots using a “VBox/HBox” approach (<code>&lt;plot-row&gt;</code> and <code>&lt;plot-col&gt;</code>) and in simple grids (<code>&lt;plot-grid&gt;</code>).</p>
-<p>All of the plot layout directives can be embedded one inside the other, forming a layout tree, the leaves of which are normal <code>&lt;plot&gt;</code> directives. So, rows can be items inside columns, columns can items be inside grids, grids can be items inside rows, and so on. The outermost layout directive (this includes a <code>&lt;plot&gt;</code> directive on its own) is responsible for allocating space within the main layout frame for the subsidiary plots. The overall height, width and aspect ratio of the plot layout can therefore be set on the outermost layout element.</p>
-<p>As with most Radian directives, plot attributes and other Radian variables can be specified for all the plots inside the directive. In addition, each of the layout directives supports a number of specialised layout attributes:</p>
-<h6 id="layout-attributes-for-the-plot-grid-directive">Layout attributes for the <code>&lt;plot-grid&gt;</code> directive</h6>
+<p>All of the plot layout directives can be embedded one inside the other, forming a layout tree, the leaves of which are normal <code>&lt;plot&gt;</code> directives. So, rows can be items inside columns, columns can be items be inside grids, grids can be items inside rows, and so on. The outermost layout directive (this includes a <code>&lt;plot&gt;</code> directive on its own) is responsible for allocating space within the main layout frame for the subsidiary plots. The overall height, width and aspect ratio of the plot layout can therefore be set on the outermost layout element. A single SVG image is generated for the outermost plot or plot layout element, with space allocated within the SVG for each of the subsidiary elements.</p>
+<p>As with most Radian directives, plot attributes and other Radian variables can be specified for all the plots inside the directive. In addition, each of the layout directives supports a number of specialised layout attributes.</p>
+<h3 id="layout-attributes-for-the-plot-grid-directive">Layout attributes for the <code>&lt;plot-grid&gt;</code> directive</h3>
 <table>
 <thead>
 <tr class="header">
 <th align="left">Name</th>
+<th align="left">   </th>
 <th align="left">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left"><code>ROWS</code></td>
+<td align="left"></td>
 <td align="left">Number of rows in plot grid</td>
 </tr>
 <tr class="even">
 <td align="left"><code>COLS</code></td>
+<td align="left"></td>
 <td align="left">Number of columns in plot grid</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>SPACING</code></td>
+<td align="left"></td>
 <td align="left">Spacing between layout elements in pixels</td>
 </tr>
 </tbody>
 </table>
 <p>If either or both of the <code>ROWS</code> or <code>COLS</code> attributes is missing, sensible defaults are chosen based on the number of items inside the <code>&lt;plot-grid&gt;</code> directive.</p>
-<h6 id="layout-attributes-for-the-plot-row-and-plot-col-directives">Layout attributes for the <code>&lt;plot-row&gt;</code> and <code>&lt;plot-col&gt;</code> directives</h6>
+<h3 id="layout-attributes-for-the-plot-row-and-plot-col-directives">Layout attributes for the <code>&lt;plot-row&gt;</code> and <code>&lt;plot-col&gt;</code> directives</h3>
 <p>The only special attribute for these two directives is <code>LAYOUT-SHARE</code>, which can be applied to the elements within the <code>&lt;plot-row&gt;</code> or <code>&lt;plot-col&gt;</code> directives to specify proportionally how much space in the “layout direction” should be allocated to each element: setting <code>LAYOUT-SHARE</code> to 1 for one element and 2 for another element means that the second element will be allocated twice as much space as the first. Elements without a <code>LAYOUT-SHARE</code> value are allocated space corresponding to the mean size of all elements.</p>
-<h6 id="examples">Examples</h6>
+<h3 id="examples">Examples</h3>
 <p>The functionality of these directives is best understood through examples.</p>
-<p>Two plots laid out side-by-side, both allocated the same amount of space, and both (because of the <code>ASPECT</code> setting) square:</p>
+<h4 id="two-plots-laid-out-side-by-side">Two plots laid out side-by-side</h4>
+<p>Both plots are allocated the same amount of space, and both (because of the <code>ASPECT</code> setting) are square:</p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-row</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;plot&gt;</span>
     <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
@@ -67,7 +74,8 @@
     <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;/plot&gt;</span>
 <span class="kw">&lt;/plot-row&gt;</span></code></pre>
-<p>A nested layout with varying size ratios – the second column is three times the width of the first, and because of the height and width choices, all of the plots are square:</p>
+<h4 id="nested-layout-with-varying-size-ratios">Nested layout with varying size ratios</h4>
+<p>The second column is three times the width of the first, and because of the height and width choices, all of the plots are square:</p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-row</span><span class="ot"> height=</span><span class="st">600</span><span class="ot"> width=</span><span class="st">800</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;plot-col</span><span class="ot"> layout-share=</span><span class="st">1</span><span class="kw">&gt;</span>
     <span class="kw">&lt;plot</span><span class="ot"> title=</span><span class="st">&quot;Copy 1&quot;</span><span class="kw">&gt;</span>
@@ -101,9 +109,8 @@
   <script src="../js/angular.min.js"></script>
   <script src="../js/radian.min.js"></script>
   <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/gallery.js"></script>
   <script>
-angular.module('radianDocs', ['radian']);
-function DummyCtrl() { };
   </script>
 </body>
 </html>

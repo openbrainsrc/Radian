@@ -1,0 +1,17 @@
+<h3>Banded palettes</h3>
+
+<p>Banded palettes do not interpolate colours, but assign constant
+  colours to ranges of their input.</p>
+<palette name="bgr" banded>
+  0 blue; 0.5 red
+</palette>
+
+<palette name="gyo" banded>
+  0 green; 0.5 orange
+</palette>
+
+<plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
+      axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
+  <lines y="[[sin(x)]]" stroke="[[bgr(y)]]"/>
+  <lines y="[[cos(x)]]" stroke="[[gyo(y)]]"/>
+</plot>
