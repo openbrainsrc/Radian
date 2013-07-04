@@ -132,7 +132,7 @@ radian.factory('radianLegend', function()
       var sep = mwidth + spacing;
       var len = nswitch * mwidth + (nswitch - 1) * spacing;
       leggs.attr('transform', function(d,i) {
-        return 'translate(' + (scope.width - len + sep*i) + ',10)';
+        return 'translate(' + (scope.width - len + sep*i - 10) + ',10)';
       });
     }
   };

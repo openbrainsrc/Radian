@@ -517,8 +517,10 @@ radian.directive('plot',
     var showX2AxisLabel = (nviews == 1 || nviews == 2 && idx == 1) &&
       (!scope.axisX2Label || scope.axisX2Label != 'off');
     var showY2AxisLabel = !scope.axisY2Label || scope.axisY2Label != 'off';
-    v.margin = { top: scope.topMargin || 2, right: scope.rightMargin || 10,
-                 bottom: scope.bottomMargin || 2, left: scope.leftMargin || 2 };
+    v.margin = { top: scope.topMargin || 2,
+                 right: scope.rightMargin || 2,
+                 bottom: scope.bottomMargin || 2,
+                 left: scope.leftMargin || 2 };
     var xAxisTransform = scope.axisXTransform || "linear";
     var yAxisTransform = scope.axisYTransform || "linear";
     v.xaxisticks = scope.axisXTicks || null;
@@ -532,8 +534,9 @@ radian.directive('plot',
     v.title = scope.title;
 
     // Set up top and bottom plot margins.
-    var del1 = Math.floor(1.75 * scope.fontSize);
-    var del2 = Math.floor(1.25 * scope.fontSize);
+    var axisspace = 15;
+    var del1 = axisspace + scope.fontSize;
+    var del2 = 5 + scope.fontSize;
     var del3 = Math.floor(2.5 * scope.fontSize);
     if (v.xaxis) v.margin.bottom += del1 + (showXAxisLabel ? del2 : 0);
     if (v.x2axis) v.margin.top += del1 + (showX2AxisLabel ? del2 : 0);
@@ -563,11 +566,17 @@ radian.directive('plot',
       var nticks =
         scope.axisYTicks ? scope.axisYTicks : v.svg.attr('height') / 36;
       var fmtfn = tmp.tickFormat(nticks, fmt);
-      var maxlen = 0;
+      var tst = '';
       tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
-        if (s.length > maxlen) maxlen = s.length;
+        if (s.length > tst.length) tst = s;
       });
-      yoffset = Math.max(del3, maxlen * 0.7 * scope.fontSize);
+      tst = tst.replace(/[0-9]/g, '0');
+      var tstel = v.svg.append('g').attr('visibility', 'hidden')
+        .append('text')
+        .attr('x', 0).attr('y', 0)
+        .style('font-size', scope.fontSize)
+        .text(tst);
+      yoffset = Math.max(del3, axisspace + tstel[0][0].getBBox().width);
     }
     if (v.y2axis && v.y2) {
       var tmp = v.y2.copy();
@@ -575,15 +584,20 @@ radian.directive('plot',
       var nticks =
         scope.axisY2Ticks ? scope.axisY2Ticks : v.svg.attr('height') / 36;
       var fmtfn = tmp.tickFormat(nticks, fmt);
-      var maxlen = 0;
+      var tst = '';
       tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
-        if (s.length > maxlen) maxlen = s.length;
+        if (s.length > tst.length) tst = s;
       });
-      y2offset = Math.max(del3, maxlen * 0.7 * scope.fontSize);
+      tst = tst.replace(/[0-9]/g, '0');
+      var tstel = v.svg.append('g').attr('visibility', 'hidden')
+        .append('text')
+        .attr('x', 0).attr('y', 0)
+        .style('font-size', scope.fontSize)
+        .text(tst);
+      y2offset = Math.max(del3, axisspace + tstel[0][0].getBBox().width);
     }
-    var del4 = Math.floor(2.0 * scope.fontSize);
-    if (v.yaxis) v.margin.left += yoffset + (showYAxisLabel ? del4 : 0);
-    if (v.y2axis) v.margin.right += y2offset + (showY2AxisLabel ? del4 : 0);
+    if (v.yaxis) v.margin.left += yoffset + (showYAxisLabel ? del2 : 0);
+    if (v.y2axis) v.margin.right += y2offset + (showY2AxisLabel ? del2 : 0);
     v.realwidth = v.svg.attr('width') - v.margin.left - v.margin.right;
     v.outw = v.realwidth + v.margin.left + v.margin.right;
 
