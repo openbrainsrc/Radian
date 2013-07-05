@@ -245,7 +245,7 @@ radian.directive('plot',
         .attr('width', scope.width).attr('height', scope.height);
       svgs = [mainsvg];
       if (scope.hasOwnProperty('zoomX')) {
-        var zfrac = scope.zoomFraction || 0.2;
+        var zfrac = scope.zoomX == "" ? 0.2 : +scope.zoomX;
         zfrac = Math.min(0.95, Math.max(0.05, zfrac));
         var zoomHeight = (scope.height - 6) * zfrac;
         var mainHeight = (scope.height - 6) * (1 - zfrac);
@@ -523,6 +523,7 @@ radian.directive('plot',
                  right: +scope.rightMargin || 2,
                  bottom: +scope.bottomMargin || 2,
                  left: +scope.leftMargin || 2 };
+    v.margin.top += 0.5 * scope.fontSize;
     var xAxisTransform = scope.axisXTransform || "linear";
     var yAxisTransform = scope.axisYTransform || "linear";
     v.xaxisticks = scope.axisXTicks || null;
@@ -2109,11 +2110,6 @@ radian.factory('radianParse', function()
     this.end = null;
   }
 
-  function node_loc_t() {
-    this.start = tokStartLoc;
-    this.end = null;
-  }
-
   function startNode() { return new node_t(); }
 
   // Start a node whose start offset information should be based on
@@ -2700,7 +2696,7 @@ radian.factory('radianParse', function()
       return finishNode(node, "Literal");
 
     case _parenL:
-      var tokStartLoc1 = tokStartLoc, tokStart1 = tokStart;
+      var tokStart1 = tokStart;
       next();
       var val = parseExpression();
       val.start = tokStart1;
@@ -4119,11 +4115,16 @@ radian.factory('plotLib', function()
 
   // log(Gamma(x))
   function gammaln(x) {
+    function sum(xs) {
+      var s = 0;
+      xs.forEach(function(x) { s += x; });
+      return s;
+    }
     var cof = [76.18009172947146,-86.50532032941677,24.01409824083091,
                -1.231739572450155,0.001208650973866179,-0.000005395239384953];
     var ser = 1.000000000190015;
     var tmp = (x + 5.5) - (x + 0.5) * Math.log(x + 5.5);
-    var ser1 = ser + sumArr(cof.map(function(c,y) { return c/(x+y+1); }));
+    var ser1 = ser + sum(cof.map(function(c,y) { return c/(x+y+1); }));
     return (-tmp + Math.log(2.5066282746310005 * ser1 / x));
   };
 

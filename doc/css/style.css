@@ -19,3 +19,19 @@
 footer { background-color: #eee; color: #555; margin: 5px 10px; }
 
 .nyi { color: #888; font-style: italic; }
+
+.plot-center { width: 100%; }
+.plot-center .radian { margin-left: auto; margin-right: auto; }
+
+.plot-title {
+    float: right;
+    margin-right: 10px;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+.exercise {
+    border: 1px solid #999;
+    padding: 10px;
+    padding-bottom: 0;
+}

@@ -20,7 +20,7 @@ Radian expressions within the plot can also be specified as
 attributes.
 
 <hr>
-## The `<plot>` directive
+## <a name="plot-directive">The `<plot>` directive</a>
 
 The `<plot>` directive has a large number of attributes.  The most
 important are those for specifying plot size (`WIDTH`, `HEIGHT` and
@@ -28,43 +28,53 @@ important are those for specifying plot size (`WIDTH`, `HEIGHT` and
 
 ### Attributes
 
-|Name              |&nbsp;&nbsp;&nbsp;|Description|
-|------------------|-|----------------------------|
-|`RANGE-X`         | |Specify $x$-coordinate range for plot|
-|`RANGE-Y`         | |Specify $y$-coordinate range for plot|
-|`RANGE`           | |Specify both $x$- and $y$-coordinate ranges for plot together|
-|`AXIS-X`          | |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification|
-|`AXIS-X-TRANSFORM`| |If present, one of `linear` (default) or `log`|
-|`AXIS-X2`         | |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification|
-|`AXIS-Y`          | |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification|
-|`AXIS-Y-TRANSFORM`| |If present, one of `linear` (default) or `log`|
-|`AXIS-Y2`         | |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification|
-|`AXIS-X-LABEL`    | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
-|`AXIS-X2-LABEL`   | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
-|`AXIS-Y-LABEL`    | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
-|`AXIS-Y2-LABEL`   | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
-|`X`               | |Data path defining x-coordinate for plot data|
-|`Y`               | |Data path defining y-coordinate for plot data|
-|`X2`              | |Data path defining x2-coordinate for plot data|
-|`Y2`              | |Data path defining y2-coordinate for plot data|
-|`TITLE`           | |Plot title|
-|`WIDTH`           | |Plot width in pixels|
-|`HEIGHT`          | |Plot height in pixels|
-|`ASPECT`          | |Plot aspect ratio|
-|`ZOOM-X`          | |Presence/absence or fraction: enable X-zooming|
+|Name                |&nbsp;&nbsp;&nbsp;|Description|
+|--------------------|-|----------------------------|
+|`RANGE-X`           | |Specify $x$-coordinate range for plot|
+|`RANGE-Y`           | |Specify $y$-coordinate range for plot|
+|`RANGE`             | |Specify both $x$- and $y$-coordinate ranges for plot together|
+|`AXIS-X`            | |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification|
+|`AXIS-X-TRANSFORM`  | |If present, one of `linear` (default) or `log`|
+|`AXIS-X2`           | |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification|
+|`AXIS-Y`            | |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification|
+|`AXIS-Y-TRANSFORM`  | |If present, one of `linear` (default) or `log`|
+|`AXIS-Y2`           | |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification|
+|`AXIS-X-LABEL`      | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`AXIS-X2-LABEL`     | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`AXIS-Y-LABEL`      | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`AXIS-Y2-LABEL`     | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`X`                 | |Data path defining x-coordinate for plot data|
+|`Y`                 | |Data path defining y-coordinate for plot data|
+|`X2`                | |Data path defining x2-coordinate for plot data|
+|`Y2`                | |Data path defining y2-coordinate for plot data|
+|`TITLE`             | |Plot title|
+|`WIDTH`             | |Plot width in pixels|
+|`HEIGHT`            | |Plot height in pixels|
+|`ASPECT`            | |Plot aspect ratio|
+|`ZOOM-X`            | |Presence/absence or fraction: enable X-zooming|
 |<span class="nyi">`ZOOM-Y`</span>| |<span class="nyi">Presence/absence or fraction: enable Y-zooming</span>|
 |<span class="nyi">`ZOOM-2D`</span>| |<span class="nyi">Presence/absence: enable 2-D pan and zoom</span>|
-|`LEGEND-SWITCHES` | |Enable interactive on/off switching of traces via the plot legend|
-|`STROKE-SWITCH`   | |Labels for stroke switching UI|
-|`SELECT-X`        | |Provide UI for selecting between x-variables of plot|
-|`SELECT-Y`        | |Provide UI for selecting between y-variables of plot|
-|`MARKER`          | |Standard paint attribute|
-|`MARKER-SIZE`     | |Standard paint attribute|
-|`FILL`            | |Standard paint attribute|
-|`FILL-OPACITY`    | |Standard paint attribute|
-|`STROKE`          | |Standard paint attribute|
-|`STROKE-WIDTH`    | |Standard paint attribute|
-|`STROKE-OPACITY`  | |Standard paint attribute|
+|`LEGEND-SWITCHES`   | |Enable interactive on/off switching of traces via the plot legend|
+|`STROKE-SWITCH`     | |Labels for stroke switching UI|
+|`SELECT-X`          | |Provide UI for selecting between x-variables of plot|
+|`SELECT-Y`          | |Provide UI for selecting between y-variables of plot|
+|`FONT-SIZE`         | |Standard font attribute (axes and annotations)|
+|`FONT-FAMILY`       | |Standard font attribute (axes and annotations)|
+|`FONT-STYLE`        | |Standard font attribute (axes and annotations)|
+|`FONT-WEIGHT`       | |Standard font attribute (axes and annotations)|
+|`FONT-VARIANT`      | |Standard font attribute (axes and annotations)|
+|`TITLE-FONT-SIZE`   | |Standard font attribute (plot title)|
+|`TITLE-FONT-FAMILY` | |Standard font attribute (plot title)|
+|`TITLE-FONT-STYLE`  | |Standard font attribute (plot title)|
+|`TITLE-FONT-WEIGHT` | |Standard font attribute (plot title)|
+|`TITLE-FONT-VARIANT`| |Standard font attribute (plot title)|
+|`MARKER`            | |Standard paint attribute|
+|`MARKER-SIZE`       | |Standard paint attribute|
+|`FILL`              | |Standard paint attribute|
+|`FILL-OPACITY`      | |Standard paint attribute|
+|`STROKE`            | |Standard paint attribute|
+|`STROKE-WIDTH`      | |Standard paint attribute|
+|`STROKE-OPACITY`    | |Standard paint attribute|
 
 <br>
 

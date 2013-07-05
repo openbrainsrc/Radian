@@ -1162,11 +1162,6 @@ radian.factory('radianParse', function()
     this.end = null;
   }
 
-  function node_loc_t() {
-    this.start = tokStartLoc;
-    this.end = null;
-  }
-
   function startNode() { return new node_t(); }
 
   // Start a node whose start offset information should be based on
@@ -1753,7 +1748,7 @@ radian.factory('radianParse', function()
       return finishNode(node, "Literal");
 
     case _parenL:
-      var tokStartLoc1 = tokStartLoc, tokStart1 = tokStart;
+      var tokStart1 = tokStart;
       next();
       var val = parseExpression();
       val.start = tokStart1;

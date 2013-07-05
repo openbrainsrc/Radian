@@ -243,7 +243,7 @@ radian.directive('plot',
         .attr('width', scope.width).attr('height', scope.height);
       svgs = [mainsvg];
       if (scope.hasOwnProperty('zoomX')) {
-        var zfrac = scope.zoomFraction || 0.2;
+        var zfrac = scope.zoomX == "" ? 0.2 : +scope.zoomX;
         zfrac = Math.min(0.95, Math.max(0.05, zfrac));
         var zoomHeight = (scope.height - 6) * zfrac;
         var mainHeight = (scope.height - 6) * (1 - zfrac);
@@ -521,6 +521,7 @@ radian.directive('plot',
                  right: +scope.rightMargin || 2,
                  bottom: +scope.bottomMargin || 2,
                  left: +scope.leftMargin || 2 };
+    v.margin.top += 0.5 * scope.fontSize;
     var xAxisTransform = scope.axisXTransform || "linear";
     var yAxisTransform = scope.axisYTransform || "linear";
     v.xaxisticks = scope.axisXTicks || null;

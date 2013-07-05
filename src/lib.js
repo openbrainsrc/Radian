@@ -58,11 +58,16 @@ radian.factory('plotLib', function()
 
   // log(Gamma(x))
   function gammaln(x) {
+    function sum(xs) {
+      var s = 0;
+      xs.forEach(function(x) { s += x; });
+      return s;
+    }
     var cof = [76.18009172947146,-86.50532032941677,24.01409824083091,
                -1.231739572450155,0.001208650973866179,-0.000005395239384953];
     var ser = 1.000000000190015;
     var tmp = (x + 5.5) - (x + 0.5) * Math.log(x + 5.5);
-    var ser1 = ser + sumArr(cof.map(function(c,y) { return c/(x+y+1); }));
+    var ser1 = ser + sum(cof.map(function(c,y) { return c/(x+y+1); }));
     return (-tmp + Math.log(2.5066282746310005 * ser1 / x));
   };
 
