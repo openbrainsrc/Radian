@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 1.1. Plot setup</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="plot-setup">1.1. Plot setup</h1>
+<hr>
+<h2 id="the-plot-directive">The <code>&lt;plot&gt;</code> directive</h2>
+<p>The most important Radian plotting directive is <code>&lt;plot&gt;</code>. This is used as a wrapper around all plots, and is used to define plot sizes, axis details, coordinate ranges and other aspects of a plot that are shared by all the items displayed on a plot.</p>
+<p>In order to demonstrate some features of the <code>&lt;plot&gt;</code> directive, we will use the following piece of plotting code:</p>
+<div class="plot-title">
+Example 1
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>Don’t worry about the <code>&lt;lines&gt;</code> directive yet. We’ll cover that in the next section. If you have checked out the <code>part-1</code> tag from the tutorial repository, then the <code>index.html</code> page in the tutorial directory will contain a list of links to examples – this is “Example 1”.</p>
+<p>Because we’ve not specified any sizing information for this plot, what we get depends on CSS attributes controlling the sizes of SVG elements in pages. In my browser, I see a plot that’s 940 pixels wide by 185 pixels tall, but you may see something different.</p>
+<hr>
+<h2 id="plot-sizing">Plot sizing</h2>
+<p>We can control the plot size by explicitly given two out of the width, height and aspect ratio of the plot (the aspect ratio is just the ratio of the width to the height). All plot dimensions are given in pixels, and are used directly to control the size of the resulting SVG image in the HTML page containing the <code>&lt;plot&gt;</code> directive.</p>
+<div class="plot-title">
+Example 2
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>This gives us a plot that is 300 pixels tall and 600 pixels wide (it’s twice as wide as tall, to give an aspect ratio of 2).</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<ol style="list-style-type: decimal">
+<li>Copy the <code>template.html</code> file to make a new HTML page.</li>
+<li>Make a plot 800 pixels wide by 400 pixels tall by specifying the height and width directly.</li>
+<li>Make a square plot 600 pixels wide and tall by setting either the height or width and the aspect ratio.
+</div>
+</li>
+</ol>
+<hr>
+<h2 id="plot-axes">Plot axes</h2>
+<p>We can control whether axes and axis labels are displayed for our plots using the <code>AXIS-X</code>, <code>AXIS-Y</code>, <code>AXIS-X-LABEL</code> and <code>AXIS-Y-LABEL</code> attributes of the <code>&lt;plot&gt;</code> directive. For instance, Example 3 has no axes at all:</p>
+<div class="plot-title">
+Example 3
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> axis-x=</span><span class="st">&quot;off&quot;</span><span class="ot"> axis-y=</span><span class="st">&quot;off&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>while Example 4 has axes and explicitly set axis labels:</p>
+<div class="plot-title">
+Example 4
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> axis-x-label=</span><span class="st">&quot;Custom X axis label&quot;</span>
+<span class="ot">      axis-y-label=</span><span class="st">&quot;Custom Y axis label&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<hr>
+<h2 id="titles-and-fonts">Titles and fonts</h2>
+<p>We can give our plots a title:</p>
+<div class="plot-title">
+Example 5
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> title=</span><span class="st">&quot;Example 5&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>and we can adjust the fonts for the axes and title independently:</p>
+<div class="plot-title">
+Example 6
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> title=</span><span class="st">&quot;Example 6&quot;</span>
+<span class="ot">      font-family=</span><span class="st">&quot;Monospace&quot;</span><span class="ot"> font-size=</span><span class="st">16</span>
+<span class="ot">      title-font-family=</span><span class="st">&quot;Serif&quot;</span><span class="ot"> title-font-style=</span><span class="st">&quot;italic&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<br>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+Experiment with these sizing and styling options. The section in the <a href="../../ref-manual/02-plot-types.html#plot-directive">reference manual</a> on the <code>&lt;plot&gt;</code> directive may give you some more ideas.
+</div>
+
+<br>
+<hr>
+<p><a class="btn pull-left" href="index.html"> « Prev section </a> <a class="btn pull-right" href="1-2-line-plots.html"> Next section » </a> <br> <br></p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

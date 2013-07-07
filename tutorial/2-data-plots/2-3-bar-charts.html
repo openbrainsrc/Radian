@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 2.3. Bar charts</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="bar-charts">2.3. Bar charts</h1>
+<hr>
+<h2 id="the-bars-directive">The <code>&lt;bars&gt;</code> directive</h2>
+<p>Bar charts are generated using the <code>&lt;bars&gt;</code> directive. This works in just the same way as <code>&lt;lines&gt;</code> and <code>&lt;points&gt;</code>, in the sense that you provide <em>x</em> and <em>y</em> coordinates via <code>x</code> and <code>y</code> attributes. The <em>x</em> coordinates give the centres of the bars and the <em>y</em> coordinates their tops. There is one wrinkle you need to be aware of, displayed in this plot:</p>
+<div class="plot-title">
+Example 8 (single bars)
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">1</span><span class="ot"> range-y=</span><span class="st">0</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[dat.month]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat.precip]]&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
+<span class="kw">&lt;/plot&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;dat&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;month,precip&quot;</span><span class="kw">&gt;</span>
+  1,34
+  2,22
+  3,53
+  4,27
+  5,13
+  6,8
+  7,5
+  8,12
+  9,29
+  10,44
+  11,27
+  12,30
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>We have set the <code>range-y</code> attribute on the <code>&lt;plot&gt;</code> directive to ensure that the <em>y</em>-axis runs from zero upwards so that we see the full extent of the bars. Most of the time this is what you will want (particularly for the histograms we’ll look at below), but sometimes you may want to truncate the bars at a different level.</p>
+<p>Bars can be styled using the usual stroke and fill attributes, and the width and relative location of bars can also be modified, using the <code>bar-width</code> and <code>bar-offset</code> attributes. These can be specified as fractions of the “natural” bar width, or as pixel values, and are useful for plotting multiple series of bars on the same axes:</p>
+<div class="plot-title">
+Example 9 (double bars)
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">1</span><span class="ot"> range-y=</span><span class="st">0</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="ot"> bar-width=</span><span class="st">0.3</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[dat.x]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat.y]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;red&quot;</span><span class="ot"> bar-offset=</span><span class="st">0.2</span><span class="kw">&gt;&lt;/bars&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[dat.x]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat.z]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;blue&quot;</span><span class="ot"> bar-offset=</span><span class="st">-0.2</span><span class="kw">&gt;&lt;/bars&gt;</span>
+<span class="kw">&lt;/plot&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;dat&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;x,y,z&quot;</span><span class="kw">&gt;</span>
+  1,34,10
+  2,22,20
+  3,53,50
+  4,27,20
+  5,13,30
+  6,8,40
+  7,5,10
+  8,12,5
+  9,29,40
+  10,44,20
+  11,27,10
+  12,30,5
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>(There are some other features of bar charts that allow you to draw bars of unequal widths. You can read about these in the <a href="../../ref-manual/02-plot-types.html#bars-directive">reference manual</a>.)</p>
+<hr>
+<h2 id="histograms">Histograms</h2>
+<p>Histograms are just a special kind of bar chart where the bar heights are derived. Radian provides a library function (called, naturally enough, <code>histogram</code>) to help with producing this type of plot. The <code>histogram</code> function takes two arguments: the first is a one-dimensional array of data values and the second is either an integer count of histogram bins, or an object specifying information needed to calculate the histogram bins (number or size of bins and possibly the range of values over which to calculate the bins, and also optional coordinate transformations that can be used for creating log-space histograms). In the simplest case, this is all that’s needed to create a histogram:</p>
+<div class="plot-title">
+Example 10 (histogram)
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">1</span><span class="ot"> range-y=</span><span class="st">0</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span>
+<span class="ot">      hist=</span><span class="st">&quot;[[histogram(dat.x,10)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[hist.centres]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[hist.counts]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
+<span class="kw">&lt;/plot&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;dat&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;x&quot;</span><span class="kw">&gt;</span>
+  -0.21991614
+  -1.21243350
+  0.25558776
+  -0.13629943
+  -2.22833941
+  -1.60829920
+  -0.55755778
+  -0.23925929
+  0.40663494
+  0.99105558
+  -0.95120549
+  -1.67478975
+  -0.14602045
+  -0.01902537
+  -0.40205444
+  1.44275512
+  -1.05451039
+  -1.01921213
+  1.03799046
+  -0.33640740
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>Much more complex applications are possible: you can calculate multiple histograms using the same bins for plotting on the same axes, you can calculate histograms in log-coordinates and plot them on a log-transformed <em>x</em>-axis to give constant width bins in log coordinates, and many other possibilities. Read the reference manual to get some ideas.</p>
+<br>
+<hr>
+<p><a class="btn pull-left" href="2-2-scatter-plots.html"> « Prev section </a> <a class="btn pull-right" href="2-4-plot-layout.html"> Next section » </a> <br> <br></p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

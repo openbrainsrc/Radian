@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 1. Function plots</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="function-plots">1. Function plots</h1>
+<p>Here’s the plot we’re going to be working towards producing in this part of the tutorial:</p>
+<br>
+<div class="plot-center">
+  
+<plot height="300" aspect="2" stroke-width="2" x="[[seq(0,10,20)]]" range-y="0" axis-x-label="X" axis-y-label="Y" legend-switches> <lines y="[[30-3*x]]" stroke="blue" label="Line"></lines> <lines y="[[12-3*x+x**2/2]]" stroke="red" label="Curve"></lines> </plot>
+</div>
+
+<p>It’s a plot with two curves (one a straight line, one a parabola) defined by functions <em>y = f(x)</em>. There is some simple styling (line width and colour) and a little bit of interactivity (you can click on the coloured blobs in the legend to toggle the visibility of the two curves).</p>
+<h3 id="setup">Setup</h3>
+<p>Before we get started for real, you will need to set up the tutorial materials. These are available on GitHub. In a terminal window, do:</p>
+<pre><code>git clone git@github.com:openbrainsrc/Radian-tutorial.git</code></pre>
+<p>To serve the tutorial pages, you can either use a pre-existing web server, setting it up to serve the pages in the <code>Radian-tutorial</code> directory, or you can use the <code>web-server.js</code> script provided in the <code>Radian-tutorial</code> directory. This script uses Node.js, and is identical to the web server script provided with the Angular seed application.</p>
+<p>Once you have a suitable web server running, check that everything is working by pointing your browser at the <code>index.html</code> page in the <code>Radian-tutorial</code> directory. You should see some text saying “Content goes here!” and a rudimentary plot.</p>
+<h3 id="starting-the-tutorial">Starting the tutorial</h3>
+<p>Once page serving appears to be working, check out the first section of the tutorial by going to the <code>Radian-tutorial</code> directory in a terminal and doing:</p>
+<pre><code>git checkout -f part-1</code></pre>
+<p>We’ll do something similar at the beginning of each part of the tutorial to get out the files needed for that part. <em>This command will delete any local changes you have made in the <code>Radian-tutorial</code> directory.</em></p>
+<p>As well as the content for each tutorial section, the <code>Radian-tutorial</code> directory contains a <code>template.html</code> file that you can copy to create new pages – this contains all the JavaScript setup required to be able to embed Radian plots in a page.</p>
+<hr>
+<p><a class="btn pull-right" href="1-1-plot-setup.html"> Next section » </a> <br> <br></p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

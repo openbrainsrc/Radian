@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 1.2. Line plots</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="line-plots">1.2. Line plots</h1>
+<hr>
+<h2 id="the-lines-directive">The <code>&lt;lines&gt;</code> directive</h2>
+<p>In the last section, we used the <code>&lt;lines&gt;</code> directive without comment. Here we’ll see how to use it to make plots of functions.</p>
+<p>The <code>&lt;lines&gt;</code> directive takes <em>x</em> and <em>y</em> coordinates as JavaScript arrays provided via Radian expressions and draws line segments between adjacent <em>(x, y)</em> pairs to make a polyline or (if the points are close enough together, to the eye at least) a curve. To use Radian expressions, we write attributes whose values are enclosed in double square brackets, e.g. <code>x=&quot;[[seq(0,2*PI,101)]]&quot;</code>. We’ll explore exactly how these expressions work in the next section. Just take the expressions in the examples on trust for now.</p>
+<p>Multiple <code>&lt;lines&gt;</code> directives can be contained within a single <code>&lt;plot&gt;</code> directive, and the lines are drawn in the order that they are given. For example, Example 7 draws two curves:</p>
+<div class="plot-title">
+Example 7
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>In this case, because the two <code>&lt;lines&gt;</code> directives use the same <em>x</em> coordinate values, we can pull the definition of the <em>x</em> values out and put it on the <code>&lt;plot&gt;</code> directive:</p>
+<div class="plot-title">
+Example 8
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<blockquote>
+<p><strong>Caveat</strong></p>
+<p><em>One important thing to note in both of these cases is that we must explicitly close the <code>&lt;lines&gt;</code> directive with a <code>&lt;/lines&gt;</code> closing tag. Because of the way that the Angular HTML parser works, it doesn’t seem to be possible to use “auto-closing” tags like <code>&lt;lines/&gt;</code> with custom HTML elements.</em></p>
+</blockquote>
+<hr>
+<h2 id="simple-plot-styling">Simple plot styling</h2>
+<p>There are a couple of options that we can specify for the rendering of our line plots: stroke width, colour and opacity. Here, we plot our two curves with different colours and different (fat) line widths:</p>
+<div class="plot-title">
+Example 9
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="ot"> stroke-width=</span><span class="st">5</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="ot"> stroke-width=</span><span class="st">10</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>We can activate alpha blending between overlying plot elements in one of two ways. We can either specify a stroke opacity for the overlying element:</p>
+<div class="plot-title">
+Example 10
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="ot"> stroke-width=</span><span class="st">5</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="ot"> stroke-width=</span><span class="st">10</span>
+<span class="ot">         stroke-opacity=</span><span class="st">0.5</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>or we can use an <code>rgba</code> style colour specification for the stroke colour of the overlying element:</p>
+<div class="plot-title">
+Example 11
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="ot"> stroke-width=</span><span class="st">5</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;rgba(0,0,255,0.5)&quot;</span><span class="ot"> stroke-width=</span><span class="st">10</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<br>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Experiment with these styling possibilities. Colours can be specified using any of the CSS colour formats, i.e. colour names, <code>#XXX</code>, <code>#XXXXXX</code>, <code>rgb(r,g,b)</code> or <code>rgba(r,g,b,a)</code>.</p>
+</div>
+<p><br></p>
+<p>More complex approaches to styling line plots are also possible: you can specify a colour palette to be used to interpolate along the path of a curve or you can specify the stroke colour as a function of another array that parallels the <em>x</em> and <em>y</em> coordinate arrays. Some quite striking effects can be attained this way, but we need to know about Radian expressions to use any of these approaches.</p>
+<hr>
+<p><a class="btn pull-left" href="1-1-plot-setup.html"> « Prev section </a> <a class="btn pull-right" href="1-3-radian-expressions.html"> Next section » </a> <br> <br></p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

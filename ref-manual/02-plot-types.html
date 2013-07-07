@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../css/hljs.css" type="text/css" />
   <link rel="stylesheet" href="../css/radian.css" type="text/css" />
 </head>
-<body ng-controller="DummyCtrl">
+<body ng-controller="MainCtrl">
   <div class="container">
     <div class="navbar navbar-main">
       <div class="navbar-inner">
@@ -32,7 +32,7 @@
 <p>Radian supports a number of common plot types (lines, points, bars, areas, etc.), and these plots can be composed in a number of ways. Multiple plots can be superimposed on a single plot frame, or multiple plot frames can be laid out using a VBox/HBox layout scheme (ADD LINK).</p>
 <p>Each plot frame is defined by a <code>&lt;plot&gt;</code> directive, which contains a number of plot type directives (e.g. <code>&lt;lines&gt;</code>, <code>&lt;points&gt;</code>, etc.). The attributes of the <code>&lt;plot&gt;</code> directive provide information about the overall structure of the plot such as its size, axis labelling, title, and so on. As with all Radian directives, extra variables for use in Radian expressions within the plot can also be specified as attributes.</p>
 <hr>
-<h2 id="the-plot-directive">The <code>&lt;plot&gt;</code> directive</h2>
+<h2 id="the-plot-directive"><a name="plot-directive">The <code>&lt;plot&gt;</code> directive</a></h2>
 <p>The <code>&lt;plot&gt;</code> directive has a large number of attributes. The most important are those for specifying plot size (<code>WIDTH</code>, <code>HEIGHT</code> and <code>ASPECT</code>) and for specifying axis characteristics.</p>
 <h3 id="attributes">Attributes</h3>
 <table>
@@ -183,6 +183,56 @@
 <td align="left"><code>SELECT-Y</code></td>
 <td align="left"></td>
 <td align="left">Provide UI for selecting between y-variables of plot</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FONT-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FONT-FAMILY</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FONT-STYLE</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FONT-WEIGHT</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FONT-VARIANT</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TITLE-FONT-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>TITLE-FONT-FAMILY</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TITLE-FONT-STYLE</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>TITLE-FONT-WEIGHT</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TITLE-FONT-VARIANT</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>MARKER</code></td>
@@ -537,7 +587,7 @@
   <span class="kw">&lt;/points&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
 <hr>
-<h2 id="bar-charts-and-the-bars-directive">Bar charts and the <code>&lt;bars&gt;</code> directive</h2>
+<h2 id="bar-charts-and-the-bars-directive"><a name="bars-directive">Bar charts and the <code>&lt;bars&gt;</code> directive</a></h2>
 <h3 id="attributes-4">Attributes</h3>
 <table>
 <thead>
@@ -567,6 +617,16 @@
 <td align="left"><code>Y2</code></td>
 <td align="left"></td>
 <td align="left">Data path defining y2-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>BAR-MIN</code></td>
+<td align="left"></td>
+<td align="left">Minimum x-coordinate for bars (specified instead of <code>X</code>)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>BAR-MAX</code></td>
+<td align="left"></td>
+<td align="left">Maximum x-coordinate for bars (specified instead of <code>X</code>)</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>BAR-WIDTH</code></td>
@@ -613,7 +673,7 @@
 <h3 id="body-4">Body</h3>
 <p>None</p>
 <h3 id="interpretation-3">Interpretation</h3>
-<p>Produces a bar chart from the given <em>x</em>- and <em>y</em>-coordinate data. The <em>x</em>-coordinates give the bar centres and the <em>y</em> coordinates the bar heights.</p>
+<p>Produces a bar chart from the given <em>x</em>- and <em>y</em>-coordinate data. The <em>x</em>-coordinates give the bar centres and the <em>y</em> coordinates the bar heights. (Alternatively, it is possible to explicitly specify the <em>x</em>-coordinate edges of the bars using <code>BAR-MIN</code> and <code>BAR-MAX</code>, which useful for variable width bars.)</p>
 <h3 id="examples-3">Examples</h3>
 <h4 id="simple-bar-chart-with-fixed-bar-widths">Simple bar chart with fixed bar widths</h4>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> range-y=</span><span class="st">&quot;0&quot;</span>
@@ -644,6 +704,19 @@
   <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[h2.centres]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[h2.freqs]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;blue&quot;</span>
 <span class="ot">        bar-width=</span><span class="st">0.4</span><span class="ot"> bar-offset=</span><span class="st">0.2</span><span class="kw">&gt;&lt;/bars&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>The <code>histogram</code> function can either be called as <code>histogram(xs, nbins)</code>, where <code>xs</code> is a one-dimensional data array and <code>nbins</code> is an integer count of histogram bins, or as <code>histogram(xs, opts)</code>, where <code>opts</code> is an object with fields taken from the following list:</p>
+<ul>
+<li><p><code>transform</code>: either “<code>linear</code>”, “<code>log</code>”, or a two-element array of functions giving a function <em>f</em> and its inverse <em>f</em><sup> -1</sup> for transforming from linear to histogram space and back again (for “<code>linear</code>”, this is just (id, id), while for “<code>log</code>” it’s (<code>log</code>, <code>exp</code>)).</p></li>
+<li><p><code>nbins</code>, <code>binwidth</code>, <code>binrange</code>: parameters for specifying bins (in histogram space) – if you have multiple histograms on the same axes, the best way to go is to specify <code>binrange</code> and one of <code>nbins</code> or <code>binwidth</code>; <code>binrange</code> (a two-element array) fixes the minimum and maximum bin centres, and then one bin-size parameter fixes the number and location of the bins independent of the input data; if you don’t specify a range, <code>histogram</code> does a best effort to allocate sensible bins, but you can’t guarantee that bins from two independent histograms will match up.</p></li>
+</ul>
+<p>The output of <code>histogram</code> is a record with the following fields:</p>
+<ul>
+<li><p><code>centres</code>: bin centres in “input” space;</p></li>
+<li><p><code>bins</code>: an array of two-element arrays, giving bin boundaries in “input” space (this is useful for non-linear transformations, since the bins are no longer symmetric about their “centres”);</p></li>
+<li><p><code>counts</code>: the number of data values falling in each bin;</p></li>
+<li><p><code>freqs</code>: the number of data values in each bin divided by total number of data items;</p></li>
+<li><p><code>probs</code>: probability values defined so that <code>sum(probs[i] *   (bins[i].max - bins[i].min), i=0, nbins-1) = 1</code> and so that <code>probs[i] * (bins[i].max - bins[i].min)</code> is proportional to <code>freqs[i]</code>.</p></li>
+</ul>
 
     <footer>
       <div>
@@ -661,7 +734,7 @@
   <script src="../js/angular.min.js"></script>
   <script src="../js/radian.min.js"></script>
   <script src="../js/bootstrap.min.js"></script>
-  <script src="../js/gallery.js"></script>
+  <script src="../js/app.js"></script>
   <script>
   </script>
 </body>

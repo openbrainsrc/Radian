@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 2. Data plots</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="data-plots">2. Data plots</h1>
+<p>Here’s the plot we’re going to be working towards producing in this part of the tutorial:</p>
+<br>
+<div class="plot-center">
+  
+<p><plot-row width="850" aspect="3"> <plot layout-share="3" range-y2="0" axis-y2-label="Monthly total rainfall (mm)"> <lines x="[[vic2012.date]]" y="[[vic2012.tmp]]" stroke-width="2" stroke="red"></lines> <bars bar-width="0.9" stroke="blue" fill-opacity="0.5" fill="lightblue" x="[[midMonths(unique(vic2012.date#getMonth()), 2012)]]" y2="[[sumBy(vic2012.prc,vic2012.date#getMonth())]]"></bars> </plot> <plot layout-share="2" marker-size="30" stroke="none" fill="rgba(0,0,255,0.4)"> <points x="[[vic2012.tmp]]" y="[[vic2012.prc]]"></points> </plot> </plot-row></p>
+<plot-data name="vic2012" src="../../data/vic2012d.csv" format="csv" cols="date,tmp,prc"> <metadata name="date" format="date"></metadata> <metadata name="tmp" label="Temperature" units="°C"></metadata> <metadata name="prc" label="Rainfall" units="mm/day"></metadata> </plot-data>
+</div>
+
+<p>The left hand plot shows a daily time series of temperature and monthly aggregate rainfall (calculated from a daily time series) from a weather station in Victoria, Canada (data available <a href="http://www.victoriaweather.ca/">here</a>) while the right hand panel shows a scatter plot of daily rainfall versus temperature from the same data.</p>
+<h3 id="setup">Setup</h3>
+<p>As for Part 1, we need to check out the appropriate contents in the <code>Radian-tutorial</code> directory. <em>Remember that the following command will delete any local changes you have made in the <code>Radian-tutorial</code> directory, so if you have example plots from Part 1 you want to keep, copy them somewhere else.</em> To switch to the tutorial contents for Part 2, do the following in the <code>Radian-tutorial</code> directory:</p>
+<pre><code>git checkout -f part-2</code></pre>
+<hr>
+<p><a class="btn pull-left" href="../1-function-plots/1-5-putting-it-together.html"> « Prev section </a> <a class="btn pull-right" href="2-1-accessing-plot-data.html"> Next section » </a> <br> <br></p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

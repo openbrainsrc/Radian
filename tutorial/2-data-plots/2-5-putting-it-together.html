@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 2.5. Putting it together</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="putting-it-together">2.5. Putting it together</h1>
+<p>We now know enough to make this plot (with a bit of guidance…):</p>
+<br>
+<div class="plot-center">
+  
+<p><plot-row width="850" aspect="3"> <plot layout-share="3" range-y2="0" axis-y2-label="Monthly total rainfall (mm)"> <lines x="[[vic2012.date]]" y="[[vic2012.tmp]]" stroke-width="2" stroke="red"></lines> <bars bar-width="0.9" stroke="blue" fill-opacity="0.5" fill="lightblue" x="[[midMonths(unique(vic2012.date#getMonth()), 2012)]]" y2="[[sumBy(vic2012.prc,vic2012.date#getMonth())]]"></bars> </plot> <plot layout-share="2" marker-size="30" stroke="none" fill="rgba(0,0,255,0.4)"> <points x="[[vic2012.tmp]]" y="[[vic2012.prc]]"></points> </plot> </plot-row></p>
+<plot-data name="vic2012" src="../../data/vic2012d.csv" format="csv" cols="date,tmp,prc"> <metadata name="date" format="date"></metadata> <metadata name="tmp" label="Temperature" units="°C"></metadata> <metadata name="prc" label="Rainfall" units="mm/day"></metadata> </plot-data>
+</div>
+
+<p>As in Part 1, we’ll do it step by step. Make a copy of the <code>template.html</code> file in the tutorial directory and follow along.</p>
+<hr>
+<h4 id="data-access">1. Data access</h4>
+<p>The data we need for this plot is available as <code>/data/vic2012d.csv</code> within the tutorial directory – this means that you can set up a <code>&lt;plot-data&gt;</code> directive with a <code>src</code> attribute pointing to this location.</p>
+<p>The file is a CSV file containing the following columns:</p>
+<ul>
+<li><p><code>date</code>: Daily dates as YYYY-MM-DD (Radian can parse these dates directly if you use a <code>&lt;metadata&gt;</code> directive with <code>format=&quot;date&quot;</code>;</p></li>
+<li><p><code>tmp</code>: Temperatures in degrees C (use <code>units=&quot;&amp;deg;C&quot;</code>);</p></li>
+<li><p><code>prc</code>: Rainfall in units of mm/day.</p></li>
+</ul>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Write a suitable <code>&lt;plot-data&gt;</code> directive to access this dataset (call the dataset something like <code>vic2012</code>).</p>
+<p>Add <code>&lt;metadata&gt;</code> directives for the data fields, given labels and units as appropriate and setting the format for the date field.</p>
+</div>
+<p><br></p>
+<h4 id="temperature-time-series-plot">2. Temperature time series plot</h4>
+<p>We’ll start with a simple time series plot of the daily temperature data.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Make a simple line plot of the daily temperature data, 850 pixels wide, three times as wide as tall, with the graph stroked in red, 2 pixels wide.</p>
+</div>
+<p><br></p>
+<h4 id="monthly-precipitation-bar-chart">3. Monthly precipitation bar chart</h4>
+<p>There are a couple of steps to this. We’ll start by making a <em>line</em> plot of the daily rainfall data.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Add a line plot of the daily rainfall data on the same axes as the temperature plot, using the second axes, stroking the line plot in blue, two pixels wide.</p>
+</div>
+<p><br></p>
+<p>We now want to try to convert our daily rainfall plot to a plot of monthly total rainfall. We’ll use some functions from the Radian plotting library to do this.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Modify the <code>x</code> and <code>y</code> attributes of your rainfall plot to be something like (the exact variable names will depend on what you’ve already set up):</p>
+<ul>
+<li><p><code>x=&quot;[[midMonths(unique(vic2012.date#getMonth()), 2012)]]&quot;</code></p></li>
+<li><p><code>y2=&quot;[[sumBy(vic2012.prc,vic2012.date#getMonth())]]&quot;</code></p></li>
+</ul>
+<p>The <code>x</code> coordinate expression extracts the month from each date value and calculates the mid-point of each month as a data in the year 2012 (the year the data is taken from). The <code>y</code> expression uses the Radian <code>sumBy</code> function to calculate monthly totals of rainfall: the first argument to <code>sumBy</code> is a one-dimensional array of data values and the second argument is a one-dimensional array of discrete labels (in this case, month indexes) used to partition the first array of values for summation.</p>
+<p>The result of this is a line plot with one data value per month, giving the total rainfall for that month in millimetres.</p>
+</div>
+<p><br></p>
+<p>Next, we’ll turn this into a bar chart.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Convert your rainfall line plot into a bar chart. You will need to set <code>range-y2=0</code> to make the “second axis” range run from zero. You will also probably want to set the bar fill colour and opacity to something suitable (I used <code>fill=&quot;lightblue&quot;</code> and <code>fill-opacity=0.5</code>). You will also want to set the Y2 axis label to something like “Monthly total rainfall (mm)” (the relevant attribute is <code>axis-y2-label</code> on the <code>&lt;plot&gt;</code> directive).</p>
+</div>
+<p><br></p>
+<h4 id="temperatureprecipitation-scatter-plot">4. Temperature/precipitation scatter plot</h4>
+<p>At this point, we’ve completed the left hand part of the plot. Put that part of things away somewhere safe (or just comment it out) and let’s work on the temperature/precipitation scatter plot.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Make a new plot, using a <code>&lt;points&gt;</code> directive to plot temperature along the <em>x</em>-axis and daily precipitation along the <em>y</em>-axis. The axis labels should get set up automatically from the metadata you specified.</p>
+</div>
+<p><br></p>
+<p>The default styling for the scatter plot isn’t quite what we want, so let’s clean it up.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Set the marker size for the scatter plot to something sensible (I used 30, but experiment a bit to see what you like). Disable the stroking of the markers, and set the fill colour to a suitable colour – you’ll want to use a colour specification of the <code>rgba</code> type to enable alpha blending of the markers (α = 0.4 works pretty well). Experiment with the colour settings until you’re happy with the way it looks.</p>
+</div>
+<p><br></p>
+<h4 id="plot-composition">5. Plot composition</h4>
+<p>All that’s left now is to put the two plots together.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Take the two plots you’ve made and put them together in a <code>&lt;plot-row&gt;</code>. Use the <code>layout-share</code> attribute on the plots to set their widths to a ratio of about 3:2.</p>
+</div>
+<p><br></p>
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>That’s it! You should have ended up with something a little like this:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-row</span><span class="ot"> width=</span><span class="st">850</span><span class="ot"> aspect=</span><span class="st">3</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;plot</span><span class="ot"> layout-share=</span><span class="st">3</span><span class="ot"> range-y2=</span><span class="st">0</span><span class="ot"> axis-y2-label=</span><span class="st">&quot;Monthly total rainfall (mm)&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[vic2012.date]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[vic2012.tmp]]&quot;</span>
+<span class="ot">           stroke-width=</span><span class="st">2</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+    <span class="kw">&lt;bars</span><span class="ot"> bar-width=</span><span class="st">0.9</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="ot"> fill-opacity=</span><span class="st">0.5</span><span class="ot"> fill=</span><span class="st">&quot;lightblue&quot;</span>
+<span class="ot">          x=</span><span class="st">&quot;[[midMonths(unique(vic2012.date#getMonth()), 2012)]]&quot;</span>
+<span class="ot">          y2=</span><span class="st">&quot;[[sumBy(vic2012.prc,vic2012.date#getMonth())]]&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
+  <span class="kw">&lt;/plot&gt;</span>
+  <span class="kw">&lt;plot</span><span class="ot"> layout-share=</span><span class="st">2</span><span class="ot"> marker-size=</span><span class="st">30</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="ot"> fill=</span><span class="st">&quot;rgba(0,0,255,0.4)&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[vic2012.tmp]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[vic2012.prc]]&quot;</span><span class="kw">&gt;&lt;/points&gt;</span>
+  <span class="kw">&lt;/plot&gt;</span>
+<span class="kw">&lt;/plot-row&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;vic2012&quot;</span><span class="ot"> src=</span><span class="st">&quot;/data/vic2012d.csv&quot;</span>
+<span class="ot">           format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;date,tmp,prc&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;date&quot;</span><span class="ot"> format=</span><span class="st">&quot;date&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;tmp&quot;</span><span class="ot"> label=</span><span class="st">&quot;Temperature&quot;</span><span class="ot"> units=</span><span class="st">&quot;</span><span class="dv">&amp;deg;</span><span class="st">C&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;prc&quot;</span><span class="ot"> label=</span><span class="st">&quot;Rainfall&quot;</span><span class="ot"> units=</span><span class="st">&quot;mm/day&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>This is quite a complex plot, but hopefully you’re starting to get an idea of what you can do with Radian. Next, we’ll look at making interactive plots, exploiting Angular’s data binding capabilities.</p>
+<br>
+<hr>
+<p><a class="btn pull-left" href="2-4-plot-layout.html"> « Prev section </a> <a class="btn pull-right" href="../3-interactive-plots/index.html"> Next section » </a> <br> <br></p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

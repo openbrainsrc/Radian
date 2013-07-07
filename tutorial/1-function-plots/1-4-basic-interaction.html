@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 1.4. Basic interaction</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="basic-interaction">1.4. Basic interaction</h1>
+<p>We have just one more ingredient to add before we can make the plot we’re aiming at. That’s some very simple interaction. We’ll look at two of Radian’s interaction features here, zooming and plot visibility switching.</p>
+<hr>
+<h2 id="zooming">Zooming</h2>
+<p>Sometimes we want to be able to zoom into detail on a plot. At the moment, Radian only supports zooming in the <em>x</em>-direction, but it’s very easy to set up – just add a <code>zoom-x</code> attribute to the <code>&lt;plot&gt;</code> directive. The result is a double plot, with a “focus” area above a “context” area. You can drag in the context area to select a region to view in the focus plot, and you can then drag that focussed area around or resize it. To go back to the full view, just click in the context view outside the focused region. For the <code>zoom-x</code> attribute, you can either supply a fraction of the vertical height of the plot to be used for the context area, or you can just let the fraction default to 0.2.</p>
+<div class="plot-title">
+Example 17 (zooming)
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">500</span><span class="ot"> width=</span><span class="st">600</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0.01,1,10000)]]&quot;</span><span class="ot"> zoom-x=</span><span class="st">0.25</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(1/x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<hr>
+<h2 id="visibility-switching">Visibility switching</h2>
+<p>If we have multiple traces on the same plot, sometimes we may want to switch traces on and off to make it easier to see what’s going on. To do this in Radian, add the <code>legend-switches</code> attribute to the <code>&lt;plot&gt;</code> directive, and provide a label for each switchable plot with a <code>label</code> attribute:</p>
+<div class="plot-title">
+Example 18 (visibility switching)
+</div>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,4*PI,501)]]&quot;</span><span class="ot"> legend-switches</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="ot"> label=</span><span class="st">&quot;sin&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="ot"> label=</span><span class="st">&quot;cos&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[2*sin(3*x)+cos(5*x+PI/4)]]&quot;</span><span class="ot"> stroke-width=</span><span class="st">2</span>
+<span class="ot">         stroke=</span><span class="st">&quot;green&quot;</span><span class="ot"> label=</span><span class="st">&quot;mixed&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<hr>
+<p><a class="btn pull-left" href="1-3-radian-expressions.html"> « Prev section </a> <a class="btn pull-right" href="1-5-putting-it-together.html"> Next section » </a> <br> <br></p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

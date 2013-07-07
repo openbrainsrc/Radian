@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 1.5. Putting it together</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="putting-it-together">1.5. Putting it together</h1>
+<p>We now know enough to make this plot:</p>
+<br>
+<div class="plot-center">
+  
+<plot height="300" aspect="2" stroke-width="2" x="[[seq(0,10,20)]]" range-y="0" axis-x-label="X" axis-y-label="Y" legend-switches> <lines y="[[30-3*x]]" stroke="blue" label="Line"></lines> <lines y="[[12-3*x+x**2/2]]" stroke="red" label="Curve"></lines> </plot>
+</div>
+
+<p>We’ll do it step by step. Make a copy of the <code>template.html</code> file in the tutorial directory and give it a try yourself.</p>
+<hr>
+<h4 id="plot-setup">1. Plot setup</h4>
+<p>First, we need to set up the <code>&lt;plot&gt;</code> directive. The plot is 300 pixels tall and about twice as long as it is high.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Set up the <code>&lt;plot&gt;</code> directive in your HTML file with the right dimensions.</p>
+</div>
+<p><br></p>
+<h4 id="drawing-the-curves">2. Drawing the curves</h4>
+<p>The <em>x</em> coordinate values run from 0 up to 10, and we can share those coordinate values between the two curves we want to plot.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Add a suitable <code>x</code> attribute to the <code>&lt;plot&gt;</code> directive using the <code>seq</code> function.</p>
+</div>
+<p><br></p>
+<p>The equations of the two curves are <em>y = 30 - 3x</em> and <em>y = 12 - 3x + x<sup>2</sup>/2</em>.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Add suitable <code>&lt;lines&gt;</code> directives inside the <code>&lt;plot&gt;</code> directive to plot these curves.</p>
+</div>
+<p><br> At this point, it should be possible to render the plot. Give it a go. If it doesn’t work, you can sometimes get some idea of what’s wrong by looking in the JavaScript developer console in your browser (in Chrome, you switch this on and off with by pressing <em>Ctrl-Shift-J</em>). In particular, if you make a mistake in a Radian expression, you’ll see error messages from a function called <code>radianEval</code>, the JavaScript function that processes Radian expressions.</p>
+<p><br></p>
+<h4 id="styling">3. Styling</h4>
+<p>We need to make the lines thicker, and we need to set their colours. We also need to set the axis labels.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<ol style="list-style-type: decimal">
+<li><p>Make the stroke width for both lines 2 pixels, make the straight line blue and the parabola red.</p></li>
+<li><p>Set the axis labels to “X” and “Y”.</p></li>
+</ol>
+</div>
+<p><br></p>
+<p>One thing we’ve not talked about yet is control over plotting ranges. By default, Radian makes the coordinate ranges in the <em>x</em> and <em>y</em> directions large enough to contain all of your plot data, i.e. all the values you include in any <code>x</code> and <code>y</code> attributes in plot directives within a <code>&lt;plot&gt;</code> directive. Sometimes you want to be able to override these ranges, either to exclude some data or to position your plot more advantageously. Here, we’d like the <em>y</em> values to run from zero upwards. We can do this by adding a <code>range-y=0</code> attribute to the <code>&lt;plot&gt;</code> directive.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Add a <code>range-y=0</code> attribute to your <code>&lt;plot&gt;</code> directive and look at what difference it makes to the plot.</p>
+</div>
+<p><br></p>
+<h4 id="interaction">4. Interaction</h4>
+<p>The final aspect of the plot we need to deal with is the visibility switching of the curves. We can do this by adding a <code>legend-switches</code> attribute to the <code>&lt;plot&gt;</code> directive and adding <code>label</code> attributes to each of the <code>&lt;lines&gt;</code> directives to give labels for the curves.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<p>Set up the visibility switching for the curves in this plot.</p>
+</div>
+
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>You should have ended up with something like this:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,10,20)]]&quot;</span>
+<span class="ot">      range-y=</span><span class="st">0</span><span class="ot"> axis-x-label=</span><span class="st">&quot;X&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Y&quot;</span>
+<span class="ot">      legend-switches</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[30-3*x]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="ot"> label=</span><span class="st">&quot;Line&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[12-3*x+x**2/2]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="ot"> label=</span><span class="st">&quot;Curve&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>This is about all you need to know to be able to produce simple plots of functions using Radian. In the next section, we’ll go on to look at producing plots from data, and producing different types of plots (scatter plots, bar charts and so on).</p>
+<hr>
+<p><a class="btn pull-left" href="1-4-basic-interaction.html"> « Prev section </a> <a class="btn pull-right" href="../2-data-plots/index.html"> Next section » </a> <br> <br></p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>
