@@ -3,7 +3,7 @@ layout: default
 title: Radian Gallery
 ---
 
-<div id="gallery" ng-controller="GalleryController">
+<div id="gallery" ng-controller="GalleryCtrl">
   <div class="navbar navbar-gallery">
     <div class="navbar-inner">
       <ul class="nav" ng-repeat="g in egs">

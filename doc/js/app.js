@@ -1,44 +1,8 @@
 'use strict';
 
-var EgCtrl = ['plotLib', '$http', '$scope', '$timeout', '$location',
-              function(plotLib, $http, $scope, $timeout, $location)
+var EgCtrl = ['$http', '$scope', '$timeout', '$location',
+              function($http, $scope, $timeout, $location)
 {
-  plotLib.midMonths = function(ms, y) {
-    return ms.map(function(m) { return new Date(y, m, 15); });
-  };
-
-  // Turn a vector of [[x1,y1], [x2,y2], ..., [xn,yn]] into a vector
-  // of y-values interpolated to [f, ..., t].
-  plotLib.fillIn = function(d, f, t) {
-    var ft = t - f + 1;
-    var ys = new Array(ft);
-    var x1 = d[0][0], xn = d[d.length-1][0];
-    var y1 = d[0][1], yn = d[d.length-1][1];
-    if (d.length == 1)
-      for (var i = 0; i < ft; ++i) ys[i] = y1;
-    else {
-      var i = 0;
-      if (f < x1) {
-        var delta = (d[1][1] - y1) / (d[1][0] - x1);
-        var yf = y1 - delta * (x1 - f);
-        for (; i < x1-f; ++i) ys[i] = yf + delta * i;
-      }
-      ys[i] = y1;
-      var j = 1;
-      while (j < d.length) {
-        var ym = d[j-1][1], yp = d[j][1], xm = d[j-1][0], xp = d[j][0];
-        var delta = (yp - ym) / (xp - xm);
-        for (; x1+i < d[j][0]; ++i) ys[i] = ym + delta * (x1+i - xm);
-        if (i < ft) ys[i++] = d[j++][1];
-      }
-      if (i < ft) {
-        var delta = (yn - d[d.length-2][1]) / (xn - d[d.length-2][0]);
-        for (var i0 = i; i < ft; ++i) ys[i] = yn + delta * (i-i0+1);
-      }
-    }
-    return ys;
-  };
-
   $scope.$watch('$location.hash', function() {
     var url = "http://" + location.host + "/gallery/eg/" +
       location.hash.slice(2) + ".html";
@@ -120,7 +84,7 @@ angular.module('radianDocs', ['radian']).
     }
     $routeProvider.otherwise({ redirectTo: '/01' });
   }]).
-  controller('GalleryController',
+  controller('GalleryCtrl',
   ['$rootScope', function($rootScope) {
     $rootScope.egs = [];
     for (var grp = 0; grp < eggrps.length; ++grp) {
@@ -138,4 +102,41 @@ angular.module('radianDocs', ['radian']).
                         gyo: '0 green; 0.5 yellow; 1 orange' };
   }]);
 
-function DummyCtrl() { };
+var MainCtrl = ['plotLib', function(plotLib)
+{
+  plotLib.midMonths = function(ms, y) {
+    return ms.map(function(m) { return new Date(y, m, 15); });
+  };
+
+  // Turn a vector of [[x1,y1], [x2,y2], ..., [xn,yn]] into a vector
+  // of y-values interpolated to [f, ..., t].
+  plotLib.fillIn = function(d, f, t) {
+    var ft = t - f + 1;
+    var ys = new Array(ft);
+    var x1 = d[0][0], xn = d[d.length-1][0];
+    var y1 = d[0][1], yn = d[d.length-1][1];
+    if (d.length == 1)
+      for (var i = 0; i < ft; ++i) ys[i] = y1;
+    else {
+      var i = 0;
+      if (f < x1) {
+        var delta = (d[1][1] - y1) / (d[1][0] - x1);
+        var yf = y1 - delta * (x1 - f);
+        for (; i < x1-f; ++i) ys[i] = yf + delta * i;
+      }
+      ys[i] = y1;
+      var j = 1;
+      while (j < d.length) {
+        var ym = d[j-1][1], yp = d[j][1], xm = d[j-1][0], xp = d[j][0];
+        var delta = (yp - ym) / (xp - xm);
+        for (; x1+i < d[j][0]; ++i) ys[i] = ym + delta * (x1+i - xm);
+        if (i < ft) ys[i++] = d[j++][1];
+      }
+      if (i < ft) {
+        var delta = (yn - d[d.length-2][1]) / (xn - d[d.length-2][0]);
+        for (var i0 = i; i < ft; ++i) ys[i] = yn + delta * (i-i0+1);
+      }
+    }
+    return ys;
+  };
+}];

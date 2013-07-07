@@ -351,7 +351,7 @@ uses an additional custom `fillIn` function for data pre-processing):
 ~~~~
 
 <hr>
-## Bar charts and the `<bars>` directive
+## <a name="bars-directive">Bar charts and the `<bars>` directive</a>
 
 ### Attributes
 
@@ -361,6 +361,8 @@ uses an additional custom `fillIn` function for data pre-processing):
 |`Y`             | |Data path defining y-coordinate for plot data|
 |`X2`            | |Data path defining x2-coordinate for plot data|
 |`Y2`            | |Data path defining y2-coordinate for plot data|
+|`BAR-MIN`       | |Minimum x-coordinate for bars (specified instead of `X`)|
+|`BAR-MAX`       | |Maximum x-coordinate for bars (specified instead of `X`)|
 |`BAR-WIDTH`     | |Width for bars (single pixel value or fractions)|
 |`BAR-OFFSET`    | |Offsets for bars (single pixel value or fractions)|
 |`FILL`          | |Standard paint attribute|
@@ -378,7 +380,10 @@ None
 
 Produces a bar chart from the given *x*- and *y*-coordinate data.  The
 *x*-coordinates give the bar centres and the *y* coordinates the bar
-heights.
+heights.  (Alternatively, it is possible to explicitly specify the
+*x*-coordinate edges of the bars using `BAR-MIN` and `BAR-MAX`, which
+useful for variable width bars.)
+
 
 ### Examples
 
@@ -424,3 +429,42 @@ axes in a coherent way.
         bar-width=0.4 bar-offset=0.2></bars>
 </plot>
 ~~~~
+
+The `histogram` function can either be called as `histogram(xs,
+nbins)`, where `xs` is a one-dimensional data array and `nbins` is an
+integer count of histogram bins, or as `histogram(xs, opts)`, where
+`opts` is an object with fields taken from the following list:
+
+* `transform`: either "`linear`", "`log`", or a two-element array of
+  functions giving a function *f* and its inverse *f*<sup> -1</sup>
+  for transforming from linear to histogram space and back again (for
+  "`linear`", this is just (id, id), while for "`log`" it's (`log`,
+  `exp`)).
+
+* `nbins`, `binwidth`, `binrange`: parameters for specifying bins (in
+  histogram space) -- if you have multiple histograms on the same
+  axes, the best way to go is to specify `binrange` and one of `nbins`
+  or `binwidth`; `binrange` (a two-element array) fixes the minimum
+  and maximum bin centres, and then one bin-size parameter fixes the
+  number and location of the bins independent of the input data; if
+  you don't specify a range, `histogram` does a best effort to
+  allocate sensible bins, but you can't guarantee that bins from two
+  independent histograms will match up.
+
+The output of `histogram` is a record with the following fields:
+
+* `centres`: bin centres in "input" space;
+
+* `bins`: an array of two-element arrays, giving bin boundaries in
+  "input" space (this is useful for non-linear transformations, since
+  the bins are no longer symmetric about their "centres");
+
+* `counts`: the number of data values falling in each bin;
+
+* `freqs`: the number of data values in each bin divided by total
+  number of data items;
+
+* `probs`: probability values defined so that `sum(probs[i] *
+  (bins[i].max - bins[i].min), i=0, nbins-1) = 1` and so that
+  `probs[i] * (bins[i].max - bins[i].min)` is proportional to
+  `freqs[i]`.
