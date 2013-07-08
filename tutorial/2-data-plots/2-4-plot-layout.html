@@ -17,13 +17,13 @@
       <div class="navbar-inner">
         <a class="brand" href="../../index.html">Radian</a>
         <ul class="nav">
-          <li><a href="../../index.html">Home</a></li>
           <li><a href="../../documentation.html">Documentation</a></li>
           <li><a href="../../download.html">Download</a></li>
           <li><a href="../../community.html">Community</a></li>
           <li><a href="../../gallery">Gallery</a></li>
           <li><a href="../../license.html">License</a></li>
           <li><a href="../../faq.html">FAQ</a></li>
+          <li><a href="../../roadmap.html">Roadmap</a></li>
         </ul>
       </div>
     </div>
@@ -35,9 +35,7 @@
 <p>Radian plot layout uses the <code>&lt;plot-row&gt;</code>, <code>&lt;plot-col&gt;</code> and <code>&lt;plot-grid&gt;</code> directives, plus an extra attribute called <code>layout-share</code> that can be applied to plot elements within these directives. (In fact, <code>&lt;plot-grid&gt;</code> is just a special case of uses of <code>&lt;plot-row&gt;</code> and <code>&lt;plot-col&gt;</code> provided for convenience.)</p>
 <p>As you might expect from the names, <code>&lt;plot-row&gt;</code> lays things out in a row, <code>&lt;plot-col&gt;</code> in a column and <code>&lt;plot-grid&gt;</code> in a grid. The important feature of these directives is that they can each contain either <code>&lt;plot&gt;</code> directives (defining single plots) or other layout directives. You can thus define a “layout tree” to arrange plots in a very flexible way (this sort of layout is sometimes called VBox/HBox layout).</p>
 <p>Here’s a quick example to show how this works:</p>
-<div class="plot-title">
-Example 11 (tree layout)
-</div>
+<p><plot-example key="11" title="Example 11 (tree layout)"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-row</span><span class="ot"> width=</span><span class="st">600</span><span class="ot"> height=</span><span class="st">400</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;plot-col</span><span class="ot"> layout-share=</span><span class="st">1</span><span class="kw">&gt;</span>
     <span class="kw">&lt;plot&gt;</span>
@@ -54,14 +52,13 @@ Example 11 (tree layout)
     <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)+sin(2*x)+sin(3*x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;/plot&gt;</span>
 <span class="kw">&lt;/plot-row&gt;</span></code></pre>
+<p><plot-row ng-class="plotVisible[11]" width="600" height="400" x="[[seq(0,2*PI,101)]]"> <plot-col layout-share="1"> <plot> <lines y="[[sin(x)]]"></lines> </plot> <plot> <lines y="[[sin(2*x)]]"></lines> </plot> <plot> <lines y="[[sin(3*x)]]"></lines> </plot> </plot-col> <plot layout-share="3"> <lines y="[[sin(x)+sin(2*x)+sin(3*x)]]"></lines> </plot> </plot-row></p>
 <p>This plot has a column of three small plots next to a single large plot. Note how the plot size is defined on the outermost plot layout directive. This outermost directive manages the allocation of space to all the inner layout directives and plots. You can also see how the <code>layout-share</code> attribute is used to control the relative amounts of space allocated to the elements contained in the outermost <code>&lt;plot-row&gt;</code> directive: the widths of the <code>&lt;plot-col&gt;</code> and the large <code>&lt;plot&gt;</code> are in the ratio 1:3, as specified by their <code>layout-share</code> values. You can also see how attributes are propagated down through the tree of directives – we specify <em>x</em> values on the outermost <code>&lt;plot-row&gt;</code> directive and these are used by all the inner plots.</p>
 <p>The different plot elements within this type of layout tree are all rendered independently once their sizes and locations within the containing SVG image are determined – no matter how many layers of <code>&lt;plot-row&gt;</code> and <code>&lt;plot-col&gt;</code> you use, the plots are all rendered into a single SVG image.</p>
 <hr>
 <h2 id="grid-layout">Grid layout</h2>
 <p>As well as <code>&lt;plot-row&gt;</code> and <code>&lt;plot-col&gt;</code>, which allow the construction of arbitrary hierarchical layouts, the <code>&lt;plot-grid&gt;</code> directive performs simple grid-based layout – specify the number of rows and columns you want (using the <code>rows</code> and <code>cols</code> attributes), put a suitable number of <code>&lt;plot&gt;</code> directives inside the <code>&lt;plot-grid&gt;</code> directive, and the plots will be laid out in rows in the order you give them:</p>
-<div class="plot-title">
-Example 12 (grid layout)
-</div>
+<p><plot-example key="12" title="Example 12 (grid layout)"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-grid</span><span class="ot"> width=</span><span class="st">600</span><span class="ot"> height=</span><span class="st">600</span><span class="ot"> rows=</span><span class="st">2</span><span class="ot"> cols=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;plot&gt;</span>
     <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
@@ -76,6 +73,7 @@ Example 12 (grid layout)
     <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)+sin(2*x)+sin(3*x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;/plot&gt;</span>
 <span class="kw">&lt;/plot-grid&gt;</span></code></pre>
+<p><plot-grid ng-class="plotVisible[12]" width="600" height="600" rows="2" cols="2" x="[[seq(0,2*PI,101)]]"> <plot> <lines y="[[sin(x)]]"></lines> </plot> <plot> <lines y="[[sin(2*x)]]"></lines> </plot> <plot> <lines y="[[sin(3*x)]]"></lines> </plot> <plot> <lines y="[[sin(x)+sin(2*x)+sin(3*x)]]"></lines> </plot> </plot-grid></p>
 <br>
 <hr>
 <p><a class="btn pull-left" href="2-3-bar-charts.html"> « Prev section </a> <a class="btn pull-right" href="2-5-putting-it-together.html"> Next section » </a> <br> <br></p>

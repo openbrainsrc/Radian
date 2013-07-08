@@ -16,7 +16,7 @@
 }
 .navbar-main .brand { margin-left: 15px; }
 
-footer { background-color: #eee; color: #555; margin: 5px 10px; }
+footer { background-color: #eee; color: #555; margin: 5px 0px; }
 
 .nyi { color: #888; font-style: italic; }
 
@@ -35,3 +35,5 @@ footer { background-color: #eee; color: #555; margin: 5px 10px; }
     padding: 10px;
     padding-bottom: 0;
 }
+
+.plot-hidden { position: absolute; left: -10000px; }

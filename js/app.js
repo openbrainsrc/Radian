@@ -4,7 +4,7 @@ var EgCtrl = ['$http', '$scope', '$timeout', '$location',
               function($http, $scope, $timeout, $location)
 {
   $scope.$watch('$location.hash', function() {
-    var url = "http://" + location.host + "/Radian/gallery/eg/" +
+    var url = "http://" + location.host + "/gallery/eg/" +
       location.hash.slice(2) + ".html";
     $timeout(function() {
       $http.get(url).success(function(res) {
@@ -75,32 +75,64 @@ var eggrps = [ { title: "Basic",
                          ["X/Y variable UI",                    7]] }];
 
 
-angular.module('radianDocs', ['radian']).
-  config(['$routeProvider', function($routeProvider) {
-    for (var eg = 1; eg <= negs; ++eg) {
-      var n = (eg < 10 ? '0' : '') + eg;
-      $routeProvider.when('/' + n, { templateUrl: 'eg/' + n + '.html',
-                                     controller: EgCtrl });
-    }
-    $routeProvider.otherwise({ redirectTo: '/01' });
-  }]).
-  controller('GalleryCtrl',
-  ['$rootScope', function($rootScope) {
-    $rootScope.egs = [];
-    for (var grp = 0; grp < eggrps.length; ++grp) {
-      var grpitems = [];
-      for (var i = 0; i < eggrps[grp].items.length; ++i) {
-        var egtitle = eggrps[grp].items[i][0];
-        var eg = eggrps[grp].items[i][1];
-        var n = (eg < 10 ? '0' : '') + eg;
-        grpitems.push({ title: egtitle, link: "#/" + n });
-      }
-      $rootScope.egs.push({ title: eggrps[grp].title, items: grpitems });
-    }
+var app = angular.module('radianDocs', ['radian']);
 
-    $rootScope.pals = { bgr: '0 blue; 0.5 grey; 1 red',
-                        gyo: '0 green; 0.5 yellow; 1 orange' };
-  }]);
+app.config(['$routeProvider', function($routeProvider) {
+  for (var eg = 1; eg <= negs; ++eg) {
+    var n = (eg < 10 ? '0' : '') + eg;
+    $routeProvider.when('/' + n, { templateUrl: 'eg/' + n + '.html',
+                                   controller: EgCtrl });
+  }
+  $routeProvider.otherwise({ redirectTo: '/01' });
+}]);
+
+app.controller('GalleryCtrl',
+  ['$rootScope', function($rootScope)
+{
+  $rootScope.egs = [];
+  for (var grp = 0; grp < eggrps.length; ++grp) {
+    var grpitems = [];
+    for (var i = 0; i < eggrps[grp].items.length; ++i) {
+      var egtitle = eggrps[grp].items[i][0];
+      var eg = eggrps[grp].items[i][1];
+        var n = (eg < 10 ? '0' : '') + eg;
+      grpitems.push({ title: egtitle, link: "#/" + n });
+    }
+    $rootScope.egs.push({ title: eggrps[grp].title, items: grpitems });
+  }
+
+  $rootScope.pals = { bgr: '0 blue; 0.5 grey; 1 red',
+                      gyo: '0 green; 0.5 yellow; 1 orange' };
+}]);
+
+app.directive('plotExample', ['$rootScope', function(rsc)
+{
+  return {
+    restrict: 'E',
+    scope: { key: '@', title: '@' },
+    transclude: true,
+    template: ['<div>',
+                 '<div class="plot-title">',
+                   '{{title}}&nbsp;&nbsp;',
+                   '<button ng-show="needBtn" class="btn btn-mini" ng-click="toggle()">',
+                     '{{showHide}}',
+                   '</button>',
+                 '</div>',
+               '</div>'].join(''),
+    link: function(s, e, as) {
+      if (!rsc.plotVisible) rsc.plotVisible = { };
+      s.needBtn = as.hasOwnProperty('key');
+      if (s.needBtn) rsc.plotVisible[as.key] = 'plot-hidden';
+      s.showHide = 'Show plot';
+      s.toggle = function() {
+        rsc.plotVisible[as.key] = (rsc.plotVisible[as.key] == 'plot-hidden') ?
+          'plot-visible' : 'plot-hidden';
+        s.showHide = rsc.plotVisible[as.key] == 'plot-hidden' ?
+          'Show plot' : 'Hide plot';
+      };
+    }
+  };
+}]);
 
 var MainCtrl = ['plotLib', function(plotLib)
 {

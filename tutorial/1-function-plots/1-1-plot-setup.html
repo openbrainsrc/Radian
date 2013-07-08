@@ -17,13 +17,13 @@
       <div class="navbar-inner">
         <a class="brand" href="../../index.html">Radian</a>
         <ul class="nav">
-          <li><a href="../../index.html">Home</a></li>
           <li><a href="../../documentation.html">Documentation</a></li>
           <li><a href="../../download.html">Download</a></li>
           <li><a href="../../community.html">Community</a></li>
           <li><a href="../../gallery">Gallery</a></li>
           <li><a href="../../license.html">License</a></li>
           <li><a href="../../faq.html">FAQ</a></li>
+          <li><a href="../../roadmap.html">Roadmap</a></li>
         </ul>
       </div>
     </div>
@@ -33,23 +33,21 @@
 <h2 id="the-plot-directive">The <code>&lt;plot&gt;</code> directive</h2>
 <p>The most important Radian plotting directive is <code>&lt;plot&gt;</code>. This is used as a wrapper around all plots, and is used to define plot sizes, axis details, coordinate ranges and other aspects of a plot that are shared by all the items displayed on a plot.</p>
 <p>In order to demonstrate some features of the <code>&lt;plot&gt;</code> directive, we will use the following piece of plotting code:</p>
-<div class="plot-title">
-Example 1
-</div>
+<p><plot-example key="1" title="Example 1"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[1]"> <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines> </plot></p>
 <p>Don’t worry about the <code>&lt;lines&gt;</code> directive yet. We’ll cover that in the next section. If you have checked out the <code>part-1</code> tag from the tutorial repository, then the <code>index.html</code> page in the tutorial directory will contain a list of links to examples – this is “Example 1”.</p>
 <p>Because we’ve not specified any sizing information for this plot, what we get depends on CSS attributes controlling the sizes of SVG elements in pages. In my browser, I see a plot that’s 940 pixels wide by 185 pixels tall, but you may see something different.</p>
 <hr>
 <h2 id="plot-sizing">Plot sizing</h2>
 <p>We can control the plot size by explicitly given two out of the width, height and aspect ratio of the plot (the aspect ratio is just the ratio of the width to the height). All plot dimensions are given in pixels, and are used directly to control the size of the resulting SVG image in the HTML page containing the <code>&lt;plot&gt;</code> directive.</p>
-<div class="plot-title">
-Example 2
-</div>
+<p><plot-example key="2" title="Example 2"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[2]" height="300" aspect="2"> <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines> </plot></p>
 <p>This gives us a plot that is 300 pixels tall and 600 pixels wide (it’s twice as wide as tall, to give an aspect ratio of 2).</p>
 <div class="exercise">
 <p><strong>Exercise</strong></p>
@@ -63,38 +61,34 @@ Example 2
 <hr>
 <h2 id="plot-axes">Plot axes</h2>
 <p>We can control whether axes and axis labels are displayed for our plots using the <code>AXIS-X</code>, <code>AXIS-Y</code>, <code>AXIS-X-LABEL</code> and <code>AXIS-Y-LABEL</code> attributes of the <code>&lt;plot&gt;</code> directive. For instance, Example 3 has no axes at all:</p>
-<div class="plot-title">
-Example 3
-</div>
+<p><plot-example key="3" title="Example 3"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> axis-x=</span><span class="st">&quot;off&quot;</span><span class="ot"> axis-y=</span><span class="st">&quot;off&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[3]" height="300" aspect="2" axis-x="off" axis-y="off"> <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines> </plot></p>
 <p>while Example 4 has axes and explicitly set axis labels:</p>
-<div class="plot-title">
-Example 4
-</div>
+<p><plot-example key="4" title="Example 4"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> axis-x-label=</span><span class="st">&quot;Custom X axis label&quot;</span>
 <span class="ot">      axis-y-label=</span><span class="st">&quot;Custom Y axis label&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[4]" height="300" aspect="2" axis-x-label="Custom X axis label" axis-y-label="Custom Y axis label"> <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines> </plot></p>
 <hr>
 <h2 id="titles-and-fonts">Titles and fonts</h2>
 <p>We can give our plots a title:</p>
-<div class="plot-title">
-Example 5
-</div>
+<p><plot-example key="5" title="Example 5"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> title=</span><span class="st">&quot;Example 5&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[5]" height="300" aspect="2" title="Example 5"> <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines> </plot></p>
 <p>and we can adjust the fonts for the axes and title independently:</p>
-<div class="plot-title">
-Example 6
-</div>
+<p><plot-example key="6" title="Example 6"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> title=</span><span class="st">&quot;Example 6&quot;</span>
 <span class="ot">      font-family=</span><span class="st">&quot;Monospace&quot;</span><span class="ot"> font-size=</span><span class="st">16</span>
 <span class="ot">      title-font-family=</span><span class="st">&quot;Serif&quot;</span><span class="ot"> title-font-style=</span><span class="st">&quot;italic&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[6]" height="300" aspect="2" title="Example 6" font-family="Monospace" font-size="16" title-font-family="Serif" title-font-style="italic"> <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines> </plot></p>
 <br>
 <div class="exercise">
 <p><strong>Exercise</strong></p>

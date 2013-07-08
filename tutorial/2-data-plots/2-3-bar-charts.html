@@ -17,13 +17,13 @@
       <div class="navbar-inner">
         <a class="brand" href="../../index.html">Radian</a>
         <ul class="nav">
-          <li><a href="../../index.html">Home</a></li>
           <li><a href="../../documentation.html">Documentation</a></li>
           <li><a href="../../download.html">Download</a></li>
           <li><a href="../../community.html">Community</a></li>
           <li><a href="../../gallery">Gallery</a></li>
           <li><a href="../../license.html">License</a></li>
           <li><a href="../../faq.html">FAQ</a></li>
+          <li><a href="../../roadmap.html">Roadmap</a></li>
         </ul>
       </div>
     </div>
@@ -32,9 +32,7 @@
 <hr>
 <h2 id="the-bars-directive">The <code>&lt;bars&gt;</code> directive</h2>
 <p>Bar charts are generated using the <code>&lt;bars&gt;</code> directive. This works in just the same way as <code>&lt;lines&gt;</code> and <code>&lt;points&gt;</code>, in the sense that you provide <em>x</em> and <em>y</em> coordinates via <code>x</code> and <code>y</code> attributes. The <em>x</em> coordinates give the centres of the bars and the <em>y</em> coordinates their tops. There is one wrinkle you need to be aware of, displayed in this plot:</p>
-<div class="plot-title">
-Example 8 (single bars)
-</div>
+<p><plot-example key="8" title="Example 8 (single bars)"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">1</span><span class="ot"> range-y=</span><span class="st">0</span><span class="kw">&gt;</span>
   <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[dat.month]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat.precip]]&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
 <span class="kw">&lt;/plot&gt;</span>
@@ -53,11 +51,11 @@ Example 8 (single bars)
   11,27
   12,30
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[8]" height="300" aspect="1" range-y="0"> <bars x="[[d8.month]]" y="[[d8.precip]]"></bars> </plot></p>
+<p><plot-data name="d8" format="csv" cols="month,precip" src="../../data/tutorial-2/d8.csv"> </plot-data></p>
 <p>We have set the <code>range-y</code> attribute on the <code>&lt;plot&gt;</code> directive to ensure that the <em>y</em>-axis runs from zero upwards so that we see the full extent of the bars. Most of the time this is what you will want (particularly for the histograms we’ll look at below), but sometimes you may want to truncate the bars at a different level.</p>
 <p>Bars can be styled using the usual stroke and fill attributes, and the width and relative location of bars can also be modified, using the <code>bar-width</code> and <code>bar-offset</code> attributes. These can be specified as fractions of the “natural” bar width, or as pixel values, and are useful for plotting multiple series of bars on the same axes:</p>
-<div class="plot-title">
-Example 9 (double bars)
-</div>
+<p><plot-example key="9" title="Example 9 (double bars)"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">1</span><span class="ot"> range-y=</span><span class="st">0</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="ot"> bar-width=</span><span class="st">0.3</span><span class="kw">&gt;</span>
   <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[dat.x]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat.y]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;red&quot;</span><span class="ot"> bar-offset=</span><span class="st">0.2</span><span class="kw">&gt;&lt;/bars&gt;</span>
   <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[dat.x]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat.z]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;blue&quot;</span><span class="ot"> bar-offset=</span><span class="st">-0.2</span><span class="kw">&gt;&lt;/bars&gt;</span>
@@ -77,13 +75,13 @@ Example 9 (double bars)
   11,27,10
   12,30,5
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[9]" height="300" aspect="1" range-y="0" stroke="none" bar-width="0.3"> <bars x="[[d9.x]]" y="[[d9.y]]" fill="red" bar-offset="0.2"></bars> <bars x="[[d9.x]]" y="[[d9.z]]" fill="blue" bar-offset="-0.2"></bars> </plot></p>
+<p><plot-data name="d9" format="csv" cols="x,y,z" src="../../data/tutorial-2/d9.csv"> </plot-data></p>
 <p>(There are some other features of bar charts that allow you to draw bars of unequal widths. You can read about these in the <a href="../../ref-manual/02-plot-types.html#bars-directive">reference manual</a>.)</p>
 <hr>
 <h2 id="histograms">Histograms</h2>
 <p>Histograms are just a special kind of bar chart where the bar heights are derived. Radian provides a library function (called, naturally enough, <code>histogram</code>) to help with producing this type of plot. The <code>histogram</code> function takes two arguments: the first is a one-dimensional array of data values and the second is either an integer count of histogram bins, or an object specifying information needed to calculate the histogram bins (number or size of bins and possibly the range of values over which to calculate the bins, and also optional coordinate transformations that can be used for creating log-space histograms). In the simplest case, this is all that’s needed to create a histogram:</p>
-<div class="plot-title">
-Example 10 (histogram)
-</div>
+<p><plot-example key="10" title="Example 10 (histogram)"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">1</span><span class="ot"> range-y=</span><span class="st">0</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span>
 <span class="ot">      hist=</span><span class="st">&quot;[[histogram(dat.x,10)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[hist.centres]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[hist.counts]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
@@ -111,6 +109,8 @@ Example 10 (histogram)
   1.03799046
   -0.33640740
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[10]" height="300" aspect="1" range-y="0" stroke="none" hist="[[histogram(d10.x,10)]]"> <bars x="[[hist.centres]]" y="[[hist.counts]]" fill="red"></bars> </plot></p>
+<p><plot-data name="d10" format="csv" cols="x" src="../../data/tutorial-2/d10.csv"> </plot-data></p>
 <p>Much more complex applications are possible: you can calculate multiple histograms using the same bins for plotting on the same axes, you can calculate histograms in log-coordinates and plot them on a log-transformed <em>x</em>-axis to give constant width bins in log coordinates, and many other possibilities. Read the reference manual to get some ideas.</p>
 <br>
 <hr>

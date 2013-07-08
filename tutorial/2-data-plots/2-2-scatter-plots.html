@@ -17,13 +17,13 @@
       <div class="navbar-inner">
         <a class="brand" href="../../index.html">Radian</a>
         <ul class="nav">
-          <li><a href="../../index.html">Home</a></li>
           <li><a href="../../documentation.html">Documentation</a></li>
           <li><a href="../../download.html">Download</a></li>
           <li><a href="../../community.html">Community</a></li>
           <li><a href="../../gallery">Gallery</a></li>
           <li><a href="../../license.html">License</a></li>
           <li><a href="../../faq.html">FAQ</a></li>
+          <li><a href="../../roadmap.html">Roadmap</a></li>
         </ul>
       </div>
     </div>
@@ -33,9 +33,7 @@
 <hr>
 <h2 id="the-points-directive">The <code>&lt;points&gt;</code> directive</h2>
 <p>In Radian, scatter plots are generated using the <code>&lt;points&gt;</code> directive. The coordinates of points to be plotted are specified using <code>x</code> and <code>y</code> attributes, as for the <code>&lt;lines&gt;</code> directive. The primary difference between using <code>&lt;points&gt;</code> and <code>&lt;lines&gt;</code> is in the range of paint attributes that can be given for the markers displayed at each of the plot points. Markers have a shape and size, and can be filled and stroked (so have colours and opacities for both as well as a stroke width).</p>
-<div class="plot-title">
-Example 6
-</div>
+<p><plot-example key="6" title="Example 6"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">1</span><span class="kw">&gt;</span>
   <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[iris.sepal_length]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[iris.petal_length]]&quot;</span>
 <span class="ot">          marker-size=</span><span class="st">25</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="ot"> fill=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/points&gt;</span>
@@ -48,11 +46,11 @@ Example 6
   <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;petal_length&quot;</span><span class="ot"> label=</span><span class="st">&quot;Petal length&quot;</span><span class="ot"> units=</span><span class="st">&quot;mm&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
   <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;petal_width&quot;</span><span class="ot"> label=</span><span class="st">&quot;Petal width&quot;</span><span class="ot"> units=</span><span class="st">&quot;mm&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[6]" height="300" aspect="1"> <points x="[[iris.sepal_length]]" y="[[iris.petal_length]]" marker-size="25" stroke="none" fill="red"></points> </plot></p>
+<p><plot-data name="iris" format="csv" src="../../data/iris.csv" cols="sepal_length,sepal_width,petal_length,petal_width,species"> <metadata name="sepal_length" label="Sepal length" units="mm"></metadata> <metadata name="sepal_width" label="Sepal width" units="mm"></metadata> <metadata name="petal_length" label="Petal length" units="mm"></metadata> <metadata name="petal_width" label="Petal width" units="mm"></metadata> </plot-data></p>
 <p>Marker type is given using the <code>marker</code> attribute. Marker size is set by the <code>marker-size</code> attribute, which gives a measure of the <em>area</em> in square pixels of the marker. Colours are set with the <code>stroke</code> and <code>fill</code> attributes.</p>
 <p>As a more advanced example of what can be done, the following example assigns marker type and fill colour based on the discrete values of the <code>species</code> field in our data. This uses Radian <em>palettes</em>, a topic that we won’t discuss much, but you can see more or less what to do (all the details are in the <a href="../../ref-manual/03-palettes-and-interpolators.html">reference manual</a>).</p>
-<div class="plot-title">
-Example 7
-</div>
+<p><plot-example key="7" title="Example 7"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">1</span><span class="kw">&gt;</span>
   <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[iris.sepal_length]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[iris.petal_length]]&quot;</span>
 <span class="ot">          marker=</span><span class="st">&quot;[[spmark(iris.species)]]&quot;</span>
@@ -78,6 +76,9 @@ Example 7
   <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;petal_length&quot;</span><span class="ot"> label=</span><span class="st">&quot;Petal length&quot;</span><span class="ot"> units=</span><span class="st">&quot;mm&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
   <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;petal_width&quot;</span><span class="ot"> label=</span><span class="st">&quot;Petal width&quot;</span><span class="ot"> units=</span><span class="st">&quot;mm&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><palette name="spmark" type="discrete"> &quot;I. setosa&quot; circle; &quot;I. versicolor&quot; square; &quot;I. virginica&quot; diamond </palette></p>
+<p><palette name="spcol" type="discrete"> &quot;I. setosa&quot; red; &quot;I. versicolor&quot; green; &quot;I. virginica&quot; blue </palette></p>
+<p><plot ng-class="plotVisible[7]" height="300" aspect="1"> <points x="[[iris.sepal_length]]" y="[[iris.petal_length]]" marker="[[spmark(iris.species)]]" marker-size="25" fill="[[spcol(iris.species)]]"></points> </plot></p>
 <br>
 <div class="exercise">
 <p><strong>Exercise</strong></p>

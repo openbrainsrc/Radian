@@ -17,13 +17,13 @@
       <div class="navbar-inner">
         <a class="brand" href="../../index.html">Radian</a>
         <ul class="nav">
-          <li><a href="../../index.html">Home</a></li>
           <li><a href="../../documentation.html">Documentation</a></li>
           <li><a href="../../download.html">Download</a></li>
           <li><a href="../../community.html">Community</a></li>
           <li><a href="../../gallery">Gallery</a></li>
           <li><a href="../../license.html">License</a></li>
           <li><a href="../../faq.html">FAQ</a></li>
+          <li><a href="../../roadmap.html">Roadmap</a></li>
         </ul>
       </div>
     </div>
@@ -34,9 +34,7 @@
 <h2 id="the-plot-data-directive">The <code>&lt;plot-data&gt;</code> directive</h2>
 <p>The <code>&lt;plot-data&gt;</code> directive can be used either to provide data for plotting directly within an HTML page, or to access data via a URL. Radian currently supports access to CSV and JSON formatted data. The data contained or accessed by a <code>&lt;plot-data&gt;</code> directive is “installed” as a variable in an Angular scope that is accessible to plot directives at the same Angular scope level as the <code>&lt;plot-data&gt;</code> directive. In practice, this means that, unless you do something clever with Angular scopes, things will just work.</p>
 <p>As a simple example, here is a case where we provide a small CSV data set directly within the page:</p>
-<div class="plot-title">
-Example 1
-</div>
+<p><plot-example key="1" title="Example 1"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[dat.a]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat.b]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span>
@@ -50,12 +48,12 @@ Example 1
 6,6
 7,5
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[1]" height="300" aspect="2"> <lines x="[[d1.a]]" y="[[d1.b]]"></lines> </plot></p>
+<p><plot-data name="d1" format="csv" cols="a,b" src="../../data/tutorial-2/d1.csv"> </plot-data></p>
 <p>We specify the name we want to use for the data set in Radian expressions using the <code>name</code> attribute of the <code>&lt;plot-data&gt;</code> directive. The <code>format</code> attribute denotes that the data is formatted as comma separated values. The <code>cols</code> attribute allows us to give names to the data columns and these individual data columns can then be referred to as <code>dat.a</code>, <code>dat.b</code>, etc. in Radian expressions.</p>
 <p>Note that, at the moment, Radian requires CSV data to contain <em>only</em> the data values, and for column names to be specified using the <code>cols</code> attribute of the <code>&lt;plot-data&gt;</code> directive.</p>
 <p>As an alternative to writing the data directly into our web pages, we can load data from a URL:</p>
-<div class="plot-title">
-Example 2
-</div>
+<p><plot-example key="2" title="Example 2"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[dat.day]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[dat.temp]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y2=</span><span class="st">&quot;[[dat.prec]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
@@ -64,23 +62,21 @@ Example 2
 <span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;dat&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;day,temp,prec&quot;</span>
 <span class="ot">           src=</span><span class="st">&quot;/data/vic2012.csv&quot;</span><span class="kw">&gt;</span>
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[2]" ng-class="plotVisible[]" height="300" aspect="2" x="[[d2.day]]"> <lines y="[[d2.temp]]" stroke="red"></lines> <lines y2="[[d2.prec]]" stroke="blue"></lines> </plot></p>
+<p><plot-data name="d2" format="csv" cols="day,temp,prec" src="../../data/vic2012.csv"> </plot-data></p>
 <p>The only difference with this use of <code>&lt;plot-data&gt;</code> is that we omit the inline data and instead provide a URL using the <code>src</code> attribute. This data is loaded and made available for plotting.</p>
 <p>When using data loaded from URLs, it is normal to see some error messages in the JavaScript console coming from Radian. Radian handles data in an event-driven way, and attempts to render a plot for the initial empty data set that is available (leading to the error messages). As soon as the data download is complete, the plot is re-rendered.</p>
 <p>One other Radian feature we have used in this example is the “second axes” capability. In the second of the <code>&lt;lines&gt;</code> directive, we use the attribute <code>y2</code> instead of <code>y</code> to say that we want this data should be plotted using an independent axis scale from the <code>y</code> data. The <code>y</code> axis is displayed on the left and the <code>ys</code> axis on the right of plots.</p>
 <hr>
 <h2 id="data-formats">Data formats</h2>
 <p>Data for Radian can be provided in CSV format, or as JSON data. The two following <code>&lt;plot-data&gt;</code> directives specify the same data, but in different formats:</p>
-<div class="plot-title">
-CSV data
-</div>
+<p><plot-example title="CSV data"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;dcsv&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;a,b&quot;</span><span class="kw">&gt;</span>
 1,1
 2,4
 3,6
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
-<div class="plot-title">
-JSON data
-</div>
+<p><plot-example title="JSON data"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;djson&quot;</span><span class="ot"> format=</span><span class="st">&quot;json&quot;</span><span class="kw">&gt;</span>
 [ { &quot;a&quot;: 1, &quot;b&quot;: 1 },
   { &quot;a&quot;: 2, &quot;b&quot;: 4 },
@@ -90,9 +86,7 @@ JSON data
 <p>The situation with JSON data is more complicated. We can serialise data with arbitrary structure as JSON values, so there are no general data access patterns that are applicable in all cases. However, the pattern displayed by <code>djson</code> above is very common: this is an <em>array of objects</em>, with multiple instances of objects with the same fields stored in a single array.</p>
 <p>So, given <code>djson</code>, how do we get at all the <code>a</code> field values so that we can use them as <em>x</em> values in a plot? A JavaScript programmer would write something to map over the array of values, pulling out the fields one by one. In Radian, we provide a special extension to JavaScriptp expression syntax for this case, because it’s so common. In Radian expressions, the <code>#</code> character, called the “pluck” operator, can be used to pull fields out of this sort of array of objects structure. For example, in a Radian expression, we can write <code>djson#a</code> to get all the <code>a</code> values from the array of objects.</p>
 <p>We can use the pluck operator to rewrite Example 1 using JSON data:</p>
-<div class="plot-title">
-Example 3
-</div>
+<p><plot-example key="3" title="Example 3"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[dat#a]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat#b]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span>
@@ -106,14 +100,14 @@ Example 3
  { &quot;a&quot;: 6, &quot;b&quot;: 6 },
  { &quot;a&quot;: 7, &quot;b&quot;: 5 }]
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[3]" height="300" aspect="2"> <lines x="[[d3#a]]" y="[[d3#b]]"></lines> </plot></p>
+<p><plot-data name="d3" format="json" src="../../data/tutorial-2/d3.json"> </plot-data></p>
 <p>The pluck operator is actually rather more flexible than this<sup><a href="#fn1" class="footnoteRef" id="fnref1">1</a></sup>, but this simple field plucking is sufficient for our purposes for now.</p>
 <hr>
 <h2 id="metadata">Metadata</h2>
 <p>Data often comes with “metadata”, information about things like units of measurement, the names of quantities, perhaps other information needed to properly interpret data values. The <code>&lt;plot-data&gt;</code> directive can contain embedded <code>&lt;metadata&gt;</code> directives allowing us to specify some of this kind of information, which can then automatically be used to label plot axes.</p>
 <p>For example, if we take the above example and add some metadata information, Radian can label the axes with a suitable label and unit:</p>
-<div class="plot-title">
-Example 4
-</div>
+<p><plot-example key="4" title="Example 4"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[dat#a]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat#b]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span>
@@ -129,10 +123,10 @@ Example 4
  { &quot;a&quot;: 6, &quot;b&quot;: 6 },
  { &quot;a&quot;: 7, &quot;b&quot;: 5 }]
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[4]" height="300" aspect="2"> <lines x="[[d4#a]]" y="[[d4#b]]"></lines> </plot></p>
+<p><plot-data name="d4" format="json" src="../../data/tutorial-2/d4.json"> <metadata name="a" label="Aardvarks" units="Mt"></metadata> <metadata name="b" label="Bogosity" units="nBogon"></metadata> </plot-data></p>
 <p>Metadata specifications are particularly useful for dealing with date and time data. We can specify that a data field represents dates, and if necessary give a format to be used for parsing the date values (many reasonable formats are handled automatically):</p>
-<div class="plot-title">
-Example 5
-</div>
+<p><plot-example key="5" title="Example 5"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> axis-x-label=</span><span class="st">&quot;January 2012&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[dat.date]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[dat.temp]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span>
@@ -155,6 +149,8 @@ Example 5
 &quot;2012-01-13&quot;, -0.10
 &quot;2012-01-14&quot;,  1.70
 <span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[5]" height="300" aspect="2" axis-x-label="January 2012"> <lines x="[[d5.date]]" y="[[d5.temp]]"></lines> </plot></p>
+<p><plot-data name="d5" format="csv" cols="date,temp" src="../../data/tutorial-2/d5.csv"> <metadata name="date" format="date"></metadata> <metadata name="temp" label="Temperature" units="°C"></metadata> </plot-data></p>
 <br>
 <div class="exercise">
 <p><strong>Exercise</strong></p>

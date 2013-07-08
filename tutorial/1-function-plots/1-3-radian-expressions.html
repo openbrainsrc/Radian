@@ -17,13 +17,13 @@
       <div class="navbar-inner">
         <a class="brand" href="../../index.html">Radian</a>
         <ul class="nav">
-          <li><a href="../../index.html">Home</a></li>
           <li><a href="../../documentation.html">Documentation</a></li>
           <li><a href="../../download.html">Download</a></li>
           <li><a href="../../community.html">Community</a></li>
           <li><a href="../../gallery">Gallery</a></li>
           <li><a href="../../license.html">License</a></li>
           <li><a href="../../faq.html">FAQ</a></li>
+          <li><a href="../../roadmap.html">Roadmap</a></li>
         </ul>
       </div>
     </div>
@@ -41,25 +41,23 @@
 <h2 id="arithmetic-expressions">Arithmetic expressions</h2>
 <p>Once we’ve generated a sequence of <em>x</em> values, we’d like to be able to calculate corresponding <em>y</em> coordinates to go with them. The simplest cases are arithmetic expressions, i.e. expressions that involve just numbers, variables and the arithmetic operators <code>+</code>, <code>-</code>, <code>*</code> (multiplication), <code>/</code> (division) and <code>**</code> (exponentiation). (The exponentiation operator is not something that is available in normal JavaScript, but is a Radian “extra”, added for convenience.)</p>
 <p>This example plots a number of different polynomial curves:</p>
-<div class="plot-title">
-Example 12
-</div>
+<p><plot-example key="12" title="Example 12"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(-5,5,101)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[20*x+5]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[3*x**2-10*x-40]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[2*x**3-30*x-32]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;green&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[12]" height="300" aspect="2" x="[[seq(-5,5,101)]]"> <lines y="[[20*x+5]]" stroke="red"></lines> <lines y="[[3*x**2-10*x-40]]" stroke="blue"></lines> <lines y="[[2*x**3-30*x-32]]" stroke="green"></lines> </plot></p>
 <p>There are two things to note here.</p>
 <p>First, the variable <code>x</code> defined by an attribute in the surrounding <code>&lt;plot&gt;</code> directive is available in Radian expressions in the <code>&lt;lines&gt;</code> directives inside the <code>&lt;plot&gt;</code> directive. This is a general feature of Radian expressions: all attributes are installed as Angular scope variables on a scope associated with the plotting directive carrying the directive, and the nesting of these scopes defined by Angular’s prototype inheritance mechanism makes everything work nicely. (If that last sentence didn’t mean a whole lot to you, don’t worry. Everything will normally work the way you would expect it to – just remember that you can define variables via attributes on outer plotting directives and use them in expressions within inner plotting directives.</p>
 <p>The second thing to note is that the expressions are <em>vectorised</em> over the variable <code>x</code>. Here, <code>x</code> is an array of values produced by the <code>seq</code> function, but we can write an expression like <code>20*x+5</code>, and each value in the <code>x</code> array is substituted for <code>x</code> in this expression one at a time to produce an array of results. This vectorisation is, again, not something that is supported in ordinary JavaScript expressions, but it is incredibly useful for writing the kinds of expressions that are needed for plotting. All arithmetic operators in Radian are implicitly vectorised, and behave sensibly for combinations of two arrays, one array and one scalar value and (obviously) two scalar values. To understand what this means, note that in the expression <code>20*x+5</code>, <code>x</code> is an array, but the numbers <code>20</code> and <code>5</code> are single scalar values. This means that each entry in <code>x</code> is multiplied by 20 with 5 being added to the result. The overall result of this expression is the array of all these results.</p>
 <p>To see another example of how this works, consider this example:</p>
-<div class="plot-title">
-Example 13
-</div>
+<p><plot-example key="13" title="Example 13"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(-5,5,101)]]&quot;</span><span class="ot"> a=</span><span class="st">&quot;[[seq(0,20,101)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[a*x+5]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[3*x**2-a*x-a]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[13]" height="300" aspect="2" x="[[seq(-5,5,101)]]" a="[[seq(0,20,101)]]"> <lines y="[[a*x+5]]" stroke="red"></lines> <lines y="[[3*x**2-a*x-a]]" stroke="blue"></lines> </plot></p>
 <p>Here, as well as the coordinate array <code>x</code>, we define another array called <code>a</code> which we then use in the expressions for the <em>y</em>-coordinates in our plots. As well as operating between one array and a scalar value, we can, for instance, multiply one array by another: <code>a*x</code> takes values in parallel from the arrays <code>a</code> and <code>x</code> and multiplies them together, yielding an array as a result whose length is the shorter of the lengths of <code>a</code> and <code>x</code>.</p>
 <p>The upshot of all this is that writing functional plot expressions is very simple: given an array of <em>x</em> values, just write down an expression for the <em>y</em> value for a typical <em>x</em>, and Radian will vectorise as necessary.</p>
 <div class="exercise">
@@ -70,18 +68,15 @@ Example 13
 <hr>
 <h2 id="some-simple-functions">Some simple functions</h2>
 <p>As well as arithmetic expressions, we have access to a range of standard mathematical functions (see the <a href="../../ref-manual/01-javascript-data-access.html#std-fns">reference manual</a> for the full list). Where it makes sense, these functions are vectorised over the appropriate arguments in the same way as arithmetic expressions. Here are some examples.</p>
-<div class="plot-title">
-Example 14 (trigonometric functions)
-</div>
+<p><plot-example key="14" title="Example 14 (trigonometric functions)"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,4*PI,501)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[2*sin(3*x)+cos(5*x+PI/4)]]&quot;</span><span class="ot"> stroke-width=</span><span class="st">2</span>
 <span class="ot">         stroke=</span><span class="st">&quot;green&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
-<div class="plot-title">
-Example 15 (rounding)
-</div>
+<p><plot ng-class="plotVisible[14]" height="300" aspect="2" x="[[seq(0,4*PI,501)]]"> <lines y="[[sin(x)]]" stroke="red"></lines> <lines y="[[cos(x)]]" stroke="blue"></lines> <lines y="[[2*sin(3*x)+cos(5*x+PI/4)]]" stroke-width="2" stroke="green"></lines> </plot></p>
+<p><plot-example key="15" title="Example 15 (rounding)"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,4*PI,501)]]&quot;</span>
 <span class="ot">      s=</span><span class="st">&quot;[[10*sin(x)]]&quot;</span><span class="ot"> c=</span><span class="st">&quot;[[10*cos(x)]]&quot;</span>
 <span class="ot">      m=</span><span class="st">&quot;[[5*(2*sin(3*x)+cos(5*x+PI/4))]]&quot;</span><span class="kw">&gt;</span>
@@ -92,13 +87,13 @@ Example 15 (rounding)
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[ceil(m)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;green&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[floor(m)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;green&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
-<div class="plot-title">
-Example 16 (probability distributions)
-</div>
+<p><plot ng-class="plotVisible[15]" height="300" aspect="2" x="[[seq(0,4*PI,501)]]" s="[[10*sin(x)]]" c="[[10*cos(x)]]" m="[[5*(2*sin(3*x)+cos(5*x+PI/4))]]"> <lines y="[[ceil(s)]]" stroke="red"></lines> <lines y="[[floor(s)]]" stroke="red"></lines> <lines y="[[ceil(c)]]" stroke="blue"></lines> <lines y="[[floor(c)]]" stroke="blue"></lines> <lines y="[[ceil(m)]]" stroke="green"></lines> <lines y="[[floor(m)]]" stroke="green"></lines> </plot></p>
+<p><plot-example key="16" title="Example 16 (probability distributions)"></plot-example></p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,6,101)]]&quot;</span><span class="kw">&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[normal(x,3,0.5)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[gamma(x,2,0.5)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
+<p><plot ng-class="plotVisible[16]" height="300" aspect="2" x="[[seq(0,6,101)]]"> <lines y="[[normal(x,3,0.5)]]" stroke="red"></lines> <lines y="[[gamma(x,2,0.5)]]" stroke="blue"></lines> </plot></p>
 <div class="exercise">
 <p><strong>Exercise</strong></p>
 <p>Experiment with making plots based on some of the other functions defined in the <a href="../../ref-manual/01-javascript-data-access.html#std-fns">reference manual</a>.</p>
