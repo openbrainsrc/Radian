@@ -184,6 +184,7 @@ radian.directive('plot',
 
     // Set up view list and function for child elements to add plots.
     scope.views = [];
+    scope.nplots = 0;
     scope.switchable = [];
     function ancestor(ances, desc) {
       if (ances == desc) return true;
@@ -191,10 +192,13 @@ radian.directive('plot',
       return ancestor(ances, desc.$parent);
     };
     scope.addPlot = function(s) {
+      ++scope.nplots;
       if (scope.hasOwnProperty('legendSwitches')) scope.switchable.push(s);
       s.enabled = true;
+      scope.$emit('dataChange');
       s.$on('$destroy', function(e) {
         if (ancestor(e.targetScope, s)) {
+          --scope.nplots;
           s.enabled = false;
           var idx = scope.switchable.indexOf(s);
           if (idx != -1) scope.switchable.splice(idx, 1);
@@ -209,6 +213,9 @@ radian.directive('plot',
   // We do the actual plotting after the transcluded plot type
   // elements are linked.
   function postLink(scope, elm) {
+    var svgs = [];
+    var setupBrush = null;
+    var svgelm = null;
     scope.rangeExtendPixels = function(x, y) {
       if (x != null)
         scope.rangeXExtendPixels =
@@ -232,9 +239,7 @@ radian.directive('plot',
       if (setupBrush) setupBrush();
       redraw();
     };
-    var svgs = [];
-    var setupBrush = null;
-    var svgelm = null;
+    function legend() { radianLegend(svgelm, scope); };
     function init() {
       // Set up plot areas (including zoomers).
       svgelm = d3.select(scope.svg);
@@ -279,11 +284,13 @@ radian.directive('plot',
       // Draw plots and legend.
       init();
       reset();
-      radianLegend(svgelm, scope);
+      legend();
 
       // Register plot data change handlers.
-      scope.$on('paintChange', redraw);
+      scope.$on('paintChange', reset);
+      scope.$on('paintChange', legend);
       scope.$on('dataChange', reset);
+      scope.$on('dataChange', legend);
 
       // Register UI event handlers.
       scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });
@@ -821,6 +828,11 @@ radian.directive('plot',
     setFont(d3.selectAll('.axis text'), scope);
 
     // Plot title.
+    outsvg.selectAll('g.no-data').remove();
+    if (scope.nplots == 0 && v == scope.views[0] && scope.noData)
+      outsvg.append('g').attr('class', 'no-data').append('text')
+        .attr('x', v.outw / 2).attr('y', v.outh / 2)
+        .attr('text-anchor', 'middle').text(scope.noData);
     if (v.title && !v.noTitle) {
       var t = outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
@@ -1042,7 +1054,7 @@ radian.factory('radianEval',
           break;
         case "Identifier":
           // We have a free variable, so record it.
-          if (!exc[v.name]) {
+          if (v.name != 'scope' && !exc[v.name]) {
             var free = true;
             if (w &&
                 (w.type == "MemberExpression" || w.type == "PluckExpression") &&
@@ -2981,7 +2993,8 @@ radian.factory('radianParse', function()
 // Bring plot data into Angular scope by parsing <plot-data> directive
 // body.
 
-radian.directive('plotData', ['$http', function($http)
+radian.directive('plotData', ['$http', 'processAttrs',
+                              function($http, processAttrs)
 {
   'use strict';
 
@@ -3002,9 +3015,14 @@ radian.directive('plotData', ['$http', function($http)
                            }).join('\n'),
                            { separator: separator });
         if (d.length > 0) {
-          if (d[0].length != cols.length)
-            throw Error('mismatch between COLS and' +
-                        ' CSV data in <plot-data>');
+          if (cols) {
+            if (d[0].length != cols.length)
+              throw Error('mismatch between COLS and' +
+                          ' CSV data in <plot-data>');
+          } else {
+            cols = d[0];
+            d.splice(0, 1);
+          }
           var tmp = { }, nums = [];
           for (var c = 0; c < cols.length; ++c) {
             tmp[cols[c]] = [];
@@ -3062,25 +3080,24 @@ radian.directive('plotData', ['$http', function($http)
 
   // We use a post-link function here so that any enclosed <metadata>
   // directives will have been linked by the time we get here.
-  function postLink(scope, elm, as) {
+  function postLink(sc, elm, as) {
     // The <plot-data> element is only there to carry data, so hide
     // it right away.
     elm.hide();
 
     // Process attributes.
-    if (!as.name) throw Error('<plot-data> must have NAME attribute');
-    var dataset = as.name;
-    var src = as.src;
-    var format = as.format || 'json';
-    var sep = as.separator === '' ? ' ' : (as.separator || ',');
-    var cols = as.cols;
+    processAttrs(sc, as);
+    if (!sc.name) throw Error('<plot-data> must have NAME attribute');
+    var dataset = sc.name, subname = sc.subname;
+    var src = sc.src;
+    var format = sc.format || 'json';
+    var sep = sc.separator === '' ? ' ' : (sc.separator || ',');
+    var cols = sc.cols;
     if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
     if (!src) {
       var formats = ['json', 'csv'];
       if (formats.indexOf(format) == -1)
         throw Error('invalid FORMAT "' + format + '" in <plot-data>');
-      if (format == 'csv' && !cols)
-        throw Error('CSV <plot-data> must have COLS');
     }
 
     // Process content -- all text children are appended together
@@ -3090,12 +3107,20 @@ radian.directive('plotData', ['$http', function($http)
       var d = parseData(datatext, format, cols, sep);
 
       // Process any date fields.
-      processDates(scope, dataset, d);
+      processDates(sc, dataset, d);
 
-      // Install data in scope, preserving any metadata.
-      var md = scope[dataset] ? scope[dataset].metadata : null;
-      scope[dataset] = d;
-      if (md) scope[dataset].metadata = md;
+      // Install data on nearest enclosing scope that isn't associated
+      // with an ng-repeat.  Preserve any metadata.
+      var md = sc[dataset] ? sc[dataset].metadata : null;
+      var s = sc;
+      while (s.$parent && s.hasOwnProperty('$index')) s = s.$parent;
+      if (sc.subname) {
+        s[dataset][subname] = d;
+        if (md) s[dataset][subname].metadata = md;
+      } else {
+        s[dataset] = d;
+        if (md) s[dataset].metadata = md;
+      }
     };
     if (!src) {
       var datatext = '';
@@ -3108,8 +3133,6 @@ radian.directive('plotData', ['$http', function($http)
         .success(function(data, status, headers, config) {
           format = (headers("Content-Type") == 'application/json') ?
             'json' : 'csv';
-          if (format == 'csv' && !cols)
-            throw Error('CSV <plot-data> must have COLS');
           processData(data);
         })
         .error(function() { throw Error("failed to read data from " + src); });
@@ -4424,22 +4447,23 @@ radian.factory('radianLegend', function()
   return function(svgelm, scope) {
     // Render interactive legend.
     var nswitch = scope.switchable.length;
+    svgelm.selectAll('g.radian-legend').remove();
     if (nswitch > 1) {
       var legendps = scope.switchable;
-      var leggs = svgelm.append('g').selectAll('g')
+      var leggs = svgelm.append('g')
+        .attr('class', 'radian-legend').selectAll('g')
         .data(legendps).enter().append('g');
       var legcs = leggs.append('circle').style('stroke-width', 1).attr('r', 5)
         .attr('fill', function(d,i) {
-          return (d.stroke instanceof Array ? d.stroke[0] : d.stroke) || '#000';
+          return d.enabled ?
+            ((d.stroke instanceof Array ? d.stroke[0] : d.stroke) || '#000') :
+          '#f5f5f5';
         })
         .attr('stroke', function(d,i) {
           return (d.stroke instanceof Array ? d.stroke[0] : d.stroke) || '#000';
         });
       var clickHandler = function(d,i) {
         d.enabled = !d.enabled;
-        d3.select(this).select('circle')
-          .attr('fill', d.enabled ?
-                (d.stroke || '#000') : '#f5f5f5');
         scope.$emit('paintChange');
       };
       leggs.on('click', clickHandler);
