@@ -20,7 +20,7 @@ pages :: Pattern
 pages = fromList ["changelog.markdown", "community.markdown",
                   "documentation.markdown", "download.markdown",
                   "faq.markdown", "roadmap.markdown", "index.markdown",
-                  "license.markdown", "news.markdown"]
+                  "license.markdown", "contact.markdown"]
 
 
 -- | Directories with more pages.
@@ -48,6 +48,10 @@ main = hakyllWith hakyllConf $ do
     compile copyFileCompiler
 
   match "font/*" $ do
+    route idRoute
+    compile copyFileCompiler
+
+  match "downloads/*" $ do
     route idRoute
     compile copyFileCompiler
 

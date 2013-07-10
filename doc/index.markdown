@@ -42,6 +42,17 @@ elements embedded directly in the page, so can be rendered by most
 modern browsers.
 
 Radian is licensed under the [Mozilla public license](license.html).
+
+<br>
+**Applications**
+
+<a href="http://www.bayeshive.com"><img class="pull-right" src="img/bayeshive-logo.svg" width=150></a>
+
+Radian is used extensively in the
+[BayesHive](http://www.bayeshive.com) Bayesian statistics platform.
+If you want to get an idea of what you can do with Radian, take a look
+at BayesHive.
+
 </div>
 
 <hr>

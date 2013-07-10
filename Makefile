@@ -41,3 +41,9 @@ examples: radian.js src/radian.css
 
 clean:
 	rm -f radian*.js
+
+DISTS=examples lib Makefile radian.js radian.min.js README.md src tools
+
+dist:
+	tar czf dist.tar.gz $(addprefix ./,$(DISTS))
+	zip -r dist.zip $(addprefix ./,$(DISTS))
