@@ -16,7 +16,7 @@
 
 .radian svg text { font: normal 12px Arial; }
 .radian svg .title { font: bold 14px Arial; }
-.radian .no-data { font-size: 18px; font-weight: bold; }
+.radian svg .no-data text { font-size: 24px; font-weight: bold; }
 
 .radian .background {
   fill: white;

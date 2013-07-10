@@ -23,7 +23,8 @@ at each of the plot points.  Markers have a shape and size, and can be
 filled and stroked (so have colours and opacities for both as well as
 a stroke width).
 
-<div class="plot-title">Example 6</div>
+<plot-example key=6 title="Example 6"></plot-example>
+
 ``` html
 <plot height=300 aspect=1>
   <points x="[[iris.sepal_length]]" y="[[iris.petal_length]]"
@@ -39,6 +40,20 @@ a stroke width).
 </plot-data>
 ```
 
+<plot ng-class="plotVisible[6]" height=300 aspect=1>
+  <points x="[[iris.sepal_length]]" y="[[iris.petal_length]]"
+          marker-size=25 stroke="none" fill="red"></points>
+</plot>
+
+<plot-data name="iris" format="csv" src="/data/iris.csv"
+           cols="sepal_length,sepal_width,petal_length,petal_width,species">
+  <metadata name="sepal_length" label="Sepal length" units="mm"></metadata>
+  <metadata name="sepal_width" label="Sepal width" units="mm"></metadata>
+  <metadata name="petal_length" label="Petal length" units="mm"></metadata>
+  <metadata name="petal_width" label="Petal width" units="mm"></metadata>
+</plot-data>
+
+
 Marker type is given using the `marker` attribute.  Marker size is set
 by the `marker-size` attribute, which gives a measure of the *area* in
 square pixels of the marker.  Colours are set with the `stroke` and
@@ -51,7 +66,8 @@ that we won't discuss much, but you can see more or less what to do
 (all the details are in the
 [reference manual](/ref-manual/03-palettes-and-interpolators.html)).
 
-<div class="plot-title">Example 7</div>
+<plot-example key=7 title="Example 7"></plot-example>
+
 ``` html
 <plot height=300 aspect=1>
   <points x="[[iris.sepal_length]]" y="[[iris.petal_length]]"
@@ -79,6 +95,21 @@ that we won't discuss much, but you can see more or less what to do
   <metadata name="petal_width" label="Petal width" units="mm"></metadata>
 </plot-data>
 ```
+
+<palette name="spmark" type="discrete">
+  \"I. setosa\" circle; \"I. versicolor\" square; \"I. virginica\" diamond
+</palette>
+
+<palette name="spcol" type="discrete">
+  \"I. setosa\" red; \"I. versicolor\" green; \"I. virginica\" blue
+</palette>
+
+<plot ng-class="plotVisible[7]" height=300 aspect=1>
+  <points x="[[iris.sepal_length]]" y="[[iris.petal_length]]"
+          marker="[[spmark(iris.species)]]"
+          marker-size=25 fill="[[spcol(iris.species)]]"></points>
+</plot>
+
 
 <br>
 <div class="exercise">

@@ -42,9 +42,8 @@ histograms, more complex Radian expressions and plot layout.
 
 ## [3. Interactive plots](3-interactive-plots)
 
-Interactivity using Angular: builds a simple data viewer for
+Interactivity using Angular: builds a simple data viewer for some
 historical financial data.
 
-###### [3.1. Data via URLs](3-interactive-plots/3-1-data-via-urls.html)
-###### [3.2. Angular data binding](3-interactive-plots/3-2-data-binding.html)
-###### [3.3. Putting it together](3-interactive-plots/3-3-putting-it-together.html)
+###### [3.1. Angular data binding](3-interactive-plots/3-1-data-binding.html)
+###### [3.2. Building the example](3-interactive-plots/3-2-building-the-example.html)

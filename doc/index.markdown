@@ -3,8 +3,10 @@ layout: default
 title: Home
 ---
 
+<div class="hero-unit">
 **Radian** is an open source JavaScript library that makes it easy to
-embed plots in HTML documents.
+embed plots in HTML documents.  It is being developed as part of
+OpenBrain's [BayesHive](http://www.bayeshive.com) project.
 
 Instead of writing JavaScript plotting code yourself, you use custom
 HTML elements to represent plots.  For instance, the HTML code on the
@@ -40,6 +42,7 @@ elements embedded directly in the page, so can be rendered by most
 modern browsers.
 
 Radian is licensed under the [Mozilla public license](license.html).
+</div>
 
 <hr>
 ### Features

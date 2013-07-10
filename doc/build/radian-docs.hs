@@ -19,7 +19,7 @@ hakyllConf = defaultConfiguration {
 pages :: Pattern
 pages = fromList ["changelog.markdown", "community.markdown",
                   "documentation.markdown", "download.markdown",
-                  "faq.markdown", "index.markdown",
+                  "faq.markdown", "roadmap.markdown", "index.markdown",
                   "license.markdown", "news.markdown"]
 
 
@@ -47,6 +47,10 @@ main = hakyllWith hakyllConf $ do
     route idRoute
     compile copyFileCompiler
 
+  match "font/*" $ do
+    route idRoute
+    compile copyFileCompiler
+
   match "gallery/eg/*" $ do
     route idRoute
     compile copyFileCompiler
@@ -71,7 +75,7 @@ main = hakyllWith hakyllConf $ do
     route idRoute
     compile copyFileCompiler
 
-  match "data/*" $ do
+  match "data/**" $ do
     route idRoute
     compile copyFileCompiler
 

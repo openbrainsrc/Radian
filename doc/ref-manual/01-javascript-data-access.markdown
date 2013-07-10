@@ -16,13 +16,14 @@ values from page UI elements or other sources.
 
 ### Attributes
 
-|Name       |Description                                                  |
-|-----------|-------------------------------------------------------------|
-|`NAME`     |Data set name (mandatory)                                    |
-|`FORMAT`   |One of `csv` or `json` (default)                             |
-|`COLS`     |Column names for CSV data                                    |
-|`SEPARATOR`|Separator character for columns in CSV data (defaults to ",")|
-|`SRC`      |URL for data source                                          |
+|Name       |&nbsp;&nbsp;&nbsp;|Description|
+|-----------|-|----------------------------|
+|`NAME`     | |Data set name (mandatory)|
+|`SUBNAME`  | |Data set sub-name|
+|`FORMAT`   | |One of `csv` or `json` (default)|
+|`COLS`     | |Column names for CSV data|
+|`SEPARATOR`| |Separator character for columns in CSV data (defaults to ",")|
+|`SRC`      | |URL for data source|
 
 ### Body
 
@@ -33,16 +34,17 @@ values are included in the body of the directive in the given format.
 ### Interpretation
 
 The `<plot-data>` directive forms an association between the name
-given as the `ID` attribute of the directive and the given data set.
+given as the `NAME` attribute of the directive and the given data set.
 The data set name can then be used to create data paths to access
 components of the data set in plotting directives
 ([see here](#data-accessors)).  The data set name is installed as an
 Angular variable in the Angular scope of the containing HTML element.
-The `<plot-data>` element does not create a scope of its own.  (Note
-that including `<plot-data>` elements within an `ng-repeat` can cause
-problems because of the additional intermediate scopes created by
-`ng-repeat`.  Don't do that.  If you find that you need to do it,
-contact us and we'll think about doing something to make it possible.)
+If the `SUBNAME` attribute is supplied as well, then the data is
+installed as the `SUBNAME` field of an Angular scope variable whose
+name is `NAME` (this is useful for using `<plot-data>` in conjunction
+with `ng-repeat`).  The `<plot-data>` element does not create a scope
+of its own.  For CSV data, if no `COLS` attribute is given, the column
+names are taken from the first line of the data.
 
 When data is loaded from a URL, the semantics of the `<plot-data>`
 directive are identical to the case where the data is included

@@ -43,6 +43,7 @@ important are those for specifying plot size (`WIDTH`, `HEIGHT` and
 |`AXIS-X2-LABEL`     | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
 |`AXIS-Y-LABEL`      | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
 |`AXIS-Y2-LABEL`     | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`NO-DATA`           | |Message to display when no data is available|
 |`X`                 | |Data path defining x-coordinate for plot data|
 |`Y`                 | |Data path defining y-coordinate for plot data|
 |`X2`                | |Data path defining x2-coordinate for plot data|

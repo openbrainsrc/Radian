@@ -25,12 +25,17 @@ you can either supply a fraction of the vertical height of the plot to
 be used for the context area, or you can just let the fraction default
 to 0.2.
 
-<div class="plot-title">Example 17 (zooming)</div>
+<plot-example key=17 title="Example 17 (zooming)"></plot-example>
+
 ``` html
 <plot height=500 width=600 x="[[seq(0.01,1,10000)]]" zoom-x=0.25>
   <lines y="[[sin(1/x)]]" stroke="red"></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[17]" height=500 width=600 x="[[seq(0.01,1,10000)]]" zoom-x=0.25>
+  <lines y="[[sin(1/x)]]" stroke="red"></lines>
+</plot>
 
 <hr>
 ## Visibility switching
@@ -41,7 +46,8 @@ do this in Radian, add the `legend-switches` attribute to the `<plot>`
 directive, and provide a label for each switchable plot with a `label`
 attribute:
 
-<div class="plot-title">Example 18 (visibility switching)</div>
+<plot-example key=18 title="Example 18 (visibility switching)"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(0,4*PI,501)]]" legend-switches>
   <lines y="[[sin(x)]]" stroke="red" label="sin"></lines>
@@ -50,6 +56,13 @@ attribute:
          stroke="green" label="mixed"></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[18]" height=300 aspect=2 x="[[seq(0,4*PI,501)]]" legend-switches>
+  <lines y="[[sin(x)]]" stroke="red" label="sin"></lines>
+  <lines y="[[cos(x)]]" stroke="blue" label="cos"></lines>
+  <lines y="[[2*sin(3*x)+cos(5*x+PI/4)]]" stroke-width=2
+         stroke="green" label="mixed"></lines>
+</plot>
 
 
 <hr>

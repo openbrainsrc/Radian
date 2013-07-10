@@ -29,7 +29,8 @@ layout).
 
 Here's a quick example to show how this works:
 
-<div class="plot-title">Example 11 (tree layout)</div>
+<plot-example key=11 title="Example 11 (tree layout)"></plot-example>
+
 ``` html
 <plot-row width=600 height=400 x="[[seq(0,2*PI,101)]]">
   <plot-col layout-share=1>
@@ -48,6 +49,24 @@ Here's a quick example to show how this works:
   </plot>
 </plot-row>
 ```
+
+<plot-row ng-class="plotVisible[11]" width=600 height=400 x="[[seq(0,2*PI,101)]]">
+  <plot-col layout-share=1>
+    <plot>
+      <lines y="[[sin(x)]]"></lines>
+    </plot>
+    <plot>
+      <lines y="[[sin(2*x)]]"></lines>
+    </plot>
+    <plot>
+      <lines y="[[sin(3*x)]]"></lines>
+    </plot>
+  </plot-col>
+  <plot layout-share=3>
+    <lines y="[[sin(x)+sin(2*x)+sin(3*x)]]"></lines>
+  </plot>
+</plot-row>
+
 
 This plot has a column of three small plots next to a single large
 plot.  Note how the plot size is defined on the outermost plot layout
@@ -78,7 +97,8 @@ suitable number of `<plot>` directives inside the `<plot-grid>`
 directive, and the plots will be laid out in rows in the order you
 give them:
 
-<div class="plot-title">Example 12 (grid layout)</div>
+<plot-example key=12 title="Example 12 (grid layout)"></plot-example>
+
 ``` html
 <plot-grid width=600 height=600 rows=2 cols=2 x="[[seq(0,2*PI,101)]]">
   <plot>
@@ -95,6 +115,22 @@ give them:
   </plot>
 </plot-grid>
 ```
+
+<plot-grid ng-class="plotVisible[12]" width=600 height=600 rows=2 cols=2 x="[[seq(0,2*PI,101)]]">
+  <plot>
+    <lines y="[[sin(x)]]"></lines>
+  </plot>
+  <plot>
+    <lines y="[[sin(2*x)]]"></lines>
+  </plot>
+  <plot>
+    <lines y="[[sin(3*x)]]"></lines>
+  </plot>
+  <plot>
+    <lines y="[[sin(x)+sin(2*x)+sin(3*x)]]"></lines>
+  </plot>
+</plot-grid>
+
 
 <br>
 <hr>

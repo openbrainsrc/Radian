@@ -15,7 +15,8 @@ coordinates give the centres of the bars and the *y* coordinates their
 tops.  There is one wrinkle you need to be aware of, displayed in this
 plot:
 
-<div class="plot-title">Example 8 (single bars)</div>
+<plot-example key=8 title="Example 8 (single bars)"></plot-example>
+
 ``` html
 <plot height=300 aspect=1 range-y=0>
   <bars x="[[dat.month]]" y="[[dat.precip]]"></bars>
@@ -37,6 +38,14 @@ plot:
 </plot-data>
 ```
 
+<plot ng-class="plotVisible[8]" height=300 aspect=1 range-y=0>
+  <bars x="[[d8.month]]" y="[[d8.precip]]"></bars>
+</plot>
+
+<plot-data name="d8" format="csv" cols="month,precip" src="/data/tutorial-2/d8.csv">
+</plot-data>
+
+
 We have set the `range-y` attribute on the `<plot>` directive to
 ensure that the *y*-axis runs from zero upwards so that we see the
 full extent of the bars.  Most of the time this is what you will want
@@ -49,7 +58,8 @@ width and relative location of bars can also be modified, using the
 fractions of the "natural" bar width, or as pixel values, and are
 useful for plotting multiple series of bars on the same axes:
 
-<div class="plot-title">Example 9 (double bars)</div>
+<plot-example key=9 title="Example 9 (double bars)"></plot-example>
+
 ``` html
 <plot height=300 aspect=1 range-y=0 stroke="none" bar-width=0.3>
   <bars x="[[dat.x]]" y="[[dat.y]]" fill="red" bar-offset=0.2></bars>
@@ -72,6 +82,15 @@ useful for plotting multiple series of bars on the same axes:
 </plot-data>
 ```
 
+<plot ng-class="plotVisible[9]" height=300 aspect=1 range-y=0 stroke="none" bar-width=0.3>
+  <bars x="[[d9.x]]" y="[[d9.y]]" fill="red" bar-offset=0.2></bars>
+  <bars x="[[d9.x]]" y="[[d9.z]]" fill="blue" bar-offset=-0.2></bars>
+</plot>
+
+<plot-data name="d9" format="csv" cols="x,y,z" src="/data/tutorial-2/d9.csv">
+</plot-data>
+
+
 (There are some other features of bar charts that allow you to draw
 bars of unequal widths.  You can read about these in the
 [reference manual](/ref-manual/02-plot-types.html#bars-directive).)
@@ -91,7 +110,8 @@ also optional coordinate transformations that can be used for creating
 log-space histograms).  In the simplest case, this is all that's
 needed to create a histogram:
 
-<div class="plot-title">Example 10 (histogram)</div>
+<plot-example key=10 title="Example 10 (histogram)"></plot-example>
+
 ``` html
 <plot height=300 aspect=1 range-y=0 stroke="none"
       hist="[[histogram(dat.x,10)]]">
@@ -121,6 +141,15 @@ needed to create a histogram:
   -0.33640740
 </plot-data>
 ```
+
+<plot ng-class="plotVisible[10]" height=300 aspect=1 range-y=0 stroke="none"
+      hist="[[histogram(d10.x,10)]]">
+  <bars x="[[hist.centres]]" y="[[hist.counts]]" fill="red"></bars>
+</plot>
+
+<plot-data name="d10" format="csv" cols="x" src="/data/tutorial-2/d10.csv">
+</plot-data>
+
 
 Much more complex applications are possible: you can calculate
 multiple histograms using the same bins for plotting on the same axes,

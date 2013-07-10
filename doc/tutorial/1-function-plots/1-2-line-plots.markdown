@@ -24,7 +24,8 @@ Multiple `<lines>` directives can be contained within a single
 `<plot>` directive, and the lines are drawn in the order that they are
 given.  For example, Example 7 draws two curves:
 
-<div class="plot-title">Example 7</div>
+<plot-example key=7 title="Example 7"></plot-example>
+
 ``` html
 <plot height=300 aspect=2>
   <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
@@ -32,17 +33,28 @@ given.  For example, Example 7 draws two curves:
 </plot>
 ```
 
+<plot ng-class="plotVisible[7]" height=300 aspect=2>
+  <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
+  <lines x="[[seq(0,2*PI,101)]]" y="[[cos(x)]]"></lines>
+</plot>
+
 In this case, because the two `<lines>` directives use the same *x*
 coordinate values, we can pull the definition of the *x* values out
 and put it on the `<plot>` directive:
 
-<div class="plot-title">Example 8</div>
+<plot-example key=8 title="Example 8"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(0,2*PI,101)]]">
   <lines y="[[sin(x)]]"></lines>
   <lines y="[[cos(x)]]"></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[8]" height=300 aspect=2 x="[[seq(0,2*PI,101)]]">
+  <lines y="[[sin(x)]]"></lines>
+  <lines y="[[cos(x)]]"></lines>
+</plot>
 
 > **Caveat**
 >
@@ -59,7 +71,8 @@ There are a couple of options that we can specify for the rendering of
 our line plots: stroke width, colour and opacity.  Here, we plot our
 two curves with different colours and different (fat) line widths:
 
-<div class="plot-title">Example 9</div>
+<plot-example key=9 title="Example 9"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(0,2*PI,101)]]">
   <lines y="[[sin(x)]]" stroke="red" stroke-width=5></lines>
@@ -67,11 +80,17 @@ two curves with different colours and different (fat) line widths:
 </plot>
 ```
 
+<plot ng-class="plotVisible[9]" height=300 aspect=2 x="[[seq(0,2*PI,101)]]">
+  <lines y="[[sin(x)]]" stroke="red" stroke-width=5></lines>
+  <lines y="[[cos(x)]]" stroke="blue" stroke-width=10></lines>
+</plot>
+
 We can activate alpha blending between overlying plot elements in one
 of two ways.  We can either specify a stroke opacity for the overlying
 element:
 
-<div class="plot-title">Example 10</div>
+<plot-example key=10 title="Example 10"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(0,2*PI,101)]]">
   <lines y="[[sin(x)]]" stroke="red" stroke-width=5></lines>
@@ -80,16 +99,29 @@ element:
 </plot>
 ```
 
+<plot ng-class="plotVisible[10]" height=300 aspect=2 x="[[seq(0,2*PI,101)]]">
+  <lines y="[[sin(x)]]" stroke="red" stroke-width=5></lines>
+  <lines y="[[cos(x)]]" stroke="blue" stroke-width=10
+         stroke-opacity=0.5></lines>
+</plot>
+
 or we can use an `rgba` style colour specification for the stroke
 colour of the overlying element:
 
-<div class="plot-title">Example 11</div>
+<plot-example key=11 title="Example 11"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(0,2*PI,101)]]">
   <lines y="[[sin(x)]]" stroke="red" stroke-width=5></lines>
   <lines y="[[cos(x)]]" stroke="rgba(0,0,255,0.5)" stroke-width=10></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[11]" height=300 aspect=2 x="[[seq(0,2*PI,101)]]">
+  <lines y="[[sin(x)]]" stroke="red" stroke-width=5></lines>
+  <lines y="[[cos(x)]]" stroke="rgba(0,0,255,0.5)" stroke-width=10></lines>
+</plot>
+
 <br>
 <div class="exercise">
 **Exercise**

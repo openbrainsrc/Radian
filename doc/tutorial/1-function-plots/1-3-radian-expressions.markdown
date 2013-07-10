@@ -67,7 +67,8 @@ JavaScript, but is a Radian "extra", added for convenience.)
 
 This example plots a number of different polynomial curves:
 
-<div class="plot-title">Example 12</div>
+<plot-example key=12 title="Example 12"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(-5,5,101)]]">
   <lines y="[[20*x+5]]" stroke="red"></lines>
@@ -75,6 +76,12 @@ This example plots a number of different polynomial curves:
   <lines y="[[2*x**3-30*x-32]]" stroke="green"></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[12]" height=300 aspect=2 x="[[seq(-5,5,101)]]">
+  <lines y="[[20*x+5]]" stroke="red"></lines>
+  <lines y="[[3*x**2-10*x-40]]" stroke="blue"></lines>
+  <lines y="[[2*x**3-30*x-32]]" stroke="green"></lines>
+</plot>
 
 There are two things to note here.
 
@@ -109,13 +116,19 @@ expression is the array of all these results.
 
 To see another example of how this works, consider this example:
 
-<div class="plot-title">Example 13</div>
+<plot-example key=13 title="Example 13"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(-5,5,101)]]" a="[[seq(0,20,101)]]">
   <lines y="[[a*x+5]]" stroke="red"></lines>
   <lines y="[[3*x**2-a*x-a]]" stroke="blue"></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[13]" height=300 aspect=2 x="[[seq(-5,5,101)]]" a="[[seq(0,20,101)]]">
+  <lines y="[[a*x+5]]" stroke="red"></lines>
+  <lines y="[[3*x**2-a*x-a]]" stroke="blue"></lines>
+</plot>
 
 Here, as well as the coordinate array `x`, we define another array
 called `a` which we then use in the expressions for the
@@ -149,7 +162,8 @@ for the full list).  Where it makes sense, these functions are
 vectorised over the appropriate arguments in the same way as
 arithmetic expressions.  Here are some examples.
 
-<div class="plot-title">Example 14 (trigonometric functions)</div>
+<plot-example key=14 title="Example 14 (trigonometric functions)"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(0,4*PI,501)]]">
   <lines y="[[sin(x)]]" stroke="red"></lines>
@@ -159,7 +173,15 @@ arithmetic expressions.  Here are some examples.
 </plot>
 ```
 
-<div class="plot-title">Example 15 (rounding)</div>
+<plot ng-class="plotVisible[14]" height=300 aspect=2 x="[[seq(0,4*PI,501)]]">
+  <lines y="[[sin(x)]]" stroke="red"></lines>
+  <lines y="[[cos(x)]]" stroke="blue"></lines>
+  <lines y="[[2*sin(3*x)+cos(5*x+PI/4)]]" stroke-width=2
+         stroke="green"></lines>
+</plot>
+
+<plot-example key=15 title="Example 15 (rounding)"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(0,4*PI,501)]]"
       s="[[10*sin(x)]]" c="[[10*cos(x)]]"
@@ -173,13 +195,30 @@ arithmetic expressions.  Here are some examples.
 </plot>
 ```
 
-<div class="plot-title">Example 16 (probability distributions)</div>
+<plot ng-class="plotVisible[15]" height=300 aspect=2 x="[[seq(0,4*PI,501)]]"
+      s="[[10*sin(x)]]" c="[[10*cos(x)]]"
+      m="[[5*(2*sin(3*x)+cos(5*x+PI/4))]]">
+  <lines y="[[ceil(s)]]" stroke="red"></lines>
+  <lines y="[[floor(s)]]" stroke="red"></lines>
+  <lines y="[[ceil(c)]]" stroke="blue"></lines>
+  <lines y="[[floor(c)]]" stroke="blue"></lines>
+  <lines y="[[ceil(m)]]" stroke="green"></lines>
+  <lines y="[[floor(m)]]" stroke="green"></lines>
+</plot>
+
+<plot-example key=16 title="Example 16 (probability distributions)"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[seq(0,6,101)]]">
   <lines y="[[normal(x,3,0.5)]]" stroke="red"></lines>
   <lines y="[[gamma(x,2,0.5)]]" stroke="blue"></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[16]" height=300 aspect=2 x="[[seq(0,6,101)]]">
+  <lines y="[[normal(x,3,0.5)]]" stroke="red"></lines>
+  <lines y="[[gamma(x,2,0.5)]]" stroke="blue"></lines>
+</plot>
 
 <div class="exercise">
 **Exercise**

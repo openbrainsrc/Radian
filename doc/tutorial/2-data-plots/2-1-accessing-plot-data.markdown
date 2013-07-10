@@ -24,7 +24,8 @@ clever with Angular scopes, things will just work.
 As a simple example, here is a case where we provide a small CSV data
 set directly within the page:
 
-<div class="plot-title">Example 1</div>
+<plot-example key=1 title="Example 1"></plot-example>
+
 ``` html
 <plot height=300 aspect=2>
   <lines x="[[dat.a]]" y="[[dat.b]]"></lines>
@@ -41,6 +42,14 @@ set directly within the page:
 </plot-data>
 ```
 
+<plot ng-class="plotVisible[1]" height=300 aspect=2>
+  <lines x="[[d1.a]]" y="[[d1.b]]"></lines>
+</plot>
+
+<plot-data name="d1" format="csv" cols="a,b" src="/data/tutorial-2/d1.csv">
+</plot-data>
+
+
 We specify the name we want to use for the data set in Radian
 expressions using the `name` attribute of the `<plot-data>` directive.
 The `format` attribute denotes that the data is formatted as comma
@@ -55,7 +64,8 @@ attribute of the `<plot-data>` directive.
 As an alternative to writing the data directly into our web pages, we
 can load data from a URL:
 
-<div class="plot-title">Example 2</div>
+<plot-example key=2 title="Example 2"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 x="[[dat.day]]">
   <lines y="[[dat.temp]]" stroke="red"></lines>
@@ -66,6 +76,16 @@ can load data from a URL:
            src="/data/vic2012.csv">
 </plot-data>
 ```
+
+<plot ng-class="plotVisible[2]" ng-class="plotVisible[]" height=300 aspect=2 x="[[d2.day]]">
+  <lines y="[[d2.temp]]" stroke="red"></lines>
+  <lines y2="[[d2.prec]]" stroke="blue"></lines>
+</plot>
+
+<plot-data name="d2" format="csv" cols="day,temp,prec"
+           src="/data/vic2012.csv">
+</plot-data>
+
 
 The only difference with this use of `<plot-data>` is that we omit the
 inline data and instead provide a URL using the `src` attribute.  This
@@ -91,7 +111,8 @@ Data for Radian can be provided in CSV format, or as JSON data.  The
 two following `<plot-data>` directives specify the same data, but in
 different formats:
 
-<div class="plot-title">CSV data</div>
+<plot-example title="CSV data"></plot-example>
+
 ``` html
 <plot-data name="dcsv" format="csv" cols="a,b">
 1,1
@@ -100,7 +121,8 @@ different formats:
 </plot-data>
 ```
 
-<div class="plot-title">JSON data</div>
+<plot-example title="JSON data"></plot-example>
+
 ``` html
 <plot-data name="djson" format="json">
 [ { "a": 1, "b": 1 },
@@ -137,7 +159,8 @@ structure.  For example, in a Radian expression, we can write
 
 We can use the pluck operator to rewrite Example 1 using JSON data:
 
-<div class="plot-title">Example 3</div>
+<plot-example key=3 title="Example 3"></plot-example>
+
 ``` html
 <plot height=300 aspect=2>
   <lines x="[[dat#a]]" y="[[dat#b]]"></lines>
@@ -153,6 +176,14 @@ We can use the pluck operator to rewrite Example 1 using JSON data:
  { "a": 7, "b": 5 }]
 </plot-data>
 ```
+
+<plot ng-class="plotVisible[3]" height=300 aspect=2>
+  <lines x="[[d3#a]]" y="[[d3#b]]"></lines>
+</plot>
+
+<plot-data name="d3" format="json" src="/data/tutorial-2/d3.json">
+</plot-data>
+
 
 The pluck operator is actually rather more flexible than this[^1], but
 this simple field plucking is sufficient for our purposes for now.
@@ -170,7 +201,8 @@ to label plot axes.
 For example, if we take the above example and add some metadata
 information, Radian can label the axes with a suitable label and unit:
 
-<div class="plot-title">Example 4</div>
+<plot-example key=4 title="Example 4"></plot-example>
+
 ``` html
 <plot height=300 aspect=2>
   <lines x="[[dat#a]]" y="[[dat#b]]"></lines>
@@ -189,12 +221,23 @@ information, Radian can label the axes with a suitable label and unit:
 </plot-data>
 ```
 
+<plot ng-class="plotVisible[4]" height=300 aspect=2>
+  <lines x="[[d4#a]]" y="[[d4#b]]"></lines>
+</plot>
+
+<plot-data name="d4" format="json" src="/data/tutorial-2/d4.json">
+  <metadata name="a" label="Aardvarks" units="Mt"></metadata>
+  <metadata name="b" label="Bogosity" units="nBogon"></metadata>
+</plot-data>
+
+
 Metadata specifications are particularly useful for dealing with date
 and time data.  We can specify that a data field represents dates, and
 if necessary give a format to be used for parsing the date values
 (many reasonable formats are handled automatically):
 
-<div class="plot-title">Example 5</div>
+<plot-example key=5 title="Example 5"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 axis-x-label="January 2012">
   <lines x="[[dat.date]]" y="[[dat.temp]]"></lines>
@@ -219,6 +262,16 @@ if necessary give a format to be used for parsing the date values
 "2012-01-14",  1.70
 </plot-data>
 ```
+
+<plot ng-class="plotVisible[5]" height=300 aspect=2 axis-x-label="January 2012">
+  <lines x="[[d5.date]]" y="[[d5.temp]]"></lines>
+</plot>
+
+<plot-data name="d5" format="csv" cols="date,temp" src="/data/tutorial-2/d5.csv">
+  <metadata name="date" format="date"></metadata>
+  <metadata name="temp" label="Temperature" units="&deg;C"></metadata>
+</plot-data>
+
 
 <br>
 <div class="exercise">

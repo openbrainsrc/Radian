@@ -16,12 +16,17 @@ shared by all the items displayed on a plot.
 In order to demonstrate some features of the `<plot>` directive, we
 will use the following piece of plotting code:
 
-<div class="plot-title">Example 1</div>
+<plot-example key=1 title="Example 1"></plot-example>
+
 ``` html
 <plot>
   <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[1]">
+  <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
+</plot>
 
 Don't worry about the `<lines>` directive yet.  We'll cover that in
 the next section.  If you have checked out the `part-1` tag from the
@@ -43,12 +48,17 @@ ratio of the width to the height).  All plot dimensions are given in
 pixels, and are used directly to control the size of the resulting SVG
 image in the HTML page containing the `<plot>` directive.
 
-<div class="plot-title">Example 2</div>
+<plot-example key=2 title="Example 2"></plot-example>
+
 ``` html
 <plot height=300 aspect=2>
   <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[2]" height=300 aspect=2>
+  <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
+</plot>
 
 This gives us a plot that is 300 pixels tall and 600 pixels wide (it's
 twice as wide as tall, to give an aspect ratio of 2).
@@ -71,16 +81,22 @@ plots using the `AXIS-X`, `AXIS-Y`, `AXIS-X-LABEL` and `AXIS-Y-LABEL`
 attributes of the `<plot>` directive.  For instance, Example 3 has no
 axes at all:
 
-<div class="plot-title">Example 3</div>
+<plot-example key=3 title="Example 3"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 axis-x="off" axis-y="off">
   <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
 </plot>
 ```
 
+<plot ng-class="plotVisible[3]" height=300 aspect=2 axis-x="off" axis-y="off">
+  <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
+</plot>
+
 while Example 4 has axes and explicitly set axis labels:
 
-<div class="plot-title">Example 4</div>
+<plot-example key=4 title="Example 4"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 axis-x-label="Custom X axis label"
       axis-y-label="Custom Y axis label">
@@ -88,21 +104,33 @@ while Example 4 has axes and explicitly set axis labels:
 </plot>
 ```
 
+<plot ng-class="plotVisible[4]" height=300 aspect=2 axis-x-label="Custom X axis label"
+      axis-y-label="Custom Y axis label">
+  <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
+</plot>
+
+
 <hr>
 ## Titles and fonts
 
 We can give our plots a title:
 
-<div class="plot-title">Example 5</div>
+<plot-example key=5 title="Example 5"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 title="Example 5">
   <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
 </plot>
 ```
 
+<plot ng-class="plotVisible[5]" height=300 aspect=2 title="Example 5">
+  <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
+</plot>
+
 and we can adjust the fonts for the axes and title independently:
 
-<div class="plot-title">Example 6</div>
+<plot-example key=6 title="Example 6"></plot-example>
+
 ``` html
 <plot height=300 aspect=2 title="Example 6"
       font-family="Monospace" font-size=16
@@ -110,6 +138,12 @@ and we can adjust the fonts for the axes and title independently:
   <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
 </plot>
 ```
+
+<plot ng-class="plotVisible[6]" height=300 aspect=2 title="Example 6"
+      font-family="Monospace" font-size=16
+      title-font-family="Serif" title-font-style="italic">
+  <lines x="[[seq(0,2*PI,101)]]" y="[[sin(x)]]"></lines>
+</plot>
 
 <br>
 <div class="exercise">
