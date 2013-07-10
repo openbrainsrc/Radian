@@ -29,29 +29,27 @@
       </div>
     </div>
 
-    <p>{% for post in site.tags.changelog limit:1 %}</p>
-<h2 id="download">Download</h2>
-<p>The current version is <strong>{{ post.title }}</strong>, which was released on {{ post.date | date: “%B %e, %Y” }}. See the <a href="changelog.html">version history</a> for a list of changes.</p>
+    <h2 id="download">Download</h2>
+<p>The current (and first!) release version is 0.1, which was released on 2013-07-10:</p>
 <table>
-<col width="3%" />
+<thead>
+<tr class="header">
+<th align="left">TGZ</th>
+<th align="left">      </th>
+<th align="left">ZIP</th>
+</tr>
+</thead>
 <tbody>
 <tr class="odd">
-<td align="left">### Source archive</td>
-</tr>
-<tr class="even">
-<td align="left"><a class="download" href="http://somewhere/{{ post.title }}/Radian-{{ post.title }}.zip/download" title="Download Source (ZIP)">Download</a></td>
-</tr>
-<tr class="odd">
-<td align="left">This contains:</td>
-</tr>
-<tr class="even">
-<td align="left">- The complete source code for the Radian library - A collection of example plots - Full <a href="documentation.html">documentation</a></td>
+<td align="left"><a href="./downloads/radian-0.1.tar.gz">radian-0.1.tar.gz</a></td>
+<td align="left"></td>
+<td align="left"><a href="./downloads/radian-0.1.zip">radian-0.1.zip</a></td>
 </tr>
 </tbody>
 </table>
-<h2 id="git-repository">Git repository</h2>
-<p>The latest version of the source code, including tags for all releases, is always available in our <a href="https://github.com/openbrainsrc/Radian">Git repository</a>.</p>
-<p>{% endfor %}</p>
+<hr>
+<h2 id="github-repository">GitHub repository</h2>
+<p>The latest version of the source code, including tags for all releases, is always available in our <a href="https://github.com/openbrainsrc/Radian">GitHub repository</a>.</p>
 
     <footer>
       <div>
