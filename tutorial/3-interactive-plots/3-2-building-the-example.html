@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 3.2. Building the example</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+          <li><a href="../../roadmap.html">Roadmap</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="building-the-example">3.2. Building the example</h1>
+<p>In this section of the tutorial, we’re going to build the stock price viewer example step by step. It’s a little complicated, but we’ll take it slowly, starting with something you should already know how to do.</p>
+<hr>
+<h2 id="step-1-plotting-a-single-time-series">Step 1: Plotting a single time series</h2>
+<p>First, we’re going to plot a single time series: the opening price for the CSCO stock. All the stock data we’re going to use is in the <code>data</code> directive in the <code>Radian-tutorial</code> directory (assuming you’ve checked out <code>part-3</code> of the tutorial). The files are called <code>CSCO.csv</code>, <code>DELL.csv</code> and so on. This means that we can access the <code>CSCO</code> data using the URL <code>/data/CSCO.csv</code> in a <code>&lt;plot-data&gt;</code> directive <code>src</code> attribute.</p>
+<p>If you take a look at these data files, you’ll see that they have a single line header giving the column names, the first column is a date, and there is one day of data per row in each file. Because the files have a header line, we don’t need to specify a <code>cols</code> attribute in our <code>&lt;plot-data&gt;</code> directive: if there is no <code>cols</code> attribute, <code>&lt;plot-data&gt;</code> assumes that it should take the column names from the first line of the file. So, for our <code>&lt;plot-data&gt;</code> directive, we need to give the data set a name (we’ll use <code>dat</code>), we need to give the data URL and we need to say that the data format is CSV. We also need to include a <code>&lt;metadata&gt;</code> directive to say that the <code>Date</code> column of the file is a date.</p>
+<p>Once we have the data available, we can make a simple plot with a single <code>&lt;lines&gt;</code> directive to display the data.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<ol style="list-style-type: decimal">
+<li>Copy the <code>template.html</code> file to make a new HTML page.</li>
+<li>Write a suitable <code>&lt;plot-data&gt;</code> directive to access the <code>CSCO</code> data.</li>
+<li>Make a plot 800 pixels wide by 400 pixels tall with a line plot of the opening price of the <code>CSCO</code> stock (the relevant field in the CSV file is called <code>Open</code>).</li>
+<li>Tidy up the styling a little: switch off the X axis label (use <code>axis-x-label=&quot;off&quot;</code> to do this); set the Y axis label to “Opening price”; set the stroke colour to something reasonable; enable X-zooming.</li>
+</ol>
+<p><em>Things that might go wrong:</em></p>
+<ul>
+<li>You might get the data URL wrong.</li>
+<li>You might forget the <code>&lt;metadata&gt;</code> for the <code>Date</code> field.</li>
+</ul>
+<p><em>A solution to this exercise is saved as <code>ex-step-1.html</code> in the tutorial directory.</em></p>
+</div>
+
+<hr>
+<h2 id="step-2-selecting-the-plot-variable">Step 2: Selecting the plot variable</h2>
+<p>Once we have a basic line plot for a single stock, we’re going to add some simple UI interaction to choose which variable from the CSV file we plot. To do this, we need to set up two things: the user interface elements in our HTML page, and a little bit of JavaScript code to set up some data structures we can use.</p>
+<p>Let’s deal with the JavaScript code first. If you look at the bottom of the tutorial <code>template.html</code> file, you’ll see a <code>&lt;script&gt;</code> tag containing the following JavaScript code:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="ot">angular</span>.<span class="fu">module</span>(<span class="st">'myApp'</span>, [<span class="st">'radian'</span>]).
+  <span class="fu">controller</span>(<span class="st">'MyCtrl'</span>, [<span class="kw">function</span>()
+{
+}]);</code></pre>
+<p>This is the code that initialises the page for use with Radian: it sets up an Angular module to manage the page, imports the Radian library, and defines an Angular controller for the page (called <code>MyCtrl</code>). Any initialisation code we want to use can go in this controller<sup><a href="#fn1" class="footnoteRef" id="fnref1">1</a></sup>.</p>
+<p>To start with, we’re going to change this controller code as shown below. This does two things. First, it makes the Angular <code>$scope</code> value available in our controller (calling it <code>sc</code> for convenience). Angular scopes form a hierarchy of containers for values associated with different user interface elements. Here, we’re getting hold of the scope associated with the body of our HTML page. Once we have the scope, we add some values to it describing the fields of our data. For each field, we give the field’s name in the data file and a long name we will use as an axis label.</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="ot">angular</span>.<span class="fu">module</span>(<span class="st">'myApp'</span>, [<span class="st">'radian'</span>]).
+  <span class="fu">controller</span>(<span class="st">'MyCtrl'</span>, [<span class="st">'$scope'</span>, <span class="kw">function</span>(sc)
+{
+  <span class="ot">sc</span>.<span class="fu">fields</span> = [ { <span class="dt">name</span>: <span class="st">'Open'</span>,      <span class="dt">label</span>: <span class="st">'Opening price'</span> },
+                { <span class="dt">name</span>: <span class="st">'High'</span>,      <span class="dt">label</span>: <span class="st">'Daily high'</span> },
+                { <span class="dt">name</span>: <span class="st">'Low'</span>,       <span class="dt">label</span>: <span class="st">'Daily low'</span> },
+                { <span class="dt">name</span>: <span class="st">'Close'</span>,     <span class="dt">label</span>: <span class="st">'Closing price'</span> },
+                { <span class="dt">name</span>: <span class="st">'Volume'</span>,    <span class="dt">label</span>: <span class="st">'Daily volume'</span> },
+                { <span class="dt">name</span>: <span class="st">'Adj Close'</span>, <span class="dt">label</span>: <span class="st">'Adjusted closing price'</span> } ];
+}]);</code></pre>
+<p>Next, we want to add some user interface elements to our page. Before your <code>&lt;plot&gt;</code> and <code>&lt;plot-data&gt;</code> elements, you will want to put something like the following:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;form</span><span class="ot"> class=</span><span class="st">&quot;form-inline&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;label&gt;</span>Plot:<span class="kw">&lt;/label&gt;</span>
+  <span class="kw">&lt;select</span><span class="ot"> ng-model=</span><span class="st">&quot;plotvar&quot;</span><span class="ot"> ng-init=</span><span class="st">&quot;plotvar=fields[0]&quot;</span>
+<span class="ot">          ng-options=</span><span class="st">&quot;s as s.label for s in fields&quot;</span><span class="ot"> required</span><span class="kw">&gt;&lt;/select&gt;</span>
+<span class="kw">&lt;/form&gt;</span></code></pre>
+<p>This defines an HTML form that contains a single select list. The select list setup uses some useful Angular features:</p>
+<ul>
+<li><p>The value of the selection is bound to the Angular variable <code>plotvar</code> using the <code>ng-model</code> attribute. This will be a variable we can use in Radian expressions in our plotting directives.</p></li>
+<li><p>The <code>plotvar</code> variable is assigned an initial value using the <code>ng-init</code> attribute – the initial value is set to the first entry (number 0) in the <code>fields</code> array we added to our JavaScript.</p></li>
+<li><p>The entries in the select list are set using the <code>ng-options</code> attribute. This can be used in a number of different ways, but here, by saying <code>ng-options=&quot;s as s.label for s in fields&quot;</code>, we make one option in the select list for each entry in our <code>fields</code> array, we label those options using the <code>label</code> field from the objects in the <code>fields</code> array (so the select list options will say things like “Opening price”, “Daily high” and so on), and we return the whole of the entry from the <code>fields</code> array as the result of the selection. This last bit means that <code>plotvar</code> will be set to one of the entries in the <code>fields</code> array, so we’ll be able to refer to <code>plotvar.name</code> and <code>plotvar.label</code> in Radian expressions.</p></li>
+</ul>
+<p>This seems a little complicated the first time you see it, but there are a couple of stereotypical uses of <code>select</code> with <code>ng-options</code> that are very common – this is one of them, and it’s a good model to copy.</p>
+<p>Finally, we need to make the connection between the selection of the <code>plotvar</code> variable and what we plot. So far, our plot has something like <code>y=&quot;[[dat.Open]]&quot;</code> to select the opening price from our data set. Now though, we want to pull out a data field based on <code>plotvar</code>, specifically based on <code>plotvar.name</code>. That means that we’ll change our <code>y</code> attribute to say something like <code>y=&quot;[[dat[plotvar.name]]]&quot;</code> – in JavaScript, <code>dat.Open</code> really means the same as <code>dat['Open']</code>, so we can easily select a field that depends on a variable value.</p>
+<p>We also have a <code>plotvar</code>-dependent Y axis label that we can use. The <code>axis-y-label</code> attribute can be assigned a Radian expression like most other attributes of Radian plotting directives.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<ol style="list-style-type: decimal">
+<li>Make the required changes in the JavaScript at the bottom of your page.</li>
+<li>Add the user interface code to your HTML page to select the plot variable.</li>
+<li>Change the <code>y</code> attribute in your <code>&lt;lines&gt;</code> directive to plot the variable selected from the list of options.</li>
+<li>Set up the Y axis labelling based on the option choice too.</li>
+</ol>
+<p><em>A solution to this exercise is saved as <code>ex-step-2.html</code> in the tutorial directory.</em></p>
+</div>
+
+<hr>
+<h2 id="step-3-adding-and-removing-stocks">Step 3: Adding and removing stocks</h2>
+<p>Now we want to be able to add and remove stocks. There are a couple of quite tricky points here, but we’ll start with the simpler stuff, which is more or less the same as in the last step.</p>
+<p>First, we need to add some more JavaScript. We want a list of all the stocks we have data for (which we’ll call <code>stocks</code>), a list of the stock symbols for the stocks we’re currently plotting (which we’ll call <code>symbols</code> and which will start as an empty list), and a place to put all the data sets we’re going to create (which we’ll call <code>dat</code>), which we put on the <em>root</em> Angular scope – I’ll explain why below where I show how we use this thing. We also define a little helper function to generate data URLs from the stock names. Including the stuff from before, our JavaScript in the <code>&lt;script&gt;</code> tag at the bottom of our page ends up looking like this:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="ot">angular</span>.<span class="fu">module</span>(<span class="st">'myApp'</span>, [<span class="st">'radian'</span>]).
+  <span class="fu">controller</span>(<span class="st">'MyCtrl'</span>, [<span class="st">'$scope'</span>, <span class="st">'$rootScope'</span>, <span class="kw">function</span>(sc, rsc)
+{
+  <span class="ot">rsc</span>.<span class="fu">dat</span> = {};
+  <span class="ot">sc</span>.<span class="fu">symbols</span> = [];
+  <span class="ot">sc</span>.<span class="fu">fields</span> = [ { <span class="dt">name</span>: <span class="st">'Open'</span>,      <span class="dt">label</span>: <span class="st">'Opening price'</span> },
+                { <span class="dt">name</span>: <span class="st">'High'</span>,      <span class="dt">label</span>: <span class="st">'Daily high'</span> },
+                { <span class="dt">name</span>: <span class="st">'Low'</span>,       <span class="dt">label</span>: <span class="st">'Daily low'</span> },
+                { <span class="dt">name</span>: <span class="st">'Close'</span>,     <span class="dt">label</span>: <span class="st">'Closing price'</span> },
+                { <span class="dt">name</span>: <span class="st">'Volume'</span>,    <span class="dt">label</span>: <span class="st">'Daily volume'</span> },
+                { <span class="dt">name</span>: <span class="st">'Adj Close'</span>, <span class="dt">label</span>: <span class="st">'Adjusted closing price'</span> } ];
+  <span class="ot">sc</span>.<span class="fu">stocks</span> = [<span class="st">'CSCO'</span>, <span class="st">'DELL'</span>, <span class="st">'FB'</span>, <span class="st">'GOOG'</span>, <span class="st">'MSFT'</span>, <span class="st">'YHOO'</span>];
+  <span class="ot">sc</span>.<span class="fu">dataUrl</span> = <span class="kw">function</span>(s) {
+    <span class="kw">return</span> <span class="st">'/data/'</span> + s + <span class="st">'.csv'</span>;
+  };
+}]);</code></pre>
+<p>We’re going to need a user interface for selecting and adding stocks to our plot. This has a select list very much like the one for the plot variable, and a button to add stocks:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;label&gt;</span>Stock symbol:<span class="kw">&lt;/label&gt;</span>
+<span class="kw">&lt;select</span><span class="ot"> ng-model=</span><span class="st">&quot;sym&quot;</span><span class="ot"> ng-init=</span><span class="st">&quot;sym=stocks[0]&quot;</span>
+<span class="ot">        ng-options=</span><span class="st">&quot;s for s in stocks&quot;</span><span class="ot"> required</span><span class="kw">&gt;&lt;/select&gt;</span>
+<span class="kw">&lt;button</span><span class="ot"> class=</span><span class="st">&quot;btn&quot;</span><span class="ot"> ng-click=</span><span class="st">&quot;symbols.push(sym)&quot;</span><span class="kw">&gt;</span>
+  Add
+<span class="kw">&lt;/button&gt;</span></code></pre>
+<p>The <code>ng-model</code> and <code>ng-init</code> attributes for the <code>&lt;select&gt;</code> element are similar to before, but the <code>ng-options</code> attribute is a little simpler: because the entries in the <code>stocks</code> array are just simple strings, we can use the same values as we display for the value of our <code>sym</code> variable. This means that we just put <code>ng-options=&quot;s for s in stocks&quot;</code>. The button is fairly simple, and we use Angular’s event handler attribute, <code>ng-click</code>, so that we can just splice a bit of JavaScript code right in place to add the selected symbol to our list of symbols.</p>
+<p>This gives us a way to <em>add</em> stocks to our list, but what about removing them? We can put some extra Angular-aware HTML below our plots to help take care of this:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;div&gt;</span>
+  <span class="kw">&lt;span</span><span class="ot"> ng-repeat=</span><span class="st">&quot;s in symbols&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;button</span><span class="ot"> class=</span><span class="st">&quot;btn btn-mini&quot;</span><span class="ot"> ng-click=</span><span class="st">&quot;symbols.splice($index,1)&quot;</span><span class="kw">&gt;</span>
+      <span class="kw">&lt;i</span><span class="ot"> class=</span><span class="st">&quot;icon-trash&quot;</span><span class="kw">&gt;&lt;/i&gt;</span>
+    <span class="kw">&lt;/button&gt;</span>
+    {{s}}<span class="dv">&amp;nbsp;&amp;nbsp;&amp;nbsp;</span>
+  <span class="kw">&lt;/span&gt;</span>
+<span class="kw">&lt;/div&gt;</span></code></pre>
+<p>This code demonstrates an Angular feature that we use all over the place: <code>ng-repeat</code>. This has lots of different options, but we use it in its simplest form here – for each entry in the <code>symbols</code> array, <code>ng-repeat</code> causes everything inside the <code>&lt;span&gt;</code> element to be replicated, with the Angular variable <code>s</code> bound to each element in <code>symbols</code> in turn. This means that we get one button per stock in our list, and the button is set up to remove that stock from the list. The <code>$index</code> variable is a special one maintained by <code>ng-repeat</code> that gives the position of the current element in the source array <code>symbols</code>. This makes it easy to delete items from an array, as we’re doing here using JavaScripts <code>Array.splice</code> function. The only other feature of note here is the use of the Angular expression <code>{{s}}</code> to splice the value of the <code>s</code> variable in as text to give a label for the button.</p>
+<p>The result of all this is that as we add elements to the <code>symbols</code> array using our select list and “Add” button, Angular automatically maintains a series of buttons and labels at the bottom of our plots that we can use to remove items from the <code>symbols</code> list.</p>
+<p>So, we can add and remove items from the <code>symbols</code> list. Next, we need to talk about how we manage the data associated with these things. It should come as no surprise that we use <code>ng-repeat</code> again, this time in conjunction with <code>&lt;plot-data&gt;</code>. There is one difficulty with this though, and that’s related to how we set up <em>names</em> for our data set. It’s quite difficult to access variables by dynamically constructed names, which we would have to do if we just iterated over our symbols using <code>ng-repeat=&quot;s in symbols&quot;</code> and <code>name=&quot;[[s]]&quot;</code> or something similar in our <code>&lt;plot-data&gt;</code> directive. Instead, Radian provides the <code>subname</code> attribute for <code>&lt;plot-data&gt;</code> for just this case. We use a single <code>name=&quot;dat&quot;</code> attribute and use a <code>subname</code> to assign data sets to fields of this one big variable. This makes it much easier to deal with dynamically defined data set names. We end up with a <code>&lt;plot-data&gt;</code> directive like this:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-data</span><span class="ot"> ng-repeat=</span><span class="st">&quot;s in symbols&quot;</span>
+<span class="ot">           name=</span><span class="st">&quot;dat&quot;</span><span class="ot"> subname=</span><span class="st">&quot;[[s]]&quot;</span>
+<span class="ot">           format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> src=</span><span class="st">&quot;[[dataUrl(s)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;Date&quot;</span><span class="ot"> format=</span><span class="st">&quot;date&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>For each value in <code>symbols</code>, this sets up a data set using the appropriate URL (calculated by the <code>dataURL</code> function we set up in our JavaScript), using the value from <code>symbols</code> as the <em>sub-name</em> of the dataset <code>dat</code>. What this means is that, if we have the symbol “<code>CSCO</code>” in <code>symbols</code>, we can write <code>dat['CSCO'].Date</code>, <code>dat['CSCO'].Open</code> and so on in Radian expressions to get at these data fields.</p>
+<p>Finally, we need to plot these multiple data sets. And we do that, as you might guess, using <code>ng-repeat</code> again, this time with our <code>&lt;lines&gt;</code> directive:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;lines</span><span class="ot"> ng-repeat=</span><span class="st">&quot;s in symbols&quot;</span><span class="ot"> d=</span><span class="st">&quot;[[dat[s]]]&quot;</span>
+<span class="ot">       x=</span><span class="st">&quot;[[d.Date]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[d[plotvar.name]]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span></code></pre>
+<p>Here, for each entry in <code>symbols</code>, we extract the relevant part of the <code>dat</code> data set (into an Angular scope variable called <code>d</code>, for convenience), then use this data for our plot, just as before. We will get one line per entry in the <code>symbols</code> array.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<ol style="list-style-type: decimal">
+<li>Update the JavaScript to add the stocks list variables.</li>
+<li>Add the stock selection UI.</li>
+<li>Add the stock deletion list UI.</li>
+<li>Update the <code>&lt;plot-data&gt;</code> directive to access multiple data sets.</li>
+<li>Update the <code>&lt;lines&gt;</code> directive to plot these multiple data sets.</li>
+</ol>
+<p><em>A solution to this exercise is saved as <code>ex-step-3.html</code> in the tutorial directory.</em></p>
+</div>
+
+<hr>
+<h2 id="step-4-final-features">Step 4: Final features</h2>
+<p>There are some flaws to our little application: all the plots appear in the same colour; we can add multiple copies of the same stock; and there’s no indication when we first load the page what’s going on, just a blank plot area. We can fix these all pretty easily.</p>
+<p>First, stroke colour selection. Instead of setting the stroke colour to a fixed value, we can make if a function of the <code>$index</code> variable inside the <code>ng-repeat</code> that draws the plot lines. The Radian plotting library provides access to some categorical colour palettes from the D3.js library that we can exploit to generate stroke colours. All we need to do is to change the <code>stroke</code> attribute within our <code>&lt;lines&gt;</code> directive to say <code>stroke=&quot;[[category10($index)]]&quot;</code> and we will get a new colour for each new stock we add.</p>
+<p>This still leaves us with the problem of identifying the different traces by their colour. We can get some help with this by adding a legend. We add the <code>legend-switches</code> attribute to the <code>&lt;plot&gt;</code> directive, and a <code>label</code> attribute to each <code>&lt;lines&gt;</code> directive: <code>label=&quot;[[s]]&quot;</code> does the job of labelling each trace with its stock symbol name.</p>
+<p>To allow each stock to be selected only once, we just need to disable the “Add” button if the stock is already in the <code>symbols</code> list. This can be done by adding an <code>ng-disabled</code> attribute to the button definition: <code>ng-disabled=&quot;symbols.indexOf(sym)!=-1&quot;</code>. This basically just says “disable this button if <code>sym</code> is already in the <code>symbols</code> array”.</p>
+<p>It’s not unusual to have a situation like the one we have here, where multiple data sets are plotted on a single set of axes. So far, the behaviour of our graph is pretty good: a single plot works fine and a legend appears to help us identify the different lines if there is more than one. But what about when there is no data at all? We can use the <code>no-data</code> attribute on the <code>&lt;plot&gt;</code> directive to deal with this case. Just add a <code>no-data</code> attribute with the value <code>&quot;No stocks selected&quot;</code>.</p>
+<div class="exercise">
+<p><strong>Exercise</strong></p>
+<ol style="list-style-type: decimal">
+<li>Add symbol-based stroke colour selection.</li>
+<li>Enable the plot legend.</li>
+<li>Disable the “Add” button if the selected symbol is already plotted.</li>
+<li>Add a suitable <code>no-data</code> attribute.</li>
+</ol>
+<p><em>A solution to this exercise is saved as <code>example-final.html</code> in the tutorial directory.</em></p>
+</div>
+
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>If you’ve made it this far, you should have a pretty good idea of the kind of things you can do with Radian: it’s easy to make simple plots, and possible to make complex interactive plots. We hope you find some use for Radian in your own projects!</p>
+<br>
+<hr>
+<p><a class="btn pull-left" href="3-2-data-processing.html"> « Prev section </a> <br> <br></p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>If you know JavaScript and you know Angular, you can obviously do things in a more organised and clever way. Here, we’re interested in a minimal setup that will make these examples work.<a href="#fnref1">↩</a></p></li>
+</ol>
+</div>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/html5slider.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

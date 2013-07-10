@@ -37,28 +37,39 @@
 <thead>
 <tr class="header">
 <th align="left">Name</th>
+<th align="left">   </th>
 <th align="left">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left"><code>NAME</code></td>
+<td align="left"></td>
 <td align="left">Data set name (mandatory)</td>
 </tr>
 <tr class="even">
+<td align="left"><code>SUBNAME</code></td>
+<td align="left"></td>
+<td align="left">Data set sub-name</td>
+</tr>
+<tr class="odd">
 <td align="left"><code>FORMAT</code></td>
+<td align="left"></td>
 <td align="left">One of <code>csv</code> or <code>json</code> (default)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>COLS</code></td>
+<td align="left"></td>
 <td align="left">Column names for CSV data</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>SEPARATOR</code></td>
+<td align="left"></td>
 <td align="left">Separator character for columns in CSV data (defaults to “,”)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>SRC</code></td>
+<td align="left"></td>
 <td align="left">URL for data source</td>
 </tr>
 </tbody>
@@ -66,7 +77,7 @@
 <h3 id="body">Body</h3>
 <p>Optionally, <code>metadata</code> directives describing the data values. If no <code>SRC</code> attribute is used to specify the data source, then the data values are included in the body of the directive in the given format.</p>
 <h3 id="interpretation">Interpretation</h3>
-<p>The <code>&lt;plot-data&gt;</code> directive forms an association between the name given as the <code>ID</code> attribute of the directive and the given data set. The data set name can then be used to create data paths to access components of the data set in plotting directives (<a href="#data-accessors">see here</a>). The data set name is installed as an Angular variable in the Angular scope of the containing HTML element. The <code>&lt;plot-data&gt;</code> element does not create a scope of its own. (Note that including <code>&lt;plot-data&gt;</code> elements within an <code>ng-repeat</code> can cause problems because of the additional intermediate scopes created by <code>ng-repeat</code>. Don’t do that. If you find that you need to do it, contact us and we’ll think about doing something to make it possible.)</p>
+<p>The <code>&lt;plot-data&gt;</code> directive forms an association between the name given as the <code>NAME</code> attribute of the directive and the given data set. The data set name can then be used to create data paths to access components of the data set in plotting directives (<a href="#data-accessors">see here</a>). The data set name is installed as an Angular variable in the Angular scope of the containing HTML element. If the <code>SUBNAME</code> attribute is supplied as well, then the data is installed as the <code>SUBNAME</code> field of an Angular scope variable whose name is <code>NAME</code> (this is useful for using <code>&lt;plot-data&gt;</code> in conjunction with <code>ng-repeat</code>). The <code>&lt;plot-data&gt;</code> element does not create a scope of its own. For CSV data, if no <code>COLS</code> attribute is given, the column names are taken from the first line of the data.</p>
 <p>When data is loaded from a URL, the semantics of the <code>&lt;plot-data&gt;</code> directive are identical to the case where the data is included directly in the directive body (except for possible rendering issues if the data download takes a long time: you may see warnings from the <code>radianEval</code> function in the browser console when Radian attempts to plot the empty data set before the data has arrived – these warnings are harmless, and the plots are re-rendered when the data download is complete).</p>
 <h3 id="examples">Examples</h3>
 <h4 id="temperature-data-by-date-with-error-information">Temperature data by date with error information</h4>
@@ -282,6 +293,7 @@
   <script src="../js/angular.min.js"></script>
   <script src="../js/radian.min.js"></script>
   <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/html5slider.js"></script>
   <script src="../js/app.js"></script>
   <script>
   </script>

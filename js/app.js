@@ -134,7 +134,8 @@ app.directive('plotExample', ['$rootScope', function(rsc)
   };
 }]);
 
-var MainCtrl = ['plotLib', function(plotLib)
+var MainCtrl = ['$scope', '$rootScope', 'plotLib',
+                function(sc, rsc, plotLib)
 {
   plotLib.midMonths = function(ms, y) {
     return ms.map(function(m) { return new Date(y, m, 15); });
@@ -170,5 +171,19 @@ var MainCtrl = ['plotLib', function(plotLib)
       }
     }
     return ys;
+  };
+
+  // Stuff for Tutorial Part 3.
+  rsc.dat = {};
+  sc.symbols = [];
+  sc.fields = [ { name: 'Open',      label: 'Opening price' },
+                { name: 'High',      label: 'Daily high' },
+                { name: 'Low',       label: 'Daily low' },
+                { name: 'Close',     label: 'Closing price' },
+                { name: 'Volume',    label: 'Daily volume' },
+                { name: 'Adj Close', label: 'Adjusted closing price' } ];
+  sc.stocks = ['CSCO', 'DELL', 'FB', 'GOOG', 'MSFT', 'YHOO'];
+  sc.dataUrl = function(s) {
+    return '/data/tutorial-3/' + s + '.csv';
   };
 }];

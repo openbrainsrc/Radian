@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 3. Interactive plots</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+          <li><a href="../../roadmap.html">Roadmap</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="interactive-plots">3. Interactive plots</h1>
+<p>In this section, we’re going to explore a few of the possibilities offered by Radian’s integration with the AngularJS framework. This section of the tutorial is necessarily going to be a little more technical than the previous two – there are a lot of things you can do with only a minimal amount of extra work, but we also want to demonstrate some slightly more complicated things, things that will require us to write a little bit of JavaScript code. However, even though we’ll end up with some more complex stuff, most of the examples we’re going to look at will be things that you can easily take and modify for your own purposes, without needing to know lots of JavaScript to do it.</p>
+<p>The plot that we’re going to be working towards producing in this part of the tutorial is a little interactive stock price viewer. Below, you can select stocks from the menu, click “Add” to add them to the graph view (which appears once you’ve selected a stock), and you can then select the variable you want to view from the second drop-down list, control the visibility of different traces using the legend (which only appears when you have two or more stocks plotted), pan and zoom using the context panel below the main plot, and remove stock traces using the buttons that appear below the plot<sup><a href="#fn1" class="footnoteRef" id="fnref1">1</a></sup>.</p>
+<p>This example requires some features of Radian that we’ve not yet covered, and it also requires about 10 lines of extra JavaScript to set some things up.</p>
+<br>
+<div class="plot-center">
+  <form class="form-inline">
+    
+<label>Stock symbol:</label> <select ng-model="sym" ng-init="sym=stocks[0]" ng-options="s for s in stocks" required></select>
+<button class="btn" ng-disabled="symbols.indexOf(sym)!=-1" ng-click="symbols.push(sym)">
+      
+Add
+</button>
+    
+       <label>Plot:</label> <select ng-model="plotvar" ng-init="plotvar=fields[0]" ng-options="s as s.label for s in fields" required></select>
+</form>
+
+<p><plot height="400" aspect="2" legend-switches zoom-x no-data="No stocks selected" axis-y-label="[[plotvar.label]]" axis-x-label="off"> <lines ng-repeat="s in symbols" d="[[dat[s]]]" x="[[d.Date]]" y="[[d[plotvar.name]]]" label="[[s]]" stroke="[[category10($index)]]"></lines> </plot></p>
+<p><plot-data ng-repeat="s in symbols" name="dat" subname="[[s]]" format="csv" src="[[dataUrl(s)]]"> <metadata name="Date" format="date"></metadata> </plot-data></p>
+
+<div>
+    
+<span ng-repeat="s in symbols">
+<button class="btn btn-mini" ng-click="symbols.splice($index,1)">
+        
+<i class="icon-trash"></i>
+</button>
+      
+{{s}}    </span>
+</div>
+</div>
+
+
+<h3 id="setup">Setup</h3>
+<p>As for Parts 1 and 2, we need to check out the appropriate contents in the <code>Radian-tutorial</code> directory. <em>Remember that the following command will delete any local changes you have made in the <code>Radian-tutorial</code> directory, so if you have example plots from Part 1 or 2 you want to keep, copy them somewhere else.</em> To switch to the tutorial contents for Part 3, do the following in the <code>Radian-tutorial</code> directory:</p>
+<pre><code>git checkout -f part-3</code></pre>
+<hr>
+<p><a class="btn pull-left" href="../2-data-plots/2-5-putting-it-together.html"> « Prev section </a> <a class="btn pull-right" href="3-1-data-binding.html"> Next section » </a> <br> <br></p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Note that the prices shown here are just some canned data downloaded from Yahoo Finance. In order to have live prices, we’d need to deal with cross-domain request issues: as a security measure, a piece of JavaScript served from, for example, the <code>http://openbrainsrc.github.io</code> domain, isn’t allowed to make HTTP requests to other domains (e.g. <code>http://ichart.finance.yahoo.com</code>). It’s an easy problem to fix if you’re writing a real web application – you just provide a proxy service from a server in your domain to make the requests for you – but it’s not something we want to deal with here, so canned data it is.<a href="#fnref1">↩</a></p></li>
+</ol>
+</div>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/html5slider.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

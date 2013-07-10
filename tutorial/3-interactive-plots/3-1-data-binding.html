@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Radian Tutorial -- 3.1. Angular data binding</title>
+  <link rel="icon" href="../../favicon.ico" />
+  <link rel="stylesheet" href="../../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../../documentation.html">Documentation</a></li>
+          <li><a href="../../download.html">Download</a></li>
+          <li><a href="../../community.html">Community</a></li>
+          <li><a href="../../gallery">Gallery</a></li>
+          <li><a href="../../license.html">License</a></li>
+          <li><a href="../../faq.html">FAQ</a></li>
+          <li><a href="../../roadmap.html">Roadmap</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="angular-data-binding">3.1. Angular data binding</h1>
+<p>In this section, we’ll look at a few examples of using Angular variables bound to UI elements in Radian expressions.</p>
+<hr>
+<h2 id="simple-parameter-binding">Simple parameter binding</h2>
+<p>Our first example defines a couple of slider controls, and uses Angular’s <code>ng-model</code> attribute to associate the values of the sliders with Angular scope variables (here, called <code>mu</code> and <code>sigma</code> for the mean and standard deviation of the normal probability distribution we’re going to plot).</p>
+<p>These Angular scope variables can be used directly in Radian expressions, so we can write a Radian expression for the normal distribution with mean <code>mu</code> and standard deviation <code>sigma</code> just as <code>normal(x,mu,sigma)</code>, plotting the distribution as a function of <code>x</code>.</p>
+<p>The only other more JavaScript-oriented feature we’ve used in this example is the Angular <code>ng-init</code> attribute, which is used to assign initial values to <code>mu</code> and <code>sigma</code>.</p>
+<p><plot-example key="1" title="Example 1 (continuous values)"></plot-example></p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;form-inline&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;label&gt;</span>Mean<span class="kw">&lt;/label&gt;</span>
+  <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;range&quot;</span><span class="ot"> min=</span><span class="st">0</span><span class="ot"> max=</span><span class="st">10</span><span class="ot"> step=</span><span class="st">0.01</span><span class="ot"> ng-model=</span><span class="st">&quot;mu&quot;</span><span class="ot"> ng-init=</span><span class="st">&quot;mu=5&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;label&gt;</span><span class="dv">&amp;nbsp;&amp;nbsp;</span>Standard deviation<span class="kw">&lt;/label&gt;</span>
+  <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;range&quot;</span><span class="ot"> min=</span><span class="st">0.01</span><span class="ot"> max=</span><span class="st">10</span><span class="ot"> step=</span><span class="st">0.01</span><span class="ot"> ng-model=</span><span class="st">&quot;sigma&quot;</span><span class="ot"> ng-init=</span><span class="st">&quot;sigma=1&quot;</span><span class="kw">&gt;</span>
+<span class="kw">&lt;/div&gt;</span>
+<span class="kw">&lt;br&gt;</span>
+
+<span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,10,200)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[normal(x,mu,sigma)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<div ng-class="plotVisible[1]">
+  <div class="form-inline">
+    
+<label>Mean</label> <input type="range" min="0" max="10" step="0.01" ng-model="mu" ng-init="mu=5"> <label>  Standard deviation</label> <input type="range" min="0.01" max="10" step="0.01" ng-model="sigma" ng-init="sigma=1">
+</div>
+  
+<p><br></p>
+<plot height="300" aspect="3" stroke-width="2" stroke="red"> <lines x="[[seq(0,10,200)]]" y="[[normal(x,mu,sigma)]]"></lines> </plot>
+</div>
+
+
+<p>Here’s an example where we use a HTML user interface element to bind a discrete integer parameter, in this case the number of bins used to calculate a histogram. The data we use is just the daily temperatures from the Victoria weather station that we looked at before. Here, we bind the <code>nbins</code> variable to an input field, and can then use this variable directly as the bin count parameter in a call to the Radian <code>histogram</code> function<sup><a href="#fn1" class="footnoteRef" id="fnref1">1</a></sup>.</p>
+<p><plot-example key="2" title="Example 2 (discrete values)"></plot-example></p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;form</span><span class="ot"> class=</span><span class="st">&quot;form-inline&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;label&gt;</span>Number of bins:<span class="kw">&lt;/label&gt;</span>
+  <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;number&quot;</span><span class="ot"> min=</span><span class="st">4</span><span class="ot"> max=</span><span class="st">70</span><span class="ot"> ng-model=</span><span class="st">&quot;nbins&quot;</span><span class="ot"> ng-init=</span><span class="st">&quot;nbins=25&quot;</span><span class="kw">&gt;</span>
+<span class="kw">&lt;/form&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;vic2012&quot;</span><span class="ot"> src=</span><span class="st">&quot;/data/vic2012.json&quot;</span><span class="kw">&gt;&lt;/plot-data&gt;</span>
+
+<span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> hist=</span><span class="st">&quot;[[histogram(vic2012#tmp,nbins)]]&quot;</span>
+<span class="ot">      axis-x-label=</span><span class="st">&quot;Temperature (</span><span class="dv">&amp;deg;</span><span class="st">C)&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Day count&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[hist.centres]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[hist.counts]]&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<div ng-class="plotVisible[2]">
+  <form class="form-inline">
+    
+<label>Number of bins:</label> <input type="number" min="4" max="70" ng-model="nbins" ng-init="nbins=25">
+</form>
+
+<p><plot-data name="vic2012" src="../../data/vic2012.json"></plot-data></p>
+<plot height="300" aspect="2" hist="[[histogram(vic2012#tmp,nbins)]]" axis-x-label="Temperature (°C)" axis-y-label="Day count"> <bars x="[[hist.centres]]" y="[[hist.counts]]"></bars> </plot>
+</div>
+
+
+<hr>
+<h2 id="controlling-paint-attributes">Controlling paint attributes</h2>
+<p>Paint attributes (line stroke colour and width, marker size type and colours, etc.) can all be controlled using the same sort of data binding as illustrated above for plot coordinates and function parameters. Here, we select stroke colour and width from drop-down lists:</p>
+<p><plot-example key="3" title="Example 3 (paint parameters)"></plot-example></p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;form</span><span class="ot"> class=</span><span class="st">&quot;form-inline&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;label&gt;</span>Stroke colour:<span class="kw">&lt;/label&gt;</span>
+  <span class="kw">&lt;select</span><span class="ot"> ng-model=</span><span class="st">&quot;col&quot;</span><span class="ot"> ng-init=</span><span class="st">&quot;col='red'&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;option</span><span class="ot"> value=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;</span>Red<span class="kw">&lt;/option&gt;</span>
+    <span class="kw">&lt;option</span><span class="ot"> value=</span><span class="st">&quot;orange&quot;</span><span class="kw">&gt;</span>Orange<span class="kw">&lt;/option&gt;</span>
+    <span class="kw">&lt;option</span><span class="ot"> value=</span><span class="st">&quot;green&quot;</span><span class="kw">&gt;</span>Green<span class="kw">&lt;/option&gt;</span>
+    <span class="kw">&lt;option</span><span class="ot"> value=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;</span>Blue<span class="kw">&lt;/option&gt;</span>
+    <span class="kw">&lt;option</span><span class="ot"> value=</span><span class="st">&quot;magenta&quot;</span><span class="kw">&gt;</span>Magenta<span class="kw">&lt;/option&gt;</span>
+  <span class="kw">&lt;/select&gt;</span>
+  <span class="dv">&amp;nbsp;&amp;nbsp;&amp;nbsp;</span>
+  <span class="kw">&lt;label&gt;</span>Stroke width:<span class="kw">&lt;/label&gt;</span>
+  <span class="kw">&lt;select</span><span class="ot"> ng-model=</span><span class="st">&quot;swidth&quot;</span><span class="ot"> ng-init=</span><span class="st">&quot;swidth=1&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;option</span><span class="ot"> value=</span><span class="st">&quot;1&quot;</span><span class="kw">&gt;</span>1<span class="kw">&lt;/option&gt;</span>
+    <span class="kw">&lt;option</span><span class="ot"> value=</span><span class="st">&quot;2&quot;</span><span class="kw">&gt;</span>2<span class="kw">&lt;/option&gt;</span>
+    <span class="kw">&lt;option</span><span class="ot"> value=</span><span class="st">&quot;4&quot;</span><span class="kw">&gt;</span>4<span class="kw">&lt;/option&gt;</span>
+    <span class="kw">&lt;option</span><span class="ot"> value=</span><span class="st">&quot;8&quot;</span><span class="kw">&gt;</span>8<span class="kw">&lt;/option&gt;</span>
+  <span class="kw">&lt;/select&gt;</span>
+<span class="kw">&lt;/form&gt;</span>
+
+<span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,2*PI,101)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[0*x]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;[[col]]&quot;</span><span class="ot"> stroke-width=</span><span class="st">&quot;[[swidth]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<div ng-class="plotVisible[3]">
+  <form class="form-inline">
+    
+<label>Stroke colour:</label> <select ng-model="col" ng-init="col='red'"> <option value="red">Red</option> <option value="orange">Orange</option> <option value="green">Green</option> <option value="blue">Blue</option> <option value="magenta">Magenta</option> </select>     <label>Stroke width:</label> <select ng-model="swidth" ng-init="swidth=1"> <option value="1">1</option> <option value="2">2</option> <option value="4">4</option> <option value="8">8</option> </select>
+</form>
+
+<plot height="300" aspect="2" x="[[seq(0,2*PI,101)]]"> <lines y="[[0*x]]"></lines> <lines y="[[sin(x)]]" stroke="[[col]]" stroke-width="[[swidth]]"></lines> </plot>
+</div>
+
+<br>
+<hr>
+<p><a class="btn pull-left" href="index.html"> « Prev section </a> <a class="btn pull-right" href="3-2-building-the-example.html"> Next section » </a> <br> <br></p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Being able to quickly alter the number of bins for a histogram like this is pretty useful: try holding down one of the stepper arrows for the input field to see how the pattern of the histogram changes as the number of bins used changes. There are cases where choosing a particular number of histogram bins can make it look as though there are patterns in your data that aren’t really there. Being able to view your histogram with different numbers of bins gives you a quick way of making sure that this isn’t a problem.<a href="#fnref1">↩</a></p></li>
+</ol>
+</div>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../../js/jquery.js"></script>
+  <script src="../../js/jquery.csv.js"></script>
+  <script src="../../js/escodegen.browser.js"></script>
+  <script src="../../js/estraverse.js"></script>
+  <script src="../../js/d3.v2.js"></script>
+  <script src="../../js/angular.min.js"></script>
+  <script src="../../js/radian.min.js"></script>
+  <script src="../../js/bootstrap.min.js"></script>
+  <script src="../../js/html5slider.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>
