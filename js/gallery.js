@@ -40,7 +40,7 @@ var EgCtrl = ['plotLib', '$http', '$scope', '$timeout', '$location',
   };
 
   $scope.$watch('$location.hash', function() {
-    var url = "http://" + location.host + "/gallery/eg/" +
+    var url = "http://" + location.host + "/Radian/gallery/eg/" +
       location.hash.slice(2) + ".html";
     $timeout(function() {
       $http.get(url).success(function(res) {

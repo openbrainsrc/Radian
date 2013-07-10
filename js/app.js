@@ -184,6 +184,6 @@ var MainCtrl = ['$scope', '$rootScope', 'plotLib',
                 { name: 'Adj Close', label: 'Adjusted closing price' } ];
   sc.stocks = ['CSCO', 'DELL', 'FB', 'GOOG', 'MSFT', 'YHOO'];
   sc.dataUrl = function(s) {
-    return '/data/tutorial-3/' + s + '.csv';
+    return '/Radian/data/tutorial-3/' + s + '.csv';
   };
 }];
