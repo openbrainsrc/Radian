@@ -101,22 +101,23 @@ radian.factory('radianLegend', function()
   return function(svgelm, scope) {
     // Render interactive legend.
     var nswitch = scope.switchable.length;
+    svgelm.selectAll('g.radian-legend').remove();
     if (nswitch > 1) {
       var legendps = scope.switchable;
-      var leggs = svgelm.append('g').selectAll('g')
+      var leggs = svgelm.append('g')
+        .attr('class', 'radian-legend').selectAll('g')
         .data(legendps).enter().append('g');
       var legcs = leggs.append('circle').style('stroke-width', 1).attr('r', 5)
         .attr('fill', function(d,i) {
-          return (d.stroke instanceof Array ? d.stroke[0] : d.stroke) || '#000';
+          return d.enabled ?
+            ((d.stroke instanceof Array ? d.stroke[0] : d.stroke) || '#000') :
+          '#f5f5f5';
         })
         .attr('stroke', function(d,i) {
           return (d.stroke instanceof Array ? d.stroke[0] : d.stroke) || '#000';
         });
       var clickHandler = function(d,i) {
         d.enabled = !d.enabled;
-        d3.select(this).select('circle')
-          .attr('fill', d.enabled ?
-                (d.stroke || '#000') : '#f5f5f5');
         scope.$emit('paintChange');
       };
       leggs.on('click', clickHandler);
