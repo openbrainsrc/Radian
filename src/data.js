@@ -1,7 +1,8 @@
 // Bring plot data into Angular scope by parsing <plot-data> directive
 // body.
 
-radian.directive('plotData', ['$http', function($http)
+radian.directive('plotData', ['$http', 'processAttrs',
+                              function($http, processAttrs)
 {
   'use strict';
 
@@ -22,9 +23,14 @@ radian.directive('plotData', ['$http', function($http)
                            }).join('\n'),
                            { separator: separator });
         if (d.length > 0) {
-          if (d[0].length != cols.length)
-            throw Error('mismatch between COLS and' +
-                        ' CSV data in <plot-data>');
+          if (cols) {
+            if (d[0].length != cols.length)
+              throw Error('mismatch between COLS and' +
+                          ' CSV data in <plot-data>');
+          } else {
+            cols = d[0];
+            d.splice(0, 1);
+          }
           var tmp = { }, nums = [];
           for (var c = 0; c < cols.length; ++c) {
             tmp[cols[c]] = [];
@@ -82,25 +88,24 @@ radian.directive('plotData', ['$http', function($http)
 
   // We use a post-link function here so that any enclosed <metadata>
   // directives will have been linked by the time we get here.
-  function postLink(scope, elm, as) {
+  function postLink(sc, elm, as) {
     // The <plot-data> element is only there to carry data, so hide
     // it right away.
     elm.hide();
 
     // Process attributes.
-    if (!as.name) throw Error('<plot-data> must have NAME attribute');
-    var dataset = as.name;
-    var src = as.src;
-    var format = as.format || 'json';
-    var sep = as.separator === '' ? ' ' : (as.separator || ',');
-    var cols = as.cols;
+    processAttrs(sc, as);
+    if (!sc.name) throw Error('<plot-data> must have NAME attribute');
+    var dataset = sc.name, subname = sc.subname;
+    var src = sc.src;
+    var format = sc.format || 'json';
+    var sep = sc.separator === '' ? ' ' : (sc.separator || ',');
+    var cols = sc.cols;
     if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
     if (!src) {
       var formats = ['json', 'csv'];
       if (formats.indexOf(format) == -1)
         throw Error('invalid FORMAT "' + format + '" in <plot-data>');
-      if (format == 'csv' && !cols)
-        throw Error('CSV <plot-data> must have COLS');
     }
 
     // Process content -- all text children are appended together
@@ -110,12 +115,20 @@ radian.directive('plotData', ['$http', function($http)
       var d = parseData(datatext, format, cols, sep);
 
       // Process any date fields.
-      processDates(scope, dataset, d);
+      processDates(sc, dataset, d);
 
-      // Install data in scope, preserving any metadata.
-      var md = scope[dataset] ? scope[dataset].metadata : null;
-      scope[dataset] = d;
-      if (md) scope[dataset].metadata = md;
+      // Install data on nearest enclosing scope that isn't associated
+      // with an ng-repeat.  Preserve any metadata.
+      var md = sc[dataset] ? sc[dataset].metadata : null;
+      var s = sc;
+      while (s.$parent && s.hasOwnProperty('$index')) s = s.$parent;
+      if (sc.subname) {
+        s[dataset][subname] = d;
+        if (md) s[dataset][subname].metadata = md;
+      } else {
+        s[dataset] = d;
+        if (md) s[dataset].metadata = md;
+      }
     };
     if (!src) {
       var datatext = '';
@@ -128,8 +141,6 @@ radian.directive('plotData', ['$http', function($http)
         .success(function(data, status, headers, config) {
           format = (headers("Content-Type") == 'application/json') ?
             'json' : 'csv';
-          if (format == 'csv' && !cols)
-            throw Error('CSV <plot-data> must have COLS');
           processData(data);
         })
         .error(function() { throw Error("failed to read data from " + src); });
