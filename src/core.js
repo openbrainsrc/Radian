@@ -819,6 +819,11 @@ radian.directive('plot',
     setFont(d3.selectAll('.axis text'), scope);
 
     // Plot title.
+    outsvg.selectAll('g.no-data').remove();
+    if (scope.nplots == 0 && v == scope.views[0] && scope.noData)
+      outsvg.append('g').attr('class', 'no-data').append('text')
+        .attr('x', v.outw / 2).attr('y', v.outh / 2)
+        .attr('text-anchor', 'middle').text(scope.noData);
     if (v.title && !v.noTitle) {
       var t = outsvg.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
