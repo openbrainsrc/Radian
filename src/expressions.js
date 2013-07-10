@@ -94,7 +94,7 @@ radian.factory('radianEval',
           break;
         case "Identifier":
           // We have a free variable, so record it.
-          if (!exc[v.name]) {
+          if (v.name != 'scope' && !exc[v.name]) {
             var free = true;
             if (w &&
                 (w.type == "MemberExpression" || w.type == "PluckExpression") &&

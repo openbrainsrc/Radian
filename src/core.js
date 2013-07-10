@@ -182,6 +182,7 @@ radian.directive('plot',
 
     // Set up view list and function for child elements to add plots.
     scope.views = [];
+    scope.nplots = 0;
     scope.switchable = [];
     function ancestor(ances, desc) {
       if (ances == desc) return true;
@@ -189,10 +190,13 @@ radian.directive('plot',
       return ancestor(ances, desc.$parent);
     };
     scope.addPlot = function(s) {
+      ++scope.nplots;
       if (scope.hasOwnProperty('legendSwitches')) scope.switchable.push(s);
       s.enabled = true;
+      scope.$emit('dataChange');
       s.$on('$destroy', function(e) {
         if (ancestor(e.targetScope, s)) {
+          --scope.nplots;
           s.enabled = false;
           var idx = scope.switchable.indexOf(s);
           if (idx != -1) scope.switchable.splice(idx, 1);
@@ -207,6 +211,9 @@ radian.directive('plot',
   // We do the actual plotting after the transcluded plot type
   // elements are linked.
   function postLink(scope, elm) {
+    var svgs = [];
+    var setupBrush = null;
+    var svgelm = null;
     scope.rangeExtendPixels = function(x, y) {
       if (x != null)
         scope.rangeXExtendPixels =
@@ -230,9 +237,7 @@ radian.directive('plot',
       if (setupBrush) setupBrush();
       redraw();
     };
-    var svgs = [];
-    var setupBrush = null;
-    var svgelm = null;
+    function legend() { radianLegend(svgelm, scope); };
     function init() {
       // Set up plot areas (including zoomers).
       svgelm = d3.select(scope.svg);
@@ -277,11 +282,13 @@ radian.directive('plot',
       // Draw plots and legend.
       init();
       reset();
-      radianLegend(svgelm, scope);
+      legend();
 
       // Register plot data change handlers.
-      scope.$on('paintChange', redraw);
+      scope.$on('paintChange', reset);
+      scope.$on('paintChange', legend);
       scope.$on('dataChange', reset);
+      scope.$on('dataChange', legend);
 
       // Register UI event handlers.
       scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });
