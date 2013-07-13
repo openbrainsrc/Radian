@@ -7,19 +7,6 @@
 // processed using a (slightly complicated) setup of scope.$watch
 // listeners.
 
-//===> THERE MIGHT BE ONE NASTY THING HERE.  WE MIGHT NEED TO
-//     TRANSLATE "{{expr}}" INTO "scope.$eval(expr)" IN radianEval.
-//     I'M MEDIUM CONVINCED THAT THIS SHOULDN'T BE A PROBLEM.  HERE'S
-//     THE POSSIBLE CHAIN OF EVENTS CASING TROUBLE: YOU SET UP AN
-//     ATTRIBUTE WITH AN EXPRESSION CONTAINING BOTH A FREE VARIABLE
-//     AND A "{{expr}}" THING.  ANGULAR SHOULD IMMEDIATELY INTERPOLATE
-//     THE "{{expr}}" SO THAT WE NEVER SEE IT, IN WHICH CASE CHANGES
-//     TO THE "expr" SHOULD BE DEALT WITH BY A $observe.  CHANGES TO
-//     THE FREE VARIABLE (WHICH WILL REQUIRE A RE-EVALUATION OF THE
-//     EXPRESSION) SHOULD GO OFF O.K., SINCE THE STORED EXPRESSION HAS
-//     ALREADY HAD ITS "{{expr}}" BITS INTERPOLATED BY ANGULAR.
-//     THERE, I CONVINCED MYSELF IT WOULD ALL BE ALL RIGHT...
-
 radian.factory('processAttrs', ['radianEval', function(radianEval) {
   'use strict';
 
@@ -535,10 +522,6 @@ radian.directive('plot',
     v.yaxisticks = scope.axisYTicks || null;
     v.x2axisticks = scope.axisX2Ticks || null;
     v.y2axisticks = scope.axisY2Ticks || null;
-    v.xaxisfmt = scope.axisXFormat || null;
-    v.yaxisfmt = scope.axisYFormat || null;
-    v.x2axisfmt = scope.axisX2Format || null;
-    v.y2axisfmt = scope.axisY2Format || null;
     v.title = scope.title;
 
     // Set up top and bottom plot margins.
@@ -674,6 +657,20 @@ radian.directive('plot',
     if (scope.fontVariant) lab.style('font-variant', scope.fontVariant);
   };
 
+  function defaultScaleFormat(xform, xs, m) {
+    if (xform && xform == 'log') return d3.format(".0e");
+    var extent = xs.domain();
+    var span = extent[1] - extent[0];
+    var step = Math.pow(10, Math.floor(Math.log(span / m) / Math.LN10));
+    var err = m / span * step;
+    if (err <= .15) step *= 10;
+    else if (err <= .35) step *= 5;
+    else if (err <= .75) step *= 2;
+    var n = Math.max(0, -Math.floor(Math.log(step) / Math.LN10 + .01));
+    return d3.format(n > 6 ? ".2e" : (",." + n + "f"));
+  };
+
+
   function draw(v, scope) {
     // Clean out any pre-existing plots.
     $(v.svg[0]).empty();
@@ -700,18 +697,18 @@ radian.directive('plot',
           if (x.metadata.dateFormat) dformat = x.metadata.dateFormat;
           has_date = true;
         }
-        has_date = false;
       });
+      var ticks = scope.axisXTicks ?
+        scope.axisXTicks : outsvg.attr('width') / 100;
       var fmt =
         scope.axisXFormat ? d3.format(scope.axisXFormat) :
-        has_date ? d3.time.format(dformat) : null;
-      if (scope.axisXTicks && fmt)
-        axis.ticks(scope.axisXTicks, fmt);
-      else if (scope.axisXTicks)
-        axis.ticks(scope.axisXTicks)
+        has_date ? d3.time.format(dformat) :
+        defaultScaleFormat(scope.axisXTransform, v.x, ticks);
+      if (scope.axisXFormat || has_date || scope.axisXTransform)
+        axis.ticks(ticks, fmt);
       else {
-        axis.ticks(outsvg.attr('width') / 100);
-        if (fmt) axis.tickFormat(fmt);
+        axis.ticks(ticks);
+        axis.tickFormat(fmt);
       }
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
@@ -739,18 +736,18 @@ radian.directive('plot',
           if (x.metadata.dateFormat) dformat = x.metadata.dateFormat;
           has_date = true;
         }
-        has_date = false;
       });
+      var ticks = scope.axisX2Ticks ?
+        scope.axisX2Ticks : outsvg.attr('width') / 100;
       var fmt =
         scope.axisX2Format ? d3.format(scope.axisX2Format) :
-        has_date ? d3.time.format(dformat) : null;
-      if (scope.axisX2Ticks && fmt)
-        axis.ticks(scope.axisX2Ticks, fmt);
-      else if (scope.axisX2Ticks)
-        axis.ticks(scope.axisX2Ticks)
+        has_date ? d3.time.format(dformat) :
+        defaultScaleFormat(scope.axisXTransform, v.x2, ticks);
+      if (scope.axisX2Format || has_date || scope.axisXTransform)
+        axis.ticks(ticks, fmt);
       else {
-        axis.ticks(outsvg.attr('width') / 100);
-        if (fmt) axis.tickFormat(fmt);
+        axis.ticks(ticks);
+        axis.tickFormat(fmt);
       }
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
@@ -770,14 +767,15 @@ radian.directive('plot',
     }
     if (v.yaxis && v.y) {
       var axis = d3.svg.axis().scale(v.y).orient('left');
-      var fmt = scope.axisYFormat ? d3.format(scope.axisYFormat) : null;
-      if (scope.axisYTicks && fmt)
-        axis.ticks(scope.axisYTicks, fmt);
-      else if (scope.axisYTicks)
-        axis.ticks(scope.axisYTicks)
+      var ticks = scope.axisYTicks ?
+        scope.axisYTicks : outsvg.attr('height') / 36;
+      var fmt = scope.axisYFormat ? d3.format(scope.axisYFormat) :
+        defaultScaleFormat(scope.axisYTransform, v.y, ticks);
+      if (scope.axisYFormat)
+        axis.ticks(ticks, fmt);
       else {
-        axis.ticks(outsvg.attr('height') / 36);
-        if (fmt) axis.tickFormat(fmt);
+        axis.ticks(ticks);
+        axis.tickFormat(fmt);
       }
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + (+v.margin.left - del1) + ',' +
@@ -796,14 +794,15 @@ radian.directive('plot',
     }
     if (v.y2axis && v.y2) {
       var axis = d3.svg.axis().scale(v.y2).orient('right');
-      var fmt = scope.axisY2Format ? d3.format(scope.axisY2Format) : null;
-      if (scope.axisY2Ticks && fmt)
-        axis.ticks(scope.axisY2Ticks, fmt);
-      else if (scope.axisY2Ticks)
-        axis.ticks(scope.axisY2Ticks)
+      var ticks = scope.axisY2Ticks ?
+        scope.axisY2Ticks : outsvg.attr('height') / 36;
+      var fmt = scope.axisY2Format ? d3.format(scope.axisY2Format) :
+        defaultScaleFormat(scope.axisYTransform, v.y2, ticks);
+      if (scope.axisY2Format)
+        axis.ticks(ticks, fmt);
       else {
-        axis.ticks(outsvg.attr('height') / 36);
-        if (fmt) axis.tickFormat(fmt);
+        axis.ticks(ticks);
+        axis.tickFormat(fmt);
       }
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' +
