@@ -696,16 +696,42 @@ radian.directive('plot',
     var xformAttr = 'axis' + axatt + 'Transform';
     var ticks, fmt;
     ticks = scope[ticksAttr] ? scope[ticksAttr] : tickDefault;
-      if (has_date)
-        fmt = d3.time.format(scope[fmtAttr] ? scope[fmtAttr] : dformat);
+    if (has_date)
+      fmt = d3.time.format(scope[fmtAttr] ? scope[fmtAttr] : dformat);
+    else
+      fmt = scope[fmtAttr] ? d3.format(scope[fmtAttr]) :
+      defaultScaleFormat(scope[xformAttr], v[ax], ticks);
+    if (has_date) {
+      var tickFn = null, tickNum = ticks;
+      if (isNaN(Number(ticks))) {
+        tickNum = parseFloat(ticks);
+        var tickUnit = '';
+        for (var i = ticks.length - 1; i >= 0; --i)
+          if ("0123456789.".indexOf(ticks.charAt(i)) != -1) {
+            tickUnit = ticks.substr(i + 1);
+            break;
+          }
+        switch (tickUnit) {
+        case 's':    tickFn = d3.time.seconds;  break;
+        case 'min':  tickFn = d3.time.minutes;  break;
+        case 'hr':   tickFn = d3.time.hours;    break;
+        case 'd':    tickFn = d3.time.days;     break;
+        case 'week': tickFn = d3.time.weeks;    break;
+        case 'mon':  tickFn = d3.time.months;   break;
+        case 'year': tickFn = d3.time.years;    break;
+        }
+      }
+      if (tickFn)
+        axis.ticks(tickFn, tickNum);
       else
-        fmt = scope[fmtAttr] ? d3.format(scope[fmtAttr]) :
-          defaultScaleFormat(scope[xformAttr], v[ax], ticks);
-      if (has_date || !(scope[fmtAttr] || scope[xformAttr])) {
-        axis.ticks(ticks);
-        axis.tickFormat(fmt);
-      } else
-        axis.ticks(ticks, fmt);
+        axis.ticks(tickNum);
+      axis.tickFormat(fmt);
+    } else if (scope[fmtAttr] || scope[xformAttr]) {
+      axis.ticks(ticks, fmt);
+    } else {
+      axis.ticks(ticks);
+      axis.tickFormat(fmt);
+    }
     return axis;
   };
 
@@ -779,17 +805,7 @@ radian.directive('plot',
       }
     }
     if (v.y2axis && v.y2) {
-      var axis = d3.svg.axis().scale(v.y2).orient('right');
-      var ticks = scope.axisY2Ticks ?
-        scope.axisY2Ticks : outsvg.attr('height') / 36;
-      var fmt = scope.axisY2Format ? d3.format(scope.axisY2Format) :
-        defaultScaleFormat(scope.axisYTransform, v.y2, ticks);
-      if (scope.axisY2Format)
-        axis.ticks(ticks, fmt);
-      else {
-        axis.ticks(ticks);
-        axis.tickFormat(fmt);
-      }
+      var axis = makeAxis(scope, v, 'y2', outsvg.attr('height') / 36);
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' +
               (+v.realwidth + v.margin.left) + ',' +
