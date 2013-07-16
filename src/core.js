@@ -670,7 +670,8 @@ radian.directive('plot',
     return d3.format(n > 6 ? ".2e" : (",." + n + "f"));
   };
 
-  function makeAxis(scope, v, ax, tickDefault) {
+  function makeAxis(sc, v, ax, tickDefault) {
+    // Axis orientation.
     var ori;
     switch (ax) {
     case 'x':  ori = 'bottom';  break;
@@ -678,28 +679,33 @@ radian.directive('plot',
     case 'y':  ori = 'left';    break;
     case 'y2': ori = 'right';   break;
     }
+
+    // Create base axis object.
     var axis = d3.svg.axis().scale(v[ax]).orient(ori);
+
+    // Do we need to use a date/time format?
     var dformat = '%Y-%m-%d';
     var has_date = false;
-    dft(scope, function(s) {
+    dft(sc, function(s) {
       var d = s[ax];
       if (d && d.metadata && d.metadata.format == 'date') {
         if (d.metadata.dateFormat) dformat = d.metadata.dateFormat;
         has_date = true;
       }
     });
+
+    // Figure out settings for ticks and tick format.
     var axatt = ax.toUpperCase();
     var ticksAttr = 'axis' + axatt + 'Ticks';
-    var minorTicksAttr = 'axis' + axatt + 'MinorTicks';
     var fmtAttr = 'axis' + axatt + 'Format';
     var xformAttr = 'axis' + axatt + 'Transform';
     var ticks, fmt;
-    ticks = scope[ticksAttr] ? scope[ticksAttr] : tickDefault;
+    ticks = sc[ticksAttr] ? sc[ticksAttr] : tickDefault;
     if (has_date)
-      fmt = d3.time.format(scope[fmtAttr] ? scope[fmtAttr] : dformat);
+      fmt = d3.time.format(sc[fmtAttr] ? sc[fmtAttr] : dformat);
     else
-      fmt = scope[fmtAttr] ? d3.format(scope[fmtAttr]) :
-      defaultScaleFormat(scope[xformAttr], v[ax], ticks);
+      fmt = sc[fmtAttr] ? d3.format(sc[fmtAttr]) :
+      defaultScaleFormat(sc[xformAttr], v[ax], ticks);
     if (has_date) {
       var tickFn = null, tickNum = ticks;
       if (isNaN(Number(ticks))) {
@@ -725,13 +731,53 @@ radian.directive('plot',
       else
         axis.ticks(tickNum);
       axis.tickFormat(fmt);
-    } else if (scope[fmtAttr] || scope[xformAttr]) {
+    } else if (sc[fmtAttr] || sc[xformAttr]) {
       axis.ticks(ticks, fmt);
     } else {
       axis.ticks(ticks);
       axis.tickFormat(fmt);
     }
-    if (scope[minorTicksAttr]) axis.tickSubdivide(scope[minorTicksAttr]);
+
+    // Deal with tick sub-division, as indicated by the minorTicks
+    // attributes.
+    var minorTicksAttr = 'axis' + axatt + 'MinorTicks';
+    var minor = sc[minorTicksAttr] ? sc[minorTicksAttr] : sc.minorTicks;
+    if (minor) axis.tickSubdivide(minor);
+
+    // Process tick size information: there are global tick-sizes and
+    // tick-size, minor-tick-size and end-tick-size attributes, and
+    // there are also per-axis variants of these.
+    var tickSizeAttr = 'axis' + axatt + 'TickSize';
+    var minorTickSizeAttr = 'axis' + axatt + 'MinorTickSize';
+    var endTickSizeAttr = 'axis' + axatt + 'EndTickSize';
+    var tickSizesAttr = 'axis' + axatt + 'TickSizes';
+    var norm_val = 6, minor_val = 6, end_val = 6;
+    if (sc.tickSizes) {
+      var vals = sc.tickSizes.split(/ *, */);
+      if (vals.length >= 3) {
+        norm_val = vals[0];  minor_val = vals[1];  end_val = vals[2];
+      } else if (vals.length == 2) {
+        norm_val = minor_val = vals[0];  end_val = vals[1];
+      } else if (vals.length == 1)
+        norm_val = minor_val = end_val = vals[0];
+    }
+    if (sc.tickSize) norm_val = sc.tickSize;
+    if (sc.minorTickSize) minor_val = sc.minorTickSize;
+    if (sc.endTickSize) end_val = sc.endTickSize;
+    if (sc[tickSizesAttr]) {
+      var vals = sc[tickSizesAttr].split(/ *, */);
+      if (vals.length >= 3) {
+        norm_val = vals[0];  minor_val = vals[1];  end_val = vals[2];
+      } else if (vals.length == 2) {
+        norm_val = minor_val = vals[0];  end_val = vals[1];
+      } else if (vals.length == 1)
+        norm_val = minor_val = end_val = vals[0];
+    }
+    if (sc[tickSizeAttr]) norm_val = sc[tickSizeAttr];
+    if (sc[minorTickSizeAttr]) minor_val = sc[minorTickSizeAttr];
+    if (sc[endTickSizeAttr]) end_val = sc[endTickSizeAttr];
+    axis.tickSize(norm_val, minor_val, end_val);
+
     return axis;
   };
 
