@@ -780,7 +780,16 @@ radian.directive('plot',
     if (sc[endTickSizeAttr]) end_val = sc[endTickSizeAttr];
     axis.tickSize(norm_val, minor_val, end_val);
 
-    return axis;
+    // Tick padding.
+    var paddingAttr = 'axis' + axatt + 'TickPadding';
+    var padding = sc[paddingAttr] ? sc[paddingAttr] : sc.tickPadding;
+    var padding_delta = 0;
+    if (padding) {
+      axis.tickPadding(+padding);
+      padding_delta = +padding - 3;
+    }
+
+    return [axis, padding_delta];
   };
 
   function draw(v, scope) {
@@ -800,7 +809,8 @@ radian.directive('plot',
     var del1 = Math.floor(scope.fontSize / 3.0);
     var del2 = Math.floor(3.0 * scope.fontSize);
     if (v.xaxis && v.x) {
-      var axis = makeAxis(scope, v, 'x', outsvg.attr('width') / 100);
+      var ax = makeAxis(scope, v, 'x', outsvg.attr('width') / 100);
+      var axis = ax[0], padding_delta = ax[1];
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.realheight + v.margin.top + del1) + ')')
@@ -811,14 +821,15 @@ radian.directive('plot',
                 (+v.margin.left + v.realwidth / 2) +
                 ',' + (+v.realheight + v.margin.top) + ')')
           .append('text')
-          .attr('x', 0).attr('y', del2)
+          .attr('x', 0).attr('y', del2 + padding_delta)
           .style('font-size', scope.fontSize)
           .attr('text-anchor', 'middle').text(v.xlabel);
         setFont(lab, scope);
       }
     }
     if (v.x2axis && v.x2) {
-      var axis = makeAxis(scope, v, 'x2', outsvg.attr('width') / 100);
+      var ax = makeAxis(scope, v, 'x2', outsvg.attr('width') / 100);
+      var axis = ax[0], padding_delta = ax[1];
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.margin.top + del1) + ')')
@@ -829,14 +840,15 @@ radian.directive('plot',
                 (+v.margin.left + v.realwidth / 2) + ',' +
                 (+v.margin.top) + ')')
           .append('text')
-          .attr('x', 0).attr('y', del2)
+          .attr('x', 0).attr('y', del2 - padding_delta)
           .style('font-size', scope.fontSize)
           .attr('text-anchor', 'middle').text(v.x2label);
         setFont(lab, scope);
       }
     }
     if (v.yaxis && v.y) {
-      var axis = makeAxis(scope, v, 'y', outsvg.attr('height') / 36);
+      var ax = makeAxis(scope, v, 'y', outsvg.attr('height') / 36);
+      var axis = ax[0], padding_delta = ax[1];
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + (+v.margin.left - del1) + ',' +
               (+v.margin.top) + ')')
@@ -845,7 +857,7 @@ radian.directive('plot',
         var xpos = +scope.fontSize, ypos = +v.margin.top + v.realheight / 2;
         var lab = outsvg.append('g').attr('class', 'axis-label')
         .append('text')
-        .attr('x', xpos).attr('y', ypos)
+        .attr('x', xpos - padding_delta).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
         .style('font-size', scope.fontSize)
         .attr('text-anchor', 'middle').text(v.ylabel);
@@ -853,7 +865,8 @@ radian.directive('plot',
       }
     }
     if (v.y2axis && v.y2) {
-      var axis = makeAxis(scope, v, 'y2', outsvg.attr('height') / 36);
+      var ax = makeAxis(scope, v, 'y2', outsvg.attr('height') / 36);
+      var axis = ax[0], padding_delta = ax[1];
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' +
               (+v.realwidth + v.margin.left) + ',' +
@@ -865,7 +878,7 @@ radian.directive('plot',
         var ypos = +v.margin.top + v.realheight / 2;
         var lab = outsvg.append('g').attr('class', 'axis-label')
         .append('text')
-        .attr('x', xpos).attr('y', ypos)
+        .attr('x', xpos + padding_delta).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
         .style('font-size', scope.fontSize)
         .attr('text-anchor', 'middle').text(v.y2label);
