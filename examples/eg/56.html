@@ -1,14 +1,22 @@
-<h3>Example 20 (second axes)</h3>
+<h3>Example 56 (date axis formatting)</h3>
 
-<plot height=300 aspect=3 stroke-width=2 axis-y2-label="Rainfall (mm/month)">
-  <lines x="[[vic2012ooa.date]]" y="[[vic2012ooa.tmp]]" stroke="red"/>
-  <lines x="[[midMonths(unique(vic2012ooa.date#getMonth()), 2012)]]"
-         y2="[[sumBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]"
-         stroke="blue"/>
+<plot height=300 aspect=3 stroke-width=2 stroke="red"
+      axis-x-label="off">
+  <lines x="[[vic2012ooa.date]]" y="[[vic2012ooa.tmp]]"/>
+</plot>
+
+<plot height=300 aspect=3 stroke-width=2 stroke="red"
+      axis-x-label="off" axis-x-format="%Y-%m">
+  <lines x="[[vic2012ooa.date]]" y="[[vic2012ooa.tmp]]"/>
+</plot>
+
+<plot height=300 aspect=3 stroke-width=2 stroke="red"
+      axis-x-label="off" axis-x-format="%W" axis-x-ticks="2w">
+  <lines x="[[vic2012ooa.date]]" y="[[vic2012ooa.tmp]]"/>
 </plot>
 
 <plot-data name="vic2012ooa" format="csv" cols="date,tmp,prc">
-  <metadata name="date" format="date" date-format="%B"></metadata>
+  <metadata name="date" format="date" date-format="%b"></metadata>
   <metadata name="tmp" label="Temperature" units="&deg;C"></metadata>
   <metadata name="prc" label="Rainfall" units="mm/day"></metadata>
   "2012-01-01",  3.80,  0.90

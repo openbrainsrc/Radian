@@ -672,6 +672,42 @@ radian.directive('plot',
     return d3.format(n > 6 ? ".2e" : (",." + n + "f"));
   };
 
+  function makeAxis(scope, v, ax, tickDefault) {
+    var ori;
+    switch (ax) {
+    case 'x':  ori = 'bottom';  break;
+    case 'x2': ori = 'top';     break;
+    case 'y':  ori = 'left';    break;
+    case 'y2': ori = 'right';   break;
+    }
+    var axis = d3.svg.axis().scale(v[ax]).orient(ori);
+    var dformat = '%Y-%m-%d';
+    var has_date = false;
+    dft(scope, function(s) {
+      var d = s[ax];
+      if (d && d.metadata && d.metadata.format == 'date') {
+        if (d.metadata.dateFormat) dformat = d.metadata.dateFormat;
+        has_date = true;
+      }
+    });
+    var axatt = ax.toUpperCase();
+    var ticksAttr = 'axis' + axatt + 'Ticks';
+    var fmtAttr = 'axis' + axatt + 'Format';
+    var xformAttr = 'axis' + axatt + 'Transform';
+    var ticks, fmt;
+    ticks = scope[ticksAttr] ? scope[ticksAttr] : tickDefault;
+      if (has_date)
+        fmt = d3.time.format(scope[fmtAttr] ? scope[fmtAttr] : dformat);
+      else
+        fmt = scope[fmtAttr] ? d3.format(scope[fmtAttr]) :
+          defaultScaleFormat(scope[xformAttr], v[ax], ticks);
+      if (has_date || !(scope[fmtAttr] || scope[xformAttr])) {
+        axis.ticks(ticks);
+        axis.tickFormat(fmt);
+      } else
+        axis.ticks(ticks, fmt);
+    return axis;
+  };
 
   function draw(v, scope) {
     // Clean out any pre-existing plots.
@@ -690,28 +726,7 @@ radian.directive('plot',
     var del1 = Math.floor(scope.fontSize / 3.0);
     var del2 = Math.floor(3.0 * scope.fontSize);
     if (v.xaxis && v.x) {
-      var axis = d3.svg.axis().scale(v.x).orient('bottom');
-      var dformat = '%Y-%m-%d';
-      var has_date = false;
-      dft(scope, function(s) {
-        var x = s.x;
-        if (x && x.metadata && x.metadata.format == 'date') {
-          if (x.metadata.dateFormat) dformat = x.metadata.dateFormat;
-          has_date = true;
-        }
-      });
-      var ticks = scope.axisXTicks ?
-        scope.axisXTicks : outsvg.attr('width') / 100;
-      var fmt =
-        scope.axisXFormat ? d3.format(scope.axisXFormat) :
-        has_date ? d3.time.format(dformat) :
-        defaultScaleFormat(scope.axisXTransform, v.x, ticks);
-      if (scope.axisXFormat || has_date || scope.axisXTransform)
-        axis.ticks(ticks, fmt);
-      else {
-        axis.ticks(ticks);
-        axis.tickFormat(fmt);
-      }
+      var axis = makeAxis(scope, v, 'x', outsvg.attr('width') / 100);
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.realheight + v.margin.top + del1) + ')')
@@ -729,28 +744,7 @@ radian.directive('plot',
       }
     }
     if (v.x2axis && v.x2) {
-      var axis = d3.svg.axis().scale(v.x2).orient('top');
-      var dformat = '%Y-%m-%d';
-      var has_date = false;
-      dft(scope, function(s) {
-        var x = s.x2;
-        if (x && x.metadata && x.metadata.format == 'date') {
-          if (x.metadata.dateFormat) dformat = x.metadata.dateFormat;
-          has_date = true;
-        }
-      });
-      var ticks = scope.axisX2Ticks ?
-        scope.axisX2Ticks : outsvg.attr('width') / 100;
-      var fmt =
-        scope.axisX2Format ? d3.format(scope.axisX2Format) :
-        has_date ? d3.time.format(dformat) :
-        defaultScaleFormat(scope.axisXTransform, v.x2, ticks);
-      if (scope.axisX2Format || has_date || scope.axisXTransform)
-        axis.ticks(ticks, fmt);
-      else {
-        axis.ticks(ticks);
-        axis.tickFormat(fmt);
-      }
+      var axis = makeAxis(scope, v, 'x2', outsvg.attr('width') / 100);
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.margin.top + del1) + ')')
@@ -768,17 +762,7 @@ radian.directive('plot',
       }
     }
     if (v.yaxis && v.y) {
-      var axis = d3.svg.axis().scale(v.y).orient('left');
-      var ticks = scope.axisYTicks ?
-        scope.axisYTicks : outsvg.attr('height') / 36;
-      var fmt = scope.axisYFormat ? d3.format(scope.axisYFormat) :
-        defaultScaleFormat(scope.axisYTransform, v.y, ticks);
-      if (scope.axisYFormat)
-        axis.ticks(ticks, fmt);
-      else {
-        axis.ticks(ticks);
-        axis.tickFormat(fmt);
-      }
+      var axis = makeAxis(scope, v, 'y', outsvg.attr('height') / 36);
       outsvg.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + (+v.margin.left - del1) + ',' +
               (+v.margin.top) + ')')
