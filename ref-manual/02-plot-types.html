@@ -34,7 +34,7 @@
 <p>Each plot frame is defined by a <code>&lt;plot&gt;</code> directive, which contains a number of plot type directives (e.g. <code>&lt;lines&gt;</code>, <code>&lt;points&gt;</code>, etc.). The attributes of the <code>&lt;plot&gt;</code> directive provide information about the overall structure of the plot such as its size, axis labelling, title, and so on. As with all Radian directives, extra variables for use in Radian expressions within the plot can also be specified as attributes.</p>
 <hr>
 <h2 id="the-plot-directive"><a name="plot-directive">The <code>&lt;plot&gt;</code> directive</a></h2>
-<p>The <code>&lt;plot&gt;</code> directive has a large number of attributes. The most important are those for specifying plot size (<code>WIDTH</code>, <code>HEIGHT</code> and <code>ASPECT</code>) and for specifying axis characteristics.</p>
+<p>The <code>&lt;plot&gt;</code> directive has a large number of attributes. The most important are those for specifying plot size (<code>WIDTH</code>, <code>HEIGHT</code> and <code>ASPECT</code>) and for specifying axis characteristics. There are four axes: <code>X</code> and <code>Y</code> (bottom and left) and <code>X2</code> and <code>Y2</code> (top and right), each associated with a corresponding “data path” attribute of the same name, and each having a set of formatting attributes. In the table below, the symbol “◊” stands for one of <code>X</code>, <code>Y</code>, <code>X2</code> or <code>Y2</code>.</p>
 <h3 id="attributes">Attributes</h3>
 <table>
 <thead>
@@ -46,231 +46,256 @@
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left"><code>RANGE-X</code></td>
+<td align="left"><code>RANGE-</code>◊</td>
 <td align="left"></td>
-<td align="left">Specify <span class="math"><em>x</em></span>-coordinate range for plot</td>
+<td align="left">Specify coordinate range for plot</td>
 </tr>
 <tr class="even">
-<td align="left"><code>RANGE-Y</code></td>
-<td align="left"></td>
-<td align="left">Specify <span class="math"><em>y</em></span>-coordinate range for plot</td>
-</tr>
-<tr class="odd">
 <td align="left"><code>RANGE</code></td>
 <td align="left"></td>
 <td align="left">Specify both <span class="math"><em>x</em></span>- and <span class="math"><em>y</em></span>-coordinate ranges for plot together</td>
 </tr>
-<tr class="even">
-<td align="left"><code>AXIS-X</code></td>
-<td align="left"></td>
-<td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis display, or a tick specification</td>
-</tr>
 <tr class="odd">
-<td align="left"><code>AXIS-X-TRANSFORM</code></td>
-<td align="left"></td>
-<td align="left">If present, one of <code>linear</code> (default) or <code>log</code></td>
-</tr>
-<tr class="even">
-<td align="left"><code>AXIS-X2</code></td>
-<td align="left"></td>
-<td align="left">Either <code>on</code>/<code>off</code> to allow or suppress (default) axis display, or a tick specification</td>
-</tr>
-<tr class="odd">
-<td align="left"><code>AXIS-Y</code></td>
+<td align="left"><code>AXIS-</code>◊</td>
 <td align="left"></td>
 <td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis display, or a tick specification</td>
 </tr>
 <tr class="even">
-<td align="left"><code>AXIS-Y-TRANSFORM</code></td>
+<td align="left"><code>AXIS-</code>◊<code>-TRANSFORM</code></td>
 <td align="left"></td>
 <td align="left">If present, one of <code>linear</code> (default) or <code>log</code></td>
 </tr>
 <tr class="odd">
-<td align="left"><code>AXIS-Y2</code></td>
-<td align="left"></td>
-<td align="left">Either <code>on</code>/<code>off</code> to allow or suppress (default) axis display, or a tick specification</td>
-</tr>
-<tr class="even">
-<td align="left"><code>AXIS-X-LABEL</code></td>
+<td align="left"><code>AXIS-</code>◊<code>-LABEL</code></td>
 <td align="left"></td>
 <td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis labelling, or a label string (when <code>on</code> is used, the axis label is taken from metadata where possible)</td>
 </tr>
-<tr class="odd">
-<td align="left"><code>AXIS-X2-LABEL</code></td>
-<td align="left"></td>
-<td align="left">Either <code>on</code>/<code>off</code> to allow or suppress (default) axis labelling, or a label string (when <code>on</code> is used, the axis label is taken from metadata where possible)</td>
-</tr>
 <tr class="even">
-<td align="left"><code>AXIS-Y-LABEL</code></td>
+<td align="left"><code>AXIS-</code>◊<code>-TICK-FORMAT</code></td>
 <td align="left"></td>
-<td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis labelling, or a label string (when <code>on</code> is used, the axis label is taken from metadata where possible)</td>
+<td align="left">Format string for axis tick display (see below)</td>
 </tr>
 <tr class="odd">
-<td align="left"><code>AXIS-Y2-LABEL</code></td>
+<td align="left"><code>AXIS-</code>◊<code>-TICK-SIZES</code></td>
 <td align="left"></td>
-<td align="left">Either <code>on</code>/<code>off</code> to allow or suppress (default) axis labelling, or a label string (when <code>on</code> is used, the axis label is taken from metadata where possible)</td>
+<td align="left">Tick sizes for axis ticks (see below)</td>
 </tr>
 <tr class="even">
+<td align="left"><code>AXIS-</code>◊<code>-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Tick size for major axis ticks</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-</code>◊<code>-MINOR-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Tick size for minor axis ticks</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-</code>◊<code>-END-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Tick size for axis end ticks</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-</code>◊<code>-MINOR-TICKS</code></td>
+<td align="left"></td>
+<td align="left">Number of minor ticks per major axis tick</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-</code>◊<code>-TICK-PADDING</code></td>
+<td align="left"></td>
+<td align="left">Padding between axis ticks and tick labels</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>TICK-SIZES</code></td>
+<td align="left"></td>
+<td align="left">Default tick sizes for all axes (see below)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Default tick size for major axis ticks for all axes (see below)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MINOR-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Default tick size for minor axis ticks for all axes (see below)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>END-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Default tick size for axis end ticks for all axes (see below)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MINOR-TICKS</code></td>
+<td align="left"></td>
+<td align="left">Default number of minor ticks per major axis tick for all axes</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TICK-PADDING</code></td>
+<td align="left"></td>
+<td align="left">Default padding between axis ticks and tick labels for all axes</td>
+</tr>
+<tr class="odd">
 <td align="left"><code>NO-DATA</code></td>
 <td align="left"></td>
 <td align="left">Message to display when no data is available</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>X</code></td>
 <td align="left"></td>
 <td align="left">Data path defining x-coordinate for plot data</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>Y</code></td>
 <td align="left"></td>
 <td align="left">Data path defining y-coordinate for plot data</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>X2</code></td>
 <td align="left"></td>
 <td align="left">Data path defining x2-coordinate for plot data</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>Y2</code></td>
 <td align="left"></td>
 <td align="left">Data path defining y2-coordinate for plot data</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>TITLE</code></td>
 <td align="left"></td>
 <td align="left">Plot title</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>WIDTH</code></td>
 <td align="left"></td>
 <td align="left">Plot width in pixels</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>HEIGHT</code></td>
 <td align="left"></td>
 <td align="left">Plot height in pixels</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>ASPECT</code></td>
 <td align="left"></td>
 <td align="left">Plot aspect ratio</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>ZOOM-X</code></td>
 <td align="left"></td>
 <td align="left">Presence/absence or fraction: enable X-zooming</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><span class="nyi"><code>ZOOM-Y</code></span></td>
 <td align="left"></td>
 <td align="left"><span class="nyi">Presence/absence or fraction: enable Y-zooming</span></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><span class="nyi"><code>ZOOM-2D</code></span></td>
 <td align="left"></td>
 <td align="left"><span class="nyi">Presence/absence: enable 2-D pan and zoom</span></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>LEGEND-SWITCHES</code></td>
 <td align="left"></td>
 <td align="left">Enable interactive on/off switching of traces via the plot legend</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>STROKE-SWITCH</code></td>
 <td align="left"></td>
 <td align="left">Labels for stroke switching UI</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>SELECT-X</code></td>
 <td align="left"></td>
 <td align="left">Provide UI for selecting between x-variables of plot</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>SELECT-Y</code></td>
 <td align="left"></td>
 <td align="left">Provide UI for selecting between y-variables of plot</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>FONT-SIZE</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (axes and annotations)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>FONT-FAMILY</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (axes and annotations)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>FONT-STYLE</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (axes and annotations)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>FONT-WEIGHT</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (axes and annotations)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>FONT-VARIANT</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (axes and annotations)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>TITLE-FONT-SIZE</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (plot title)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>TITLE-FONT-FAMILY</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (plot title)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>TITLE-FONT-STYLE</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (plot title)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>TITLE-FONT-WEIGHT</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (plot title)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>TITLE-FONT-VARIANT</code></td>
 <td align="left"></td>
 <td align="left">Standard font attribute (plot title)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>MARKER</code></td>
 <td align="left"></td>
 <td align="left">Standard paint attribute</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>MARKER-SIZE</code></td>
 <td align="left"></td>
 <td align="left">Standard paint attribute</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>FILL</code></td>
 <td align="left"></td>
 <td align="left">Standard paint attribute</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>FILL-OPACITY</code></td>
 <td align="left"></td>
 <td align="left">Standard paint attribute</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>STROKE</code></td>
 <td align="left"></td>
 <td align="left">Standard paint attribute</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left"><code>STROKE-WIDTH</code></td>
 <td align="left"></td>
 <td align="left">Standard paint attribute</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left"><code>STROKE-OPACITY</code></td>
 <td align="left"></td>
 <td align="left">Standard paint attribute</td>
@@ -284,6 +309,9 @@
 <li><p>Only one of <code>ZOOM-X</code>, <code>ZOOM-Y</code> or <code>ZOOM-2D</code> may be specified on a plot. The <code>ZOOM-X</code> and <code>ZOOM-Y</code> attributes can specify a fraction of the plot viewport to be used for the zoom component.</p></li>
 <li><p>The <code>STROKE-SWITCH</code> attribute gives a semicolon separated list of labels used to refer to the possible stroke values in subsidiary plots. If a single string is given (i.e. no semicolons), a simple switch between “on” and “off” is provided as a UI element and selection is performed between the first and second stroke possibilities for each subsidiary plot. If more than one label is provided, a selection UI is used, and as many stroke possibilities can be selected as labels are given.</p></li>
 <li><p>The <code>SELECT-X</code> and <code>SELECT-Y</code> UI elements interact in such a way as to provide a reasonable interface for managing the variables shown in an x-vs.-y plot: it is never possible to select the same variable for the x and y variable, and switching between plot variables is handled sensibly.</p></li>
+<li><p>Axis tick display and formatting is controlled by global options (<code>TICK-SIZES</code>, <code>MINOR-TICKS</code>, etc.) and per-axis options (<code>AXIS-X-TICK-SIZES</code>, <code>AXIS-Y-MINOR-TICKS</code> and so on). In all cases, the axis-specific options override the global options.</p></li>
+<li><p>Tick label formatting is controlled by the <code>AXIS-</code>◊<code>-TICK-FORMAT</code> options. The value of one of these options should be a format string following the formatting language used by the <code>d3.format</code> function, as specified <a href="https://github.com/mbostock/d3/wiki/Formatting#wiki-d3_format">here</a>.</p></li>
+<li><p>Tick sizing is controlled by the <code>TICK-SIZES</code>, <code>TICK-SIZE</code>, <code>MINOR-TICK-SIZE</code> and <code>END-TICK-SIZE</code> attributes and their axis-specific equivalents. <code>TICK-SIZE</code> refers to major ticks, <code>MINOR-TICK-SIZE</code> to minor ticks and <code>END-TICK-SIZE</code> to the ticks at the end of the axis. These sizes can either be set individually, or by setting the <code>TICK-SIZES</code> attribute: giving a single value for this will set all tick sizes to that value, giving two values separated by a comma will set the major and minor tick sizes to the first value and the end tick size to the second value, and giving three comma-separated values will set the major, minor and end tick sizes to the given values. The individual sizing attributes override the values set by <code>TICK-SIZES</code> and, as for the other tick formatting attributes, axis-specific attributes override the default attributes.</p></li>
 </ul>
 <p><em>The user interface elements of Radian will be getting a complete overhaul at some point soon, so the behaviour of the zoom and stroke and variable selection attributes of <code>&lt;plot&gt;</code> are likely to change.</em></p>
 <h3 id="body">Body</h3>
