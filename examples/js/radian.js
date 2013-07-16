@@ -692,6 +692,7 @@ radian.directive('plot',
     });
     var axatt = ax.toUpperCase();
     var ticksAttr = 'axis' + axatt + 'Ticks';
+    var minorTicksAttr = 'axis' + axatt + 'MinorTicks';
     var fmtAttr = 'axis' + axatt + 'Format';
     var xformAttr = 'axis' + axatt + 'Transform';
     var ticks, fmt;
@@ -732,6 +733,7 @@ radian.directive('plot',
       axis.ticks(ticks);
       axis.tickFormat(fmt);
     }
+    if (scope[minorTicksAttr]) axis.tickSubdivide(scope[minorTicksAttr]);
     return axis;
   };
 
