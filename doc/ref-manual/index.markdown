@@ -8,6 +8,12 @@ title: Reference manual
 <p class="nyi">Throughout the body of this manual, text in grey
 italics describes functionality that is not yet implemented.</p>
 
+**While Radian is still in its early development phase, this reference
+  manual describes the functionality implemented in the HEAD of the
+  Radian GitHub repository.  The releases on the Download page include
+  a subset of this functionality.  Once Radian is stable, we will tag
+  sets of documentation for individual releases.**
+
 The **Radian** plotting library provides a convenient approach to
 embedding SVG plots in HTML documents.  Plots are specified using
 custom HTML-like elements (e.g. `<plot>`, `<lines>`, `<plot-data>`,

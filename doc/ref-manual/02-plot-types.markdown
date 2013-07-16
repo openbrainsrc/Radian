@@ -24,58 +24,67 @@ attributes.
 
 The `<plot>` directive has a large number of attributes.  The most
 important are those for specifying plot size (`WIDTH`, `HEIGHT` and
-`ASPECT`) and for specifying axis characteristics.
+`ASPECT`) and for specifying axis characteristics.  There are four
+axes: `X` and `Y` (bottom and left) and `X2` and `Y2` (top and right),
+each associated with a corresponding "data path" attribute of the same
+name, and each having a set of formatting attributes.  In the table
+below, the symbol "&loz;" stands for one of `X`, `Y`, `X2` or `Y2`.
 
 ### Attributes
 
-|Name                |&nbsp;&nbsp;&nbsp;|Description|
-|--------------------|-|----------------------------|
-|`RANGE-X`           | |Specify $x$-coordinate range for plot|
-|`RANGE-Y`           | |Specify $y$-coordinate range for plot|
-|`RANGE`             | |Specify both $x$- and $y$-coordinate ranges for plot together|
-|`AXIS-X`            | |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification|
-|`AXIS-X-TRANSFORM`  | |If present, one of `linear` (default) or `log`|
-|`AXIS-X2`           | |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification|
-|`AXIS-Y`            | |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification|
-|`AXIS-Y-TRANSFORM`  | |If present, one of `linear` (default) or `log`|
-|`AXIS-Y2`           | |Either `on`/`off` to allow or suppress (default) axis display, or a tick specification|
-|`AXIS-X-LABEL`      | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
-|`AXIS-X2-LABEL`     | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
-|`AXIS-Y-LABEL`      | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
-|`AXIS-Y2-LABEL`     | |Either `on`/`off` to allow or suppress (default) axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
-|`NO-DATA`           | |Message to display when no data is available|
-|`X`                 | |Data path defining x-coordinate for plot data|
-|`Y`                 | |Data path defining y-coordinate for plot data|
-|`X2`                | |Data path defining x2-coordinate for plot data|
-|`Y2`                | |Data path defining y2-coordinate for plot data|
-|`TITLE`             | |Plot title|
-|`WIDTH`             | |Plot width in pixels|
-|`HEIGHT`            | |Plot height in pixels|
-|`ASPECT`            | |Plot aspect ratio|
-|`ZOOM-X`            | |Presence/absence or fraction: enable X-zooming|
+|Name                          |&nbsp;&nbsp;&nbsp;|Description|
+|------------------------------|-|----------------------------|
+|`RANGE-`&loz;                 | |Specify coordinate range for plot|
+|`RANGE`                       | |Specify both $x$- and $y$-coordinate ranges for plot together|
+|`AXIS-`&loz;                  | |Either `on`/`off` to allow (default) or suppress axis display, or a tick specification|
+|`AXIS-`&loz;`-TRANSFORM`      | |If present, one of `linear` (default) or `log`|
+|`AXIS-`&loz;`-LABEL`          | |Either `on`/`off` to allow (default) or suppress axis labelling, or a label string (when `on` is used, the axis label is taken from metadata where possible)|
+|`AXIS-`&loz;`-TICK-FORMAT`    | |Format string for axis tick display (see below)|
+|`AXIS-`&loz;`-TICK-SIZES`     | |Tick sizes for axis ticks (see below)|
+|`AXIS-`&loz;`-TICK-SIZE`      | |Tick size for major axis ticks|
+|`AXIS-`&loz;`-MINOR-TICK-SIZE`| |Tick size for minor axis ticks|
+|`AXIS-`&loz;`-END-TICK-SIZE`  | |Tick size for axis end ticks|
+|`AXIS-`&loz;`-MINOR-TICKS`    | |Number of minor ticks per major axis tick|
+|`AXIS-`&loz;`-TICK-PADDING`   | |Padding between axis ticks and tick labels|
+|`TICK-SIZES`                  | |Default tick sizes for all axes (see below)|
+|`TICK-SIZE`                   | |Default tick size for major axis ticks for all axes (see below)|
+|`MINOR-TICK-SIZE`             | |Default tick size for minor axis ticks for all axes (see below)|
+|`END-TICK-SIZE`               | |Default tick size for axis end ticks for all axes (see below)|
+|`MINOR-TICKS`                 | |Default number of minor ticks per major axis tick for all axes|
+|`TICK-PADDING`                | |Default padding between axis ticks and tick labels for all axes|
+|`NO-DATA`                     | |Message to display when no data is available|
+|`X`                           | |Data path defining x-coordinate for plot data|
+|`Y`                           | |Data path defining y-coordinate for plot data|
+|`X2`                          | |Data path defining x2-coordinate for plot data|
+|`Y2`                          | |Data path defining y2-coordinate for plot data|
+|`TITLE`                       | |Plot title|
+|`WIDTH`                       | |Plot width in pixels|
+|`HEIGHT`                      | |Plot height in pixels|
+|`ASPECT`                      | |Plot aspect ratio|
+|`ZOOM-X`                      | |Presence/absence or fraction: enable X-zooming|
 |<span class="nyi">`ZOOM-Y`</span>| |<span class="nyi">Presence/absence or fraction: enable Y-zooming</span>|
 |<span class="nyi">`ZOOM-2D`</span>| |<span class="nyi">Presence/absence: enable 2-D pan and zoom</span>|
-|`LEGEND-SWITCHES`   | |Enable interactive on/off switching of traces via the plot legend|
-|`STROKE-SWITCH`     | |Labels for stroke switching UI|
-|`SELECT-X`          | |Provide UI for selecting between x-variables of plot|
-|`SELECT-Y`          | |Provide UI for selecting between y-variables of plot|
-|`FONT-SIZE`         | |Standard font attribute (axes and annotations)|
-|`FONT-FAMILY`       | |Standard font attribute (axes and annotations)|
-|`FONT-STYLE`        | |Standard font attribute (axes and annotations)|
-|`FONT-WEIGHT`       | |Standard font attribute (axes and annotations)|
-|`FONT-VARIANT`      | |Standard font attribute (axes and annotations)|
-|`TITLE-FONT-SIZE`   | |Standard font attribute (plot title)|
-|`TITLE-FONT-FAMILY` | |Standard font attribute (plot title)|
-|`TITLE-FONT-STYLE`  | |Standard font attribute (plot title)|
-|`TITLE-FONT-WEIGHT` | |Standard font attribute (plot title)|
-|`TITLE-FONT-VARIANT`| |Standard font attribute (plot title)|
-|`MARKER`            | |Standard paint attribute|
-|`MARKER-SIZE`       | |Standard paint attribute|
-|`FILL`              | |Standard paint attribute|
-|`FILL-OPACITY`      | |Standard paint attribute|
-|`STROKE`            | |Standard paint attribute|
-|`STROKE-WIDTH`      | |Standard paint attribute|
-|`STROKE-OPACITY`    | |Standard paint attribute|
+|`LEGEND-SWITCHES`             | |Enable interactive on/off switching of traces via the plot legend|
+|`STROKE-SWITCH`               | |Labels for stroke switching UI|
+|`SELECT-X`                    | |Provide UI for selecting between x-variables of plot|
+|`SELECT-Y`                    | |Provide UI for selecting between y-variables of plot|
+|`FONT-SIZE`                   | |Standard font attribute (axes and annotations)|
+|`FONT-FAMILY`                 | |Standard font attribute (axes and annotations)|
+|`FONT-STYLE`                  | |Standard font attribute (axes and annotations)|
+|`FONT-WEIGHT`                 | |Standard font attribute (axes and annotations)|
+|`FONT-VARIANT`                | |Standard font attribute (axes and annotations)|
+|`TITLE-FONT-SIZE`             | |Standard font attribute (plot title)|
+|`TITLE-FONT-FAMILY`           | |Standard font attribute (plot title)|
+|`TITLE-FONT-STYLE`            | |Standard font attribute (plot title)|
+|`TITLE-FONT-WEIGHT`           | |Standard font attribute (plot title)|
+|`TITLE-FONT-VARIANT`          | |Standard font attribute (plot title)|
+|`MARKER`                      | |Standard paint attribute|
+|`MARKER-SIZE`                 | |Standard paint attribute|
+|`FILL`                        | |Standard paint attribute|
+|`FILL-OPACITY`                | |Standard paint attribute|
+|`STROKE`                      | |Standard paint attribute|
+|`STROKE-WIDTH`                | |Standard paint attribute|
+|`STROKE-OPACITY`              | |Standard paint attribute|
 
 <br>
 
@@ -109,6 +118,32 @@ important are those for specifying plot size (`WIDTH`, `HEIGHT` and
   in an x-vs.-y plot: it is never possible to select the same variable
   for the x and y variable, and switching between plot variables is
   handled sensibly.
+
+* Axis tick display and formatting is controlled by global options
+  (`TICK-SIZES`, `MINOR-TICKS`, etc.) and per-axis options
+  (`AXIS-X-TICK-SIZES`, `AXIS-Y-MINOR-TICKS` and so on).  In all
+  cases, the axis-specific options override the global options.
+
+* Tick label formatting is controlled by the
+  `AXIS-`&loz;`-TICK-FORMAT` options.  The value of one of these
+  options should be a format string following the formatting language
+  used by the `d3.format` function, as specified
+  [here](https://github.com/mbostock/d3/wiki/Formatting#wiki-d3_format).
+
+* Tick sizing is controlled by the `TICK-SIZES`, `TICK-SIZE`,
+  `MINOR-TICK-SIZE` and `END-TICK-SIZE` attributes and their
+  axis-specific equivalents.  `TICK-SIZE` refers to major ticks,
+  `MINOR-TICK-SIZE` to minor ticks and `END-TICK-SIZE` to the ticks at
+  the end of the axis.  These sizes can either be set individually, or
+  by setting the `TICK-SIZES` attribute: giving a single value for
+  this will set all tick sizes to that value, giving two values
+  separated by a comma will set the major and minor tick sizes to the
+  first value and the end tick size to the second value, and giving
+  three comma-separated values will set the major, minor and end tick
+  sizes to the given values.  The individual sizing attributes
+  override the values set by `TICK-SIZES` and, as for the other tick
+  formatting attributes, axis-specific attributes override the default
+  attributes.
 
 *The user interface elements of Radian will be getting a complete
 overhaul at some point soon, so the behaviour of the zoom and stroke
