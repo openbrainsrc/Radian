@@ -23,6 +23,7 @@
 
 <plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
       axis-x-label="Time" axis-y-label="sin(x) / cos(x)"
+      axis-x-minor-ticks=3
       axis-x-ticks="[[[0,[PI,'&pi;'],[2*PI,'2&pi;'],[3*PI,'3&pi;'],[4*PI,'4&pi;']]]]">
   <lines y="[[sin(x)]]" stroke="red"/>
   <lines y="[[cos(x)]]" stroke="blue"/>

@@ -520,10 +520,6 @@ radian.directive('plot',
     v.margin.top += 0.5 * scope.fontSize;
     var xAxisTransform = scope.axisXTransform || "linear";
     var yAxisTransform = scope.axisYTransform || "linear";
-    v.xaxisticks = scope.axisXTicks || null;
-    v.yaxisticks = scope.axisYTicks || null;
-    v.x2axisticks = scope.axisX2Ticks || null;
-    v.y2axisticks = scope.axisY2Ticks || null;
     v.title = scope.title;
 
     // Set up top and bottom plot margins.
@@ -703,12 +699,38 @@ radian.directive('plot',
     var xformAttr = 'axis' + axatt + 'Transform';
     var ticks, fmt;
     ticks = sc[ticksAttr] ? sc[ticksAttr] : tickDefault;
+    var explicit_ticks = false, explicit_labels = false;
+    var tickvals = [], ticklabs = [];
+    if (ticks instanceof Array) {
+      // We have explicit tick values.
+      explicit_ticks = true;
+      ticks.forEach(function(t) {
+        if (t instanceof Array) {
+          tickvals.push(t[0]);
+          ticklabs.push(t[1]);
+          explicit_labels = true;
+        } else {
+          tickvals.push(t);
+          ticklabs.push(t);
+        }
+      });
+      ticks = 100 * ticks.length;
+    }
     if (has_date)
       fmt = d3.time.format(sc[fmtAttr] ? sc[fmtAttr] : dformat);
     else
       fmt = sc[fmtAttr] ? d3.format(sc[fmtAttr]) :
       defaultScaleFormat(sc[xformAttr], v[ax], ticks);
-    if (has_date) {
+    if (explicit_ticks) {
+      axis.tickValues(tickvals);
+      if (explicit_labels)
+        axis.tickFormat(function(x) {
+          var i = tickvals.indexOf(x);
+          return x == -1 ? '' : ticklabs[i];
+        });
+      else
+        axis.tickFormat(fmt);
+    } else if (has_date) {
       var tickFn = null, tickNum = ticks;
       if (isNaN(Number(ticks))) {
         tickNum = parseFloat(ticks);
