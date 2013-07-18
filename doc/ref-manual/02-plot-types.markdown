@@ -44,6 +44,7 @@ below, the symbol "&loz;" stands for one of `X`, `Y`, `X2` or `Y2`.
 |`AXIS-`&loz;`-TICK-SIZE`      | |Tick size for major axis ticks|
 |`AXIS-`&loz;`-MINOR-TICK-SIZE`| |Tick size for minor axis ticks|
 |`AXIS-`&loz;`-END-TICK-SIZE`  | |Tick size for axis end ticks|
+|`AXIS-`&loz;`-TICKS`          | |Number of major ticks or explicit tick values (see below)|
 |`AXIS-`&loz;`-MINOR-TICKS`    | |Number of minor ticks per major axis tick|
 |`AXIS-`&loz;`-TICK-PADDING`   | |Padding between axis ticks and tick labels|
 |`TICK-SIZES`                  | |Default tick sizes for all axes (see below)|
@@ -123,6 +124,17 @@ below, the symbol "&loz;" stands for one of `X`, `Y`, `X2` or `Y2`.
   (`TICK-SIZES`, `MINOR-TICKS`, etc.) and per-axis options
   (`AXIS-X-TICK-SIZES`, `AXIS-Y-MINOR-TICKS` and so on).  In all
   cases, the axis-specific options override the global options.
+
+* The number and location of ticks are controlled by the
+  `AXIS-`&loz;`-TICKS` and `AXIS-`&loz;`-MINOR-TICKS` attributes.  The
+  latter, if specified, just gives the number of minor ticks between
+  each pair of major ticks.  The `AXIS-`&loz;`-TICKS` attributes,
+  however, allow for either the specification of a requested number of
+  major ticks or, if a Radian expression evaluating to an array is
+  given, explicit tick values.  Each entry in the tick array can
+  either be a single number or a two element array, the first element
+  of which is a number giving the tick position and the second a
+  string giving the tick label.
 
 * Tick label formatting is controlled by the
   `AXIS-`&loz;`-TICK-FORMAT` options.  The value of one of these
