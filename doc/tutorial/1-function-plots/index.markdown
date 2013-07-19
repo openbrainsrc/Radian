@@ -27,7 +27,10 @@ curves).
 ### Setup
 
 Before we get started for real, you will need to set up the tutorial
-materials.  These are available on GitHub.  In a terminal window, do:
+materials.  These are
+[available on GitHub](https://github.com/openbrainsrc/Radian-tutorial).
+The easiest way to get the tutorial materials is to clone the GitHub
+repository.  To do this, in a terminal window, do:
 
 ```
 git clone git@github.com:openbrainsrc/Radian-tutorial.git
