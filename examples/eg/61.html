@@ -1,0 +1,66 @@
+<h3>Example 61 (categorical bars #2)</h3>
+
+<palette name="mfpal" type="discrete">
+  female #FF7F7F; male #7F7FFF
+</palette>
+
+<palette name="comppal" type="discrete">
+  female:rural #FF7F7F
+  female:urban #FF0000
+  male:rural #7F7FFF
+  male:urban #0000FF
+</palette>
+
+<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
+      range-y=0>
+  <bars x="[[d1#sex]]" y="[[d1#rate]]" fill="[[mfpal(d1#sex)]]"
+        style="simple" aggregation="mean"></bars>
+</plot>
+
+<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
+      range-y=0>
+  <bars x="[[[d1#sex,d1#env]]]" y="[[d1#rate]]"
+        fill="[[comppal(d1#sex+':'+d1#env)]]"
+        style="simple" aggregation="mean"></bars>
+</plot>
+
+<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
+      range-y=0>
+  <bars x="[[[[d1#sex],d1#age]]]" y="[[d1#rate]]"
+        style="simple" aggregation="mean"
+        fill="[[mfpal(d1#sex)]]" axis-x-labels="[[d1#age]]"></bars>
+</plot>
+
+<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
+      range-y=0>
+  <bars x="[[[[d1#age],d1#sex]]]" y="[[d1#rate]]"
+        style="simple" aggregation="mean"
+        fill="[[mfpal(d1#sex)]]"
+        axis-x-label-levels="all"></bars>
+</plot>
+
+<plot-data id="d1">
+  <metadata name="sex" order="female,male"></metadata>
+  <metadata name="env" order="rural,urban"></metadata>
+  <metadata name="age" order="50-54,55-59,60-64,65-69,70-74"></metadata>
+  [ { "sex": "female", "env": "rural", "age": "50-54", "rate": 15.5 },
+    { "sex": "female", "env": "rural", "age": "55-59", "rate": 20.2 },
+    { "sex": "female", "env": "rural", "age": "60-64", "rate": 32.1 },
+    { "sex": "female", "env": "rural", "age": "65-69", "rate": 48.0 },
+    { "sex": "female", "env": "rural", "age": "70-74", "rate": 65.5 },
+    { "sex": "female", "env": "urban", "age": "50-54", "rate": 15.5 },
+    { "sex": "female", "env": "urban", "age": "55-59", "rate": 20.2 },
+    { "sex": "female", "env": "urban", "age": "60-64", "rate": 32.1 },
+    { "sex": "female", "env": "urban", "age": "65-69", "rate": 48.0 },
+    { "sex": "female", "env": "urban", "age": "70-74", "rate": 65.5 },
+    { "sex": "male", "env": "rural", "age": "50-54", "rate": 15.5 },
+    { "sex": "male", "env": "rural", "age": "55-59", "rate": 20.2 },
+    { "sex": "male", "env": "rural", "age": "60-64", "rate": 32.1 },
+    { "sex": "male", "env": "rural", "age": "65-69", "rate": 48.0 },
+    { "sex": "male", "env": "rural", "age": "70-74", "rate": 65.5 },
+    { "sex": "male", "env": "urban", "age": "50-54", "rate": 15.5 },
+    { "sex": "male", "env": "urban", "age": "55-59", "rate": 20.2 },
+    { "sex": "male", "env": "urban", "age": "60-64", "rate": 32.1 },
+    { "sex": "male", "env": "urban", "age": "65-69", "rate": 48.0 },
+    { "sex": "male", "env": "urban", "age": "70-74", "rate": 65.5 } ]
+</plot-data>

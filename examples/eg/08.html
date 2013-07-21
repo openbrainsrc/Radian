@@ -1,6 +1,6 @@
 <h3>Example 8 (plot grid with tabs)</h3>
 
-<plot-grid tabs>
+<plot-stack>
   <plot zoom-x title="Time series" thickness=2 legend-switches>
     <lines x="[[sim1.t]]" y="[[sim1.x]]" stroke="orange;orange:grey" label="x"/>
     <lines x="[[sim1.t]]" y="[[sim1.y]]" stroke="blue;blue:grey"     label="y"/>
@@ -10,7 +10,7 @@
         stroke-switch="Fade" stroke="blue;red:grey">
     <lines x="[[[sim1.x,sim1.y,sim1.z]]]" y="[[[sim1.x,sim1.y,sim1.z]]]"/>
   </plot>
-</plot-grid>
+</plot-stack>
 
 <plot-data name="sim1" format="csv" separator=" " cols="t,x,y,z">
 0 1 1 1
