@@ -205,9 +205,9 @@ radian.factory('layoutDirective',
     function preLink(sc, elm, as, transclude) {
       processAttrs(sc, as);
       if (!sc.inLayout) {
-        calcPlotDimensions(sc, elm, as);
         sc.layoutTop = true;
         sc.inLayout = true;
+        if (!sc.inStack) calcPlotDimensions(sc, elm, as);
         $(elm).css('width', sc.width).css('height', sc.height);
         sc.layoutsvg = elm.children()[0];
       } else
@@ -222,6 +222,7 @@ radian.factory('layoutDirective',
         var spacing = sc.spacing || 0;
         var layedout = layoutSizes(sc.width, sc.height, spacing, items);
         var frames = extractFrames(0, sc.width, sc.height, layedout);
+        if (sc.hasOwnProperty('title')) items.title = sc.title;
         frames.forEach(function(fr) {
           fr.plot.width = fr.w;
           fr.plot.height = fr.h;
@@ -229,7 +230,9 @@ radian.factory('layoutDirective',
             .attr('width', fr.w).attr('height', fr.h)
             .attr('transform', 'translate(' + fr.x + ',' + fr.y + ')')[0][0];
         });
-      } else addToLayout(sc.$parent, items, sc.layoutShare);
+      }
+      if (!sc.hasOwnProperty('layoutTop') || sc.inStack)
+        addToLayout(sc.$parent, items, sc.layoutShare);
     };
 
     return {
@@ -267,9 +270,9 @@ radian.directive('plotGrid',
   function preLink(sc, elm, as, transclude) {
     processAttrs(sc, as);
     if (!sc.inLayout) {
-      calcPlotDimensions(sc, elm, as);
       sc.layoutTop = true;
       sc.inLayout = true;
+      if (!sc.inStack) calcPlotDimensions(sc, elm, as);
       $(elm).css('width', sc.width).css('height', sc.height);
       sc.layoutsvg = elm.children()[0];
     } else
@@ -303,7 +306,9 @@ radian.directive('plotGrid',
           .attr('width', fr.w).attr('height', fr.h)
           .attr('transform', 'translate(' + fr.x + ',' + fr.y + ')')[0][0];
       });
-    } else addToLayout(sc.$parent, items, sc.layoutShare);
+    }
+    if (!sc.hasOwnProperty('layoutTop') || sc.inStack)
+      addToLayout(sc.$parent, items, sc.layoutShare);
   };
 
   return {
@@ -318,6 +323,63 @@ radian.directive('plotGrid',
     }
   };
 }]);
+
+
+radian.directive('plotStack',
+ ['layoutSizes', 'processAttrs', 'calcPlotDimensions',
+  'addToLayout', 'extractFrames', 'layoutToString',
+  function(layoutSizes, processAttrs, calcPlotDimensions,
+           addToLayout, extractFrames, layoutToString)
+{
+  'use strict';
+
+  function preLink(sc, elm, as, transclude) {
+    processAttrs(sc, as);
+    if (sc.inLayout)
+      throw Error("<plot-stack> can only appear as outermost layout directive");
+    calcPlotDimensions(sc, elm, as);
+    sc.inStack = true;
+    sc.layoutItems = [];
+    transclude(sc.$new(), function (cl) {
+      elm.append('<div class="tab-content radian-tabs"></div>');
+      var tabs = elm.children(0);
+      tabs.append(cl);
+      cl.filter('div.radian').each(function(i) {
+        var cls = i == 0 ? 'tab-pane active' : 'tab-pane';
+        $(this).wrap('<div class="' + cls + '" id="tab' + i + '"></div>');
+      });
+    });
+  };
+
+  function postLink(sc, elm) {
+    var is = sc.layoutItems;
+    elm.prepend('<ul class="nav nav-tabs"></ul>');
+    var nav = elm.children('ul');
+    for (var i = 0; i < is.length; ++i) {
+      var it = is[i].item;
+      var t = it.title ? it.title :
+        (it.items.title ? it.items.title : 'Tab ' + (i+1));
+      var link = '<a href="#tab' + i + '" data-toggle="tab">' + t + '</a>';
+      var active = i == 0 ? ' class="active"' : '';
+      nav.append('<li' + active + '>' + link + '</li>');
+    }
+  };
+
+  return {
+    restrict: 'E',
+    template: '<div></div>',
+    replace: true,
+    transclude: true,
+    scope: true,
+    compile: function(elm, as, trans) {
+      return { pre: function(s, e, a) { preLink(s, e, a, trans); },
+               post: postLink };
+    }
+  };
+}]);
+
+
+
 
 radian.factory('layoutToString', function() {
   'use strict';

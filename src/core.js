@@ -136,14 +136,14 @@ radian.directive('plot',
     processAttrs(scope, as);
     scope.plotid = ++plotidgen;
     if (!scope.inLayout) {
-      calcPlotDimensions(scope, elm, as)
       scope.layoutTop = true;
+      if (!scope.inStack) calcPlotDimensions(scope, elm, as)
       $(elm).css('width', scope.width).css('height', scope.height);
       scope.svg = elm.children()[1];
-    } else {
+    } else
       $(elm.children()[1]).remove();
+    if (scope.inLayout || scope.inStack)
       addToLayout(scope, scope, scope.layoutShare);
-    }
     if (as.hasOwnProperty('strokeSwitch')) scope.strokesel = 0;
 
     // Font attributes.
@@ -521,6 +521,7 @@ radian.directive('plot',
     v.title = scope.title;
 
     // Set up top and bottom plot margins.
+    if (scope.inStack) v.noTitle = true;
     var axisspace = 15;
     var del1 = axisspace + (+scope.fontSize);
     var del2 = 5 + (+scope.fontSize);

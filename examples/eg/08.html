@@ -1,14 +1,13 @@
-<h3>Example 8 (plot grid with tabs)</h3>
+<h3>Example 8 (plot stack)</h3>
 
-<plot-stack>
+<plot-stack width=600 height=400>
   <plot zoom-x title="Time series" thickness=2 legend-switches>
-    <lines x="[[sim1.t]]" y="[[sim1.x]]" stroke="orange;orange:grey" label="x"/>
-    <lines x="[[sim1.t]]" y="[[sim1.y]]" stroke="blue;blue:grey"     label="y"/>
-    <lines x="[[sim1.t]]" y="[[sim1.z]]" stroke="green;green:grey"   label="z"/>
+    <lines x="[[sim1.t]]" y="[[sim1.x]]" stroke="orange" label="x"></lines>
+    <lines x="[[sim1.t]]" y="[[sim1.y]]" stroke="blue" label="y"></lines>
+    <lines x="[[sim1.t]]" y="[[sim1.z]]" stroke="green" label="z"></lines>
   </plot>
-  <plot title="Trajectories" select-x="x,y,z" select-y="x,y,z"
-        stroke-switch="Fade" stroke="blue;red:grey">
-    <lines x="[[[sim1.x,sim1.y,sim1.z]]]" y="[[[sim1.x,sim1.y,sim1.z]]]"/>
+  <plot title="Trajectories" stroke="blue">
+    <lines x="[[sim1.x]]" y="[[sim1.y]]"></lines>
   </plot>
 </plot-stack>
 
