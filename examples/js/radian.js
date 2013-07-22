@@ -3594,9 +3594,9 @@ radian.directive('plotGrid',
 
 
 radian.directive('plotStack',
- ['layoutSizes', 'processAttrs', 'calcPlotDimensions',
+ ['$rootScope', 'layoutSizes', 'processAttrs', 'calcPlotDimensions',
   'addToLayout', 'extractFrames', 'layoutToString',
-  function(layoutSizes, processAttrs, calcPlotDimensions,
+  function($rootScope, layoutSizes, processAttrs, calcPlotDimensions,
            addToLayout, extractFrames, layoutToString)
 {
   'use strict';
@@ -3608,6 +3608,7 @@ radian.directive('plotStack',
     calcPlotDimensions(sc, elm, as);
     sc.inStack = true;
     sc.layoutItems = [];
+    if (!$rootScope.radianNavIDs) $rootScope.radianNavIDs = { };
     transclude(sc.$new(), function (cl) {
       elm.append('<div class="tab-content radian-tabs"></div>');
       var tabs = elm.children(0);
@@ -3618,8 +3619,9 @@ radian.directive('plotStack',
         do {
           ++idx;
           tabid = 'tab' + idx + '_' + i;
-        } while ($('#' + tabid).length > 0);
+        } while ($rootScope.radianNavIDs[tabid]);
         sc.ids.push(tabid);
+        $rootScope.radianNavIDs[tabid] = 1;
         var cls = i == 0 ? 'tab-pane active' : 'tab-pane';
         $(this).wrap('<div class="' + cls + '" id="' + tabid + '"></div>');
       });
