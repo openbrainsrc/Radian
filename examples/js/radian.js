@@ -236,6 +236,7 @@ radian.directive('plot',
       var mainsvg = svgelm.append('g')
         .attr('width', scope.width).attr('height', scope.height);
       svgs = [mainsvg];
+      if (!$rootScope.sizesvg) $rootScope.sizesvg = mainsvg;
       if (scope.hasOwnProperty('zoomX')) {
         var zfrac = scope.zoomX == "" ? 0.2 : +scope.zoomX;
         zfrac = Math.min(0.95, Math.max(0.05, zfrac));
@@ -561,12 +562,13 @@ radian.directive('plot',
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var tstel = v.svg.append('g').attr('visibility', 'hidden')
+      var tstel = $rootScope.sizesvg.append('g').attr('visibility', 'hidden')
         .append('text')
         .attr('x', 0).attr('y', 0)
         .style('font-size', scope.fontSize)
         .text(tst);
       yoffset = Math.max(del3, axisspace + tstel[0][0].getBBox().width);
+      tstel.remove();
     }
     if (v.y2axis && v.y2) {
       var tmp = v.y2.copy();
@@ -579,12 +581,13 @@ radian.directive('plot',
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var tstel = v.svg.append('g').attr('visibility', 'hidden')
+      var tstel = $rootScope.sizesvg.append('g').attr('visibility', 'hidden')
         .append('text')
         .attr('x', 0).attr('y', 0)
         .style('font-size', scope.fontSize)
         .text(tst);
       y2offset = Math.max(del3, axisspace + tstel[0][0].getBBox().width);
+      tstel.remove();
     }
     if (v.yaxis) v.margin.left += yoffset + (showYAxisLabel ? del2 : 0);
     if (v.y2axis) v.margin.right += y2offset + (showY2AxisLabel ? del2 : 0);
