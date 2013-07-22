@@ -30,8 +30,9 @@
     </div>
 
     <h1 id="plot-layout-directives">5. Plot layout directives</h1>
-<p>A number of directives are provided for laying out plots using a “VBox/HBox” approach (<code>&lt;plot-row&gt;</code> and <code>&lt;plot-col&gt;</code>) and in simple grids (<code>&lt;plot-grid&gt;</code>).</p>
-<p>All of the plot layout directives can be embedded one inside the other, forming a layout tree, the leaves of which are normal <code>&lt;plot&gt;</code> directives. So, rows can be items inside columns, columns can be items be inside grids, grids can be items inside rows, and so on. The outermost layout directive (this includes a <code>&lt;plot&gt;</code> directive on its own) is responsible for allocating space within the main layout frame for the subsidiary plots. The overall height, width and aspect ratio of the plot layout can therefore be set on the outermost layout element. A single SVG image is generated for the outermost plot or plot layout element, with space allocated within the SVG for each of the subsidiary elements.</p>
+<p>A number of directives are provided for laying out plots using a “VBox/HBox” approach (<code>&lt;plot-row&gt;</code> and <code>&lt;plot-col&gt;</code>) and in simple grids (<code>&lt;plot-grid&gt;</code>). In addition, the <code>&lt;plot-stack&gt;</code> directive can be used to “stack” plots or plot layouts into a set of Bootstrap tabs.</p>
+<h2 id="flat-layout">Flat layout</h2>
+<p>All of the “flat” plot layout directives (i.e. <code>&lt;plot-row&gt;</code>, <code>&lt;plot-col&gt;</code> and <code>&lt;plot-grid&gt;</code>) can be embedded one inside the other, forming a layout tree, the leaves of which are normal <code>&lt;plot&gt;</code> directives. So, rows can be items inside columns, columns can be items be inside grids, grids can be items inside rows, and so on. The outermost layout directive (this includes a <code>&lt;plot&gt;</code> directive on its own) is responsible for allocating space within the main layout frame for the subsidiary plots. The overall height, width and aspect ratio of the plot layout can therefore be set on the outermost layout element. A single SVG image is generated for the outermost plot or plot layout element, with space allocated within the SVG for each of the subsidiary elements.</p>
 <p>As with most Radian directives, plot attributes and other Radian variables can be specified for all the plots inside the directive. In addition, each of the layout directives supports a number of specialised layout attributes.</p>
 <h3 id="layout-attributes-for-the-plot-grid-directive">Layout attributes for the <code>&lt;plot-grid&gt;</code> directive</h3>
 <table>
@@ -93,6 +94,24 @@
     <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
   <span class="kw">&lt;/plot&gt;</span>
 <span class="kw">&lt;/plot-row&gt;</span></code></pre>
+<h2 id="tabbed-layout">Tabbed layout</h2>
+<p>The <code>&lt;plot-stack&gt;</code> directive allows for a set of plots to be displayed with a tabbed navigation interface for switching between them. The <code>&lt;plot-stack&gt;</code> directive can only appear as the outermost of a tree of layout directives (this is because the “flat” layout directives generate a single SVG image for the full plot layout, and there is no easy way of embedding a tabbed navigation UI within a single SVG image), and can contain any number of plots or plot layouts. As for the other layout directives, the overall size of the plot is specified by the sizing attributes of this outer <code>&lt;plot-stack&gt;</code> directive.</p>
+<p>Labels for the tabs are taken from the <code>TITLE</code> attribute of the inner plot elements.</p>
+<p>For example, the following will generate a lyout with three tabs named “sin”, “cos” and “combined”:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-stack</span><span class="ot"> width=</span><span class="st">600</span><span class="ot"> aspect=</span><span class="st">1</span><span class="ot"> stroke-width=</span><span class="st">2</span>
+<span class="ot">            x=</span><span class="st">&quot;[[seq(0,2*PI+0.2,101)]]&quot;</span><span class="ot"> axis-x-label=</span><span class="st">&quot;Time&quot;</span>
+<span class="ot">            axis-x-ticks=</span><span class="st">&quot;[[[0,[PI,'</span><span class="dv">&amp;pi;</span><span class="st">'],[2*PI,'2</span><span class="dv">&amp;pi;</span><span class="st">']]]]&quot;</span>
+<span class="ot">            end-tick-size=</span><span class="st">0</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;plot</span><span class="ot"> title=</span><span class="st">&quot;sin&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;sin(x)&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;/plot&gt;</span>
+  <span class="kw">&lt;plot</span><span class="ot"> title=</span><span class="st">&quot;cos&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;cos(x)&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[cos(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;/plot&gt;</span>
+  <span class="kw">&lt;plot</span><span class="ot"> title=</span><span class="st">&quot;combined&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;sin(x) + cos(x)&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> y=</span><span class="st">&quot;[[sin(x)+cos(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;green&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;/plot&gt;</span>
+<span class="kw">&lt;/plot-stack&gt;</span></code></pre>
 
     <footer>
       <div>
