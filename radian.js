@@ -236,7 +236,12 @@ radian.directive('plot',
       var mainsvg = svgelm.append('g')
         .attr('width', scope.width).attr('height', scope.height);
       svgs = [mainsvg];
-      if (!$rootScope.sizesvg) $rootScope.sizesvg = mainsvg;
+      if (!scope.sizesvg) {
+        var s = scope;
+        if (scope.inStack)
+          while (!s.hasOwnProperty('inStack')) s = s.$parent;
+        s.sizesvg = mainsvg;
+      }
       if (scope.hasOwnProperty('zoomX')) {
         var zfrac = scope.zoomX == "" ? 0.2 : +scope.zoomX;
         zfrac = Math.min(0.95, Math.max(0.05, zfrac));
@@ -562,7 +567,7 @@ radian.directive('plot',
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var tstel = $rootScope.sizesvg.append('g').attr('visibility', 'hidden')
+      var tstel = scope.sizesvg.append('g').attr('visibility', 'hidden')
         .append('text')
         .attr('x', 0).attr('y', 0)
         .style('font-size', scope.fontSize)
@@ -581,7 +586,7 @@ radian.directive('plot',
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var tstel = $rootScope.sizesvg.append('g').attr('visibility', 'hidden')
+      var tstel = scope.sizesvg.append('g').attr('visibility', 'hidden')
         .append('text')
         .attr('x', 0).attr('y', 0)
         .style('font-size', scope.fontSize)
