@@ -7,10 +7,14 @@ title: Reference manual - Plot layout directives
 
 A number of directives are provided for laying out plots using a
 "VBox/HBox" approach (`<plot-row>` and `<plot-col>`) and in simple
-grids (`<plot-grid>`).
+grids (`<plot-grid>`).  In addition, the `<plot-stack>` directive can
+be used to "stack" plots or plot layouts into a set of Bootstrap tabs.
 
-All of the plot layout directives can be embedded one inside the
-other, forming a layout tree, the leaves of which are normal `<plot>`
+## Flat layout
+
+All of the "flat" plot layout directives (i.e. `<plot-row>`,
+`<plot-col>` and `<plot-grid>`) can be embedded one inside the other,
+forming a layout tree, the leaves of which are normal `<plot>`
 directives.  So, rows can be items inside columns, columns can be
 items be inside grids, grids can be items inside rows, and so on.  The
 outermost layout directive (this includes a `<plot>` directive on its
@@ -92,4 +96,40 @@ of the height and width choices, all of the plots are square:
     <lines y="[[cos(x)]]"></lines>
   </plot>
 </plot-row>
+~~~~
+
+
+## Tabbed layout
+
+The `<plot-stack>` directive allows for a set of plots to be displayed
+with a tabbed navigation interface for switching between them.  The
+`<plot-stack>` directive can only appear as the outermost of a tree of
+layout directives (this is because the "flat" layout directives
+generate a single SVG image for the full plot layout, and there is no
+easy way of embedding a tabbed navigation UI within a single SVG
+image), and can contain any number of plots or plot layouts.  As for
+the other layout directives, the overall size of the plot is specified
+by the sizing attributes of this outer `<plot-stack>` directive.
+
+Labels for the tabs are taken from the `TITLE` attribute of the inner
+plot elements.
+
+For example, the following will generate a lyout with three tabs named
+"sin", "cos" and "combined":
+
+~~~~ {.html}
+<plot-stack width=600 aspect=1 stroke-width=2
+            x="[[seq(0,2*PI+0.2,101)]]" axis-x-label="Time"
+            axis-x-ticks="[[[0,[PI,'&pi;'],[2*PI,'2&pi;']]]]"
+            end-tick-size=0>
+  <plot title="sin" axis-y-label="sin(x)">
+    <lines y="[[sin(x)]]" stroke="red"></lines>
+  </plot>
+  <plot title="cos" axis-y-label="cos(x)">
+    <lines y="[[cos(x)]]" stroke="blue"></lines>
+  </plot>
+  <plot title="combined" axis-y-label="sin(x) + cos(x)">
+    <lines y="[[sin(x)+cos(x)]]" stroke="green"></lines>
+  </plot>
+</plot-stack>
 ~~~~
