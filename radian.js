@@ -3609,9 +3609,16 @@ radian.directive('plotStack',
       elm.append('<div class="tab-content radian-tabs"></div>');
       var tabs = elm.children(0);
       tabs.append(cl);
+      sc.ids = [];
       cl.filter('div.radian').each(function(i) {
+        var idx = 0, tabid;
+        do {
+          ++idx;
+          tabid = 'tab' + idx + '_' + i;
+        } while ($('#' + tabid).length > 0);
+        sc.ids.push(tabid);
         var cls = i == 0 ? 'tab-pane active' : 'tab-pane';
-        $(this).wrap('<div class="' + cls + '" id="tab' + i + '"></div>');
+        $(this).wrap('<div class="' + cls + '" id="' + tabid + '"></div>');
       });
     });
   };
@@ -3624,7 +3631,7 @@ radian.directive('plotStack',
       var it = is[i].item;
       var t = it.title ? it.title :
         (it.items.title ? it.items.title : 'Tab ' + (i+1));
-      var link = '<a href="#tab' + i + '" data-toggle="tab">' + t + '</a>';
+      var link = '<a href="#' + sc.ids[i] + '" data-toggle="tab">' + t + '</a>';
       var active = i == 0 ? ' class="active"' : '';
       nav.append('<li' + active + '>' + link + '</li>');
     }
