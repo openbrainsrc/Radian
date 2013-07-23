@@ -3609,8 +3609,9 @@ radian.directive('plotStack',
   function preLink(sc, elm, as, transclude) {
     processAttrs(sc, as);
     if (sc.inLayout)
-      throw Error("<plot-stack> can only appear as outermost layout directive");
-    calcPlotDimensions(sc, elm, as);
+      throw Error("<plot-stack> cannot appear inside other layout directives");
+    if (!sc.inStack) calcPlotDimensions(sc, elm, as);
+    if (sc.inStack) addToLayout(sc.$parent, { type: 'stack', items: sc }, null);
     sc.inStack = true;
     sc.layoutItems = [];
     if (!$rootScope.radianNavIDs) $rootScope.radianNavIDs = { };
@@ -3619,7 +3620,7 @@ radian.directive('plotStack',
       var tabs = elm.children(0);
       tabs.append(cl);
       sc.ids = [];
-      cl.filter('div.radian').each(function(i) {
+      cl.filter('div.radian,div.radian-stack').each(function(i) {
         var idx = 0, tabid;
         do {
           ++idx;
@@ -3649,7 +3650,7 @@ radian.directive('plotStack',
 
   return {
     restrict: 'E',
-    template: '<div></div>',
+    template: '<div class="radian-stack"></div>',
     replace: true,
     transclude: true,
     scope: true,
