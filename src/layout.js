@@ -110,7 +110,7 @@ radian.factory('layoutSizes', ['layoutToString', function(layoutToString) {
 
     function help(w, h, layout)
     {
-      if (layout.type == 'plot') return layout;
+      if (layout.type == 'plot' || layout.type == 'empty') return layout;
       function getratios(ls) {
         return ls.map(function(l) { return l.size || null; });
       };
@@ -289,8 +289,10 @@ radian.directive('plotGrid',
     for (var r = 0; r < nrows; ++r) {
       var cols = [];
       for (var c = 0; c < ncols; ++c) {
-        if (i >= sc.layoutItems.length) break;
-        cols.push(sc.layoutItems[i++]);
+        if (i >= sc.layoutItems.length)
+          cols.push({ size: null, item: { type: 'empty' } });
+        else
+          cols.push(sc.layoutItems[i++]);
       }
       rows.push({ size: null, item: { type: 'hbox', items: cols } });
     }
@@ -299,6 +301,7 @@ radian.directive('plotGrid',
       var spacing = sc.spacing || 0;
       var layedout = layoutSizes(sc.width, sc.height, spacing, items);
       var frames = extractFrames(0, sc.width, sc.height, layedout);
+      if (sc.hasOwnProperty('title')) items.title = sc.title;
       frames.forEach(function(fr) {
         fr.plot.width = fr.w;
         fr.plot.height = fr.h;
@@ -397,6 +400,7 @@ radian.factory('layoutToString', function() {
   return function(layout) {
     function fixplots(lay) {
       switch (lay.type) {
+      case 'empty': return { type: 'empty' };
       case 'plot': return { type: 'plot', items: lay.items.$id };
       default: return { type: lay.type, items: lay.items.map(function(i) {
         return { size: i.size, item: fixplots(i.item) };
