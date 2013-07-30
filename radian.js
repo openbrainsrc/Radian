@@ -3226,8 +3226,8 @@ radian.directive('plotData', ['$http', 'processAttrs',
     } else {
       $http.get(src)
         .success(function(data, status, headers, config) {
-          format = (headers("Content-Type").indexOf('application/json') == 0) ?
-            'json' : 'csv';
+          if (headers("Content-Type").indexOf('application/json') == 0)
+            format = 'json';
           processData(data);
         })
         .error(function() { throw Error("failed to read data from " + src); });
