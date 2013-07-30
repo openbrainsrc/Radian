@@ -58,8 +58,12 @@ radian.directive('plotData', ['$http', 'processAttrs',
           x.forEach(function(v, i) { x[i] = f(v); });
         else
           x.forEach(function(v) { go(v, false); });
-      } else if (typeof x == 'object')
-        Object.keys(x).forEach(function(xk) { go(x[xk], xk == k); });
+      } else if (typeof x == 'object') {
+        if (x.hasOwnProperty(k))
+          x[k] = f(x[k]);
+        else
+          Object.keys(x).forEach(function(xk) { go(x[xk], xk == k); });
+      }
     }
     go(d, false);
   };
