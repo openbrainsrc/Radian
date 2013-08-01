@@ -6,13 +6,35 @@ radian.directive('plotData', ['$http', 'processAttrs',
 {
   'use strict';
 
+  // Recursively transform any string values that can be parsed as
+  // numbers into numeric values.
+  function numberTypes(d) {
+    if (typeof d == 'object') {
+      var n;
+      Object.keys(d).forEach(function(k) {
+        switch (typeof d[k]) {
+        case 'object':
+          if (d[k]) numberTypes(d[k]);
+          break;
+        case 'string':
+          n = Number(d[k]);
+          if (!isNaN(n)) d[k] = n;
+          break;
+        }
+      });
+    }
+  };
+
   // Parse JSON or CSV data.
   function parseData(datatext, format, cols, separator) {
     var d;
     var fpre = /^\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/;
     switch (format) {
     case 'json':
-      try { d = typeof datatext == 'string' ? JSON.parse(datatext) : datatext; }
+      try {
+        d = typeof datatext == 'string' ? JSON.parse(datatext) : datatext;
+        numberTypes(d);
+      }
       catch (e) { throw Error('invalid JSON data in <plot-data>'); }
       break;
     case 'csv':
