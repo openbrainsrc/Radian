@@ -1,8 +1,22 @@
+// Helper service to allow overriding of default use of $http for
+// accessing plot data defined via a SRC attribute.  This can be
+// useful to implement client-side caching of plot data, for example.
+
+radian.factory('plotDataHttpProvider', ['$http', function($http)
+{
+  var provider = $http;
+  function set(prov) { provider = prov; provider.set = set; };
+  provider.set = set;
+  return provider;
+}]);
+
+
 // Bring plot data into Angular scope by parsing <plot-data> directive
 // body.
 
-radian.directive('plotData', ['$http', 'processAttrs',
-                              function($http, processAttrs)
+radian.directive('plotData',
+ ['$http', 'processAttrs', 'plotDataHttpProvider',
+  function($http, processAttrs, plotDataHttpProvider)
 {
   'use strict';
 
@@ -163,7 +177,7 @@ radian.directive('plotData', ['$http', 'processAttrs',
       });
       processData(datatext);
     } else {
-      $http.get(src)
+      plotDataHttpProvider.get(src)
         .success(function(data, status, headers, config) {
           if (headers("Content-Type").indexOf('application/json') == 0)
             format = 'json';
