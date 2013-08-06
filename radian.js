@@ -3255,10 +3255,13 @@ radian.directive('plotData',
       }
     };
     if (!src) {
-      var datatext = '';
-      elm.contents().each(function(i,n) {
-        if (n instanceof Text) datatext += n.textContent;
-      });
+      var datatext = sc.$eval(as.ngModel);
+      if(!datatext) {
+        var datatext = '';
+        elm.contents().each(function(i,n) {
+          if (n instanceof Text) datatext += n.textContent;
+        });
+      }
       processData(datatext);
     } else {
       plotDataHttpProvider.get(src)
