@@ -25,6 +25,8 @@ releases, is always available in our
 
 ##### Unreleased changes in GitHub repository
 
+ - Add `flatten` function to plotting library to help with using
+   hierarchical JSON data.
  - Make JSON data processing more lenient: string values that can be
    interpreted as numbers are converted to numeric values.
 
