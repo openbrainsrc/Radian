@@ -1119,8 +1119,9 @@ radian.factory('radianEval',
       else if (node.property.type == "Identifier") {
         metadatakey = node.property.name;
         var o = node.object;
-        while (o.type != "Identifier") o = o.object;
-        dataset = o.name;
+        while (o.type != "Identifier" && o.hasOwnProperty("object"))
+          o = o.object;
+        if (o.hasOwnProperty("name")) dataset = o.name;
         return estraverse.VisitorOption.Break;
       }
     }});
@@ -4492,6 +4493,20 @@ radian.factory('plotLib', function()
     return ret;
   };
 
+  // Flatten arrays of arrays.
+  function flatten(a) {
+    if (a == undefined || !a) return a;
+    var ret = [];
+    function go(x) {
+      if (x instanceof Array)
+        x.forEach(go);
+      else
+        ret.push(x);
+    };
+    go(a);
+    return ret;
+  };
+
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -4520,6 +4535,7 @@ radian.factory('plotLib', function()
            min: d3.min,
            max: d3.max,
            extent: multiExtent,
+           flatten: flatten,
            sum: d3.sum,
            mean: d3.mean,
            median: d3.median,

@@ -1,0 +1,74 @@
+<h3>Example 66 (hierarchical JSON data)</h3>
+
+<plot height=300 aspect=1.6
+      ages="[[flatten(dat.fathers#daughters)#age]]"
+      x=[[seqStep(0,ages.length,1)]]>
+  <points y="[[ages]]" marker-size="100"></lines>
+</plot>
+
+<plot-data name="dat">
+{
+  "fathers" : [
+    {
+      "id" : 0,
+      "married" : 20,
+      "name" : "George Lopez",
+      "sons" : null,
+      "daughters" : [
+        {
+          "age" : 26,
+          "name" : "Kimberly"
+          }
+        ]
+      },
+    {
+      "id" : 1,
+      "married" : 15,
+      "name" : "Anthony Davis",
+      "sons" : null,
+      "daughters" : [
+      {
+          "age" : 26,
+          "name" : "Angela"
+          }
+        ]
+      },
+    {
+      "id" : 2,
+      "married" : 17,
+      "name" : "Anthony Perez",
+      "sons" : null,
+      "daughters" : [
+        {
+          "age" : 26,
+          "name" : "Angela"
+          }
+        ]
+      },
+    {
+      "id" : 3,
+      "married" : 30,
+      "name" : "Anthony Clark",
+      "sons" : null,
+      "daughters" : [
+        {
+          "age" : 3,
+          "name" : "Betty"
+          }
+        ]
+      },
+    {
+      "id" : 4,
+      "married" : 40,
+      "name" : "Scott Smith",
+      "sons" : null,
+      "daughters" : [
+        {
+          "age" : 29,
+          "name" : "Linda"
+          }
+        ]
+      }
+    ]
+  }
+</plot-data>

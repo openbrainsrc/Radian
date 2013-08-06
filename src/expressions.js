@@ -68,8 +68,9 @@ radian.factory('radianEval',
       else if (node.property.type == "Identifier") {
         metadatakey = node.property.name;
         var o = node.object;
-        while (o.type != "Identifier") o = o.object;
-        dataset = o.name;
+        while (o.type != "Identifier" && o.hasOwnProperty("object"))
+          o = o.object;
+        if (o.hasOwnProperty("name")) dataset = o.name;
         return estraverse.VisitorOption.Break;
       }
     }});
