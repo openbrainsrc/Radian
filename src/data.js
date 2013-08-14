@@ -95,7 +95,7 @@ radian.directive('plotData',
         else
           x.forEach(function(v) { go(v, false); });
       } else if (typeof x == 'object') {
-        if (x.hasOwnProperty(k))
+        if (x.hasOwnProperty(k) && !(x[k] instanceof Array))
           x[k] = f(x[k]);
         else
           Object.keys(x).forEach(function(xk) { go(x[xk], xk == k); });

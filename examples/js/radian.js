@@ -38,7 +38,8 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
       var entry = scope.$$radianVars[a];
       entry.fvwatchers = { };
       entry.fvs.forEach(function(v) {
-        entry.fvwatchers[v] = scope.$watch(v, function() {
+        entry.fvwatchers[v] = scope.$watch(v, function(n, o) {
+          if (n == undefined || n == o) return;
           scope[a] = radianEval(scope, entry.expr);
         }, true);
       });
@@ -3179,7 +3180,7 @@ radian.directive('plotData',
         else
           x.forEach(function(v) { go(v, false); });
       } else if (typeof x == 'object') {
-        if (x.hasOwnProperty(k))
+        if (x.hasOwnProperty(k) && !(x[k] instanceof Array))
           x[k] = f(x[k]);
         else
           Object.keys(x).forEach(function(xk) { go(x[xk], xk == k); });
@@ -4510,6 +4511,14 @@ radian.factory('plotLib', function()
     return ret;
   };
 
+  // Extract unique values from an array.
+  function nub(xs) {
+    var ret = [];
+    var seen = { };
+    xs.forEach(function(x) { if (!seen[x]) { ret.push(x); seen[x] = true; } });
+    return ret;
+  };
+
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -4539,6 +4548,7 @@ radian.factory('plotLib', function()
            max: d3.max,
            extent: multiExtent,
            flatten: flatten,
+           nub: nub,
            sum: d3.sum,
            mean: d3.mean,
            median: d3.median,
