@@ -20,8 +20,8 @@
 // [ghbt]: https://github.com/marijnh/acorn/issues
 
 radian.factory('radianEval',
-  ['plotLib', 'radianParse', 'genPalFn',
-  function(plotLib, radianParse, genPalFn)
+  ['$interpolate', 'plotLib', 'radianParse', 'genPalFn',
+  function($interpolate, plotLib, radianParse, genPalFn)
 {
   // Top level JavaScript names that we don't want to treat as free
   // variables in Radian expressions.
@@ -35,8 +35,11 @@ radian.factory('radianEval',
   var radianEval = function(scope, inexpr, returnfvs, skiperrors) {
     // Pass-through anything that isn't in [[ ]] brackets.
     if (typeof inexpr != "string" ||
-        inexpr.substr(0,2) != '[[' && inexpr.substr(-2) != ']]')
-      return returnfvs ? [inexpr, []] : inexpr;
+        inexpr.substr(0,2) != '[[' && inexpr.substr(-2) != ']]') {
+      var retexpr = inexpr;
+      if (typeof inexpr == "string") retexpr = $interpolate(inexpr)(scope);
+      return returnfvs ? [retexpr, []] : retexpr;
+    }
     var expr = inexpr.substr(2, inexpr.length-4);
     if (expr == "") return returnfvs ? [0, []] : 0;
 
