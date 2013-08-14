@@ -25,6 +25,13 @@ releases, is always available in our
 
 ##### Unreleased changes in GitHub repository
 
+ - Fix behaviour of Radian expression free variable watchers for
+   function values.
+ - Improve data download behaviour: changes to `SRC` attributes now
+   trigger data download.
+ - Fix treatment of Angular expressions in attributes.
+ - Fix JSON date handling (issue #24).
+ - Add `nub` function to plotting library.
  - Add `flatten` function to plotting library to help with using
    hierarchical JSON data.
  - Make JSON data processing more lenient: string values that can be
