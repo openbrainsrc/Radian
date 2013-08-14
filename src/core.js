@@ -36,7 +36,8 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
       var entry = scope.$$radianVars[a];
       entry.fvwatchers = { };
       entry.fvs.forEach(function(v) {
-        entry.fvwatchers[v] = scope.$watch(v, function() {
+        entry.fvwatchers[v] = scope.$watch(v, function(n, o) {
+          if (n == undefined || n == o) return;
           scope[a] = radianEval(scope, entry.expr);
         }, true);
       });
