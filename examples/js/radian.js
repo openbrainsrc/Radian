@@ -1072,8 +1072,8 @@ radian.directive('plotOptions', ['processAttrs', function(processAttrs)
 // [ghbt]: https://github.com/marijnh/acorn/issues
 
 radian.factory('radianEval',
-  ['plotLib', 'radianParse', 'genPalFn',
-  function(plotLib, radianParse, genPalFn)
+  ['$interpolate', 'plotLib', 'radianParse', 'genPalFn',
+  function($interpolate, plotLib, radianParse, genPalFn)
 {
   // Top level JavaScript names that we don't want to treat as free
   // variables in Radian expressions.
@@ -1087,8 +1087,11 @@ radian.factory('radianEval',
   var radianEval = function(scope, inexpr, returnfvs, skiperrors) {
     // Pass-through anything that isn't in [[ ]] brackets.
     if (typeof inexpr != "string" ||
-        inexpr.substr(0,2) != '[[' && inexpr.substr(-2) != ']]')
-      return returnfvs ? [inexpr, []] : inexpr;
+        inexpr.substr(0,2) != '[[' && inexpr.substr(-2) != ']]') {
+      var retexpr = inexpr;
+      if (typeof inexpr == "string") retexpr = $interpolate(inexpr)(scope);
+      return returnfvs ? [retexpr, []] : retexpr;
+    }
     var expr = inexpr.substr(2, inexpr.length-4);
     if (expr == "") return returnfvs ? [0, []] : 0;
 
@@ -3222,16 +3225,29 @@ radian.directive('plotData',
     processAttrs(sc, as);
     if (!sc.name) throw Error('<plot-data> must have NAME attribute');
     var dataset = sc.name, subname = sc.subname;
-    var src = sc.src;
     var format = sc.format || 'json';
     var sep = sc.separator === '' ? ' ' : (sc.separator || ',');
     var cols = sc.cols;
     if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
-    if (!src) {
+    if (!sc.src) {
       var formats = ['json', 'csv'];
       if (formats.indexOf(format) == -1)
         throw Error('invalid FORMAT "' + format + '" in <plot-data>');
     }
+
+    // Get plot data via a HTTP request.
+    function getData() {
+      sc.firstDataLoad = true;
+      plotDataHttpProvider.get(sc.src)
+        .success(function(data, status, headers, config) {
+          if (headers("Content-Type").indexOf('application/json') == 0)
+            format = 'json';
+          processData(data);
+        })
+        .error(function() {
+          throw Error("failed to read data from " + sc.src);
+        });
+    };
 
     // Process content -- all text children are appended together
     // for parsing.
@@ -3255,24 +3271,22 @@ radian.directive('plotData',
         if (md) s[dataset].metadata = md;
       }
     };
-    if (!src) {
+    if (sc.src)
+      getData();
+    else {
       var datatext = sc.$eval(as.ngModel);
-      if(!datatext) {
+      if (!datatext) {
         var datatext = '';
         elm.contents().each(function(i,n) {
           if (n instanceof Text) datatext += n.textContent;
         });
       }
       processData(datatext);
-    } else {
-      plotDataHttpProvider.get(src)
-        .success(function(data, status, headers, config) {
-          if (headers("Content-Type").indexOf('application/json') == 0)
-            format = 'json';
-          processData(data);
-        })
-        .error(function() { throw Error("failed to read data from " + src); });
     }
+    sc.$watch('src', function(n, o) {
+      if (n == undefined || n == o && sc.firstDataLoad) return;
+      getData();
+    });
   };
 
   return {
