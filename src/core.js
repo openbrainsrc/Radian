@@ -359,6 +359,7 @@ radian.directive('plot',
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
       v.x = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
+      v.x.discrete = discvals;
     } else if (hasdate)
       v.x = d3.time.scale().range([b,t]).domain(scope.xextent);
     else if (xform == "log")
@@ -372,6 +373,7 @@ radian.directive('plot',
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
       v.x2 = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
+      v.x2.discrete = discvals;
     } else if (hasdate)
       v.x2 = d3.time.scale().range([b,t]).domain(scope.x2extent);
     else if (xform == "log")
@@ -505,10 +507,6 @@ radian.directive('plot',
       throw Error("Can't mix discrete and continuous X values");
     if (anyx2disc && anyx2cont)
       throw Error("Can't mix discrete and continuous X2 values");
-    if (anyxdisc) {
-      console.log(JSON.stringify(xexts));
-      console.log(JSON.stringify(discx));
-    }
     if (!scope.fixedXRange && xexts.length > 0) {
       scope.xextent = d3.extent(xexts);
       if (scope.xrange) {
@@ -738,6 +736,32 @@ radian.directive('plot',
     // Create base axis object.
     var axis = d3.svg.axis().scale(v[ax]).orient(ori);
 
+    // Tick padding.
+    var axatt = ax.toUpperCase();
+    var paddingAttr = 'axis' + axatt + 'TickPadding';
+    var padding = sc[paddingAttr] ? sc[paddingAttr] : sc.tickPadding;
+    var padding_delta = 0;
+    if (padding) {
+      axis.tickPadding(+padding);
+      padding_delta = +padding - 3;
+    }
+
+    // Drop out straight away for discrete axes.
+    if (v[ax].discrete) {
+      var tickvals = [], ticklabs = [];
+      console.log(JSON.stringify(v[ax].discrete));
+      v[ax].discrete.forEach(function(x, i) {
+        tickvals.push(i + 1);
+        ticklabs.push(x);
+      });
+      axis.tickValues(tickvals);
+      axis.tickFormat(function(x) {
+          var i = tickvals.indexOf(x);
+          return x == -1 ? '' : ticklabs[i];
+        });
+      return [axis, padding_delta];
+    }
+
     // Do we need to use a date/time format?
     var dformat = '%Y-%m-%d';
     var has_date = false;
@@ -750,7 +774,6 @@ radian.directive('plot',
     });
 
     // Figure out settings for ticks and tick format.
-    var axatt = ax.toUpperCase();
     var ticksAttr = 'axis' + axatt + 'Ticks';
     var fmtAttr = 'axis' + axatt + 'Format';
     var xformAttr = 'axis' + axatt + 'Transform';
@@ -858,15 +881,6 @@ radian.directive('plot',
     if (sc[minorTickSizeAttr]) minor_val = sc[minorTickSizeAttr];
     if (sc[endTickSizeAttr]) end_val = sc[endTickSizeAttr];
     axis.tickSize(norm_val, minor_val, end_val);
-
-    // Tick padding.
-    var paddingAttr = 'axis' + axatt + 'TickPadding';
-    var padding = sc[paddingAttr] ? sc[paddingAttr] : sc.tickPadding;
-    var padding_delta = 0;
-    if (padding) {
-      axis.tickPadding(+padding);
-      padding_delta = +padding - 3;
-    }
 
     return [axis, padding_delta];
   };
