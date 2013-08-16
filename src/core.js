@@ -353,22 +353,26 @@ radian.directive('plot',
     }
   };
 
-  function makeXScaler(scope, v, hasdate) {
+  function makeXScaler(scope, v, hasdate, discvals) {
     var xform = scope.axisXTransform || "linear";
     var ext = scope.rangeXExtendPixels;
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
-    if (hasdate)
+    if (discvals) {
+      v.x = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
+    } else if (hasdate)
       v.x = d3.time.scale().range([b,t]).domain(scope.xextent);
     else if (xform == "log")
       v.x = d3.scale.log().range([b,t]).domain(scope.xextent);
     else
       v.x = d3.scale.linear().range([b,t]).domain(scope.xextent);
   };
-  function makeX2Scaler(scope, v, hasdate) {
+  function makeX2Scaler(scope, v, hasdate, discvals) {
     var xform = scope.axisXTransform || "linear";
     var ext = scope.rangeXExtendPixels;
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
-    if (hasdate)
+    if (discvals) {
+      v.x2 = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
+    } else if (hasdate)
       v.x2 = d3.time.scale().range([b,t]).domain(scope.x2extent);
     else if (xform == "log")
       v.x2 = d3.scale.log().range([b,t]).domain(scope.x2extent);
@@ -407,11 +411,22 @@ radian.directive('plot',
     processRanges(scope, 'range2', 'rangeX2', 'rangeY2',
                   'fixedX2Range', 'x2extent', 'x2range',
                   'fixedY2Range', 'y2extent', 'y2range');
+    function nub(a) {
+      var ret = [], seen = { };
+      a.forEach(function(x) { if (!seen[x]) { ret.push(x); seen[x] = true; } });
+      return ret;
+    };
+    function simpleExt(a) {
+      if (typeof a[0] == 'string')
+        return [0.5, nub(a).length + 0.5];
+      else
+        return d3.extent(a);
+    };
     function aext(d) {
       if (d[0] instanceof Array) {
-        return d3.merge(d.map(function(a) { return d3.extent(a); }));
+        return d3.merge(d.map(function(a) { return simpleExt(a); }));
       } else
-        return d3.extent(d);
+        return simpleExt(d);
     };
     function aext2(d, d2, d2min, d2max) {
       if (d[0] instanceof Array) {
@@ -426,8 +441,10 @@ radian.directive('plot',
         }));
     };
     var xexts = [], yexts = [], hasdate = false;
+    var anyxdisc = false, anyxcont = false, discx = null;
     var xextend = [0, 0], yextend = [0, 0];
     var x2exts = [], y2exts = [], hasdate2 = false;
+    var anyx2disc = false, anyx2cont = false, discx2 = null;
     dft(scope, function(s) {
       if (!scope.fixedXRange && s.enabled && s.x)
         xexts = xexts.concat(aext(s.x));
@@ -447,8 +464,32 @@ radian.directive('plot',
       }
       if (s.x && s.x.metadata && s.x.metadata.format == 'date')
         hasdate = true;
+      if (s.x && s.x instanceof Array) {
+        if (typeof s.x[0] == 'string') {
+          var vals = nub(s.x);
+          vals.sort();
+          if (discx) {
+            if (discx.length != vals.length ||
+                discx.some(function(x, i) { return x != vals[i]; }))
+              throw Error("Incompatible discrete X values");
+          } else discx = vals;
+          anyxdisc = true;
+        } else anyxcont = true;
+      }
       if (s.x2 && s.x2.metadata && s.x2.metadata.format == 'date')
         hasdate2 = true;
+      if (s.x2 && s.x2 instanceof Array) {
+        if (typeof s.x2[0] == 'string') {
+          var vals = nub(s.x2);
+          vals.sort();
+          if (discx2) {
+            if (discx2.length != vals.length ||
+                discx2.some(function(x, i) { return x != vals[i]; }))
+              throw Error("Incompatible discrete X2 values");
+          } else discx2 = vals;
+          anyx2disc = true;
+        } else anyx2cont = true;
+      }
       if (s.rangeXExtend) {
         xextend[0] = Math.max(xextend[0], s.rangeXExtend[0]);
         xextend[1] = Math.max(xextend[1], s.rangeXExtend[1]);
@@ -460,6 +501,14 @@ radian.directive('plot',
       if (s.rangeXExtendPixels) scope.rangeXExtendPixels = s.rangeXExtendPixels;
       if (s.rangeYExtendPixels) scope.rangeYExtendPixels = s.rangeYExtendPixels;
     });
+    if (anyxdisc && anyxcont)
+      throw Error("Can't mix discrete and continuous X values");
+    if (anyx2disc && anyx2cont)
+      throw Error("Can't mix discrete and continuous X2 values");
+    if (anyxdisc) {
+      console.log(JSON.stringify(xexts));
+      console.log(JSON.stringify(discx));
+    }
     if (!scope.fixedXRange && xexts.length > 0) {
       scope.xextent = d3.extent(xexts);
       if (scope.xrange) {
@@ -540,7 +589,7 @@ radian.directive('plot',
     v.outh = v.realheight + v.margin.top + v.margin.bottom;
 
     // Set up D3 Y data ranges.
-    if (scope.yextent) makeYScaler(scope, v, hasdate2);
+    if (scope.yextent) makeYScaler(scope, v);
     if (scope.y2extent) makeY2Scaler(scope, v);
     if (scope.hasOwnProperty("axisYTransform") && !scope.watchYTransform)
       scope.watchYTransform = scope.$watch('axisYTransform', function(n, o) {
@@ -599,8 +648,8 @@ radian.directive('plot',
     v.outw = v.realwidth + v.margin.left + v.margin.right;
 
     // Set up D3 X data ranges.
-    if (scope.xextent) makeXScaler(scope, v, hasdate);
-    if (scope.x2extent) makeX2Scaler(scope, v);
+    if (scope.xextent) makeXScaler(scope, v, hasdate, discx);
+    if (scope.x2extent) makeX2Scaler(scope, v, hasdate2, discx2);
     if (scope.hasOwnProperty("axisXTransform") && !scope.watchXTransform)
       scope.watchXTransform = scope.$watch('axisXTransform', function(n, o) {
         if (n == undefined || n == xAxisTransform) return;
