@@ -902,6 +902,16 @@ radian.directive('plot',
     return [axis, padding_delta];
   };
 
+  function jitter(xs, scale, jit) {
+    var d = scale.domain(), r = scale.range();
+    var jsize = jit ? parseFloat(jit) : 0.1;
+    if (isNaN(jsize)) jsize = 0.1;
+    jsize *= (r[1] - r[0]) / d.length;
+    var j = [];
+    xs.forEach(function(x) { j.push((Math.random() * 2 - 1) * jsize); });
+    return function(d, i) { return scale(d) + j[i]; };
+  };
+
   function draw(v, scope) {
     // Clean out any pre-existing plots.
     $(v.svg[0]).empty();
@@ -1034,8 +1044,12 @@ radian.directive('plot',
             var g = svg.append('g');
             var x = (s[xvar][0] instanceof Array) ?
               s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
+            if (s.hasOwnProperty('jitterX'))
+              xscale = jitter(x, xscale, s.jitterX);
             var y = (s[yvar][0] instanceof Array) ?
               s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
+            if (s.hasOwnProperty('jitterY'))
+              yscale = jitter(y, yscale, s.jitterY);
             s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight,
                    yvar == 'y2' ? 2 : 1);
             s.$on('$destroy', function() { g.remove(); });

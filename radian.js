@@ -904,6 +904,16 @@ radian.directive('plot',
     return [axis, padding_delta];
   };
 
+  function jitter(xs, scale, jit) {
+    var d = scale.domain(), r = scale.range();
+    var jsize = jit ? parseFloat(jit) : 0.1;
+    if (isNaN(jsize)) jsize = 0.1;
+    jsize *= (r[1] - r[0]) / d.length;
+    var j = [];
+    xs.forEach(function(x) { j.push((Math.random() * 2 - 1) * jsize); });
+    return function(d, i) { return scale(d) + j[i]; };
+  };
+
   function draw(v, scope) {
     // Clean out any pre-existing plots.
     $(v.svg[0]).empty();
@@ -1036,8 +1046,12 @@ radian.directive('plot',
             var g = svg.append('g');
             var x = (s[xvar][0] instanceof Array) ?
               s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
+            if (s.hasOwnProperty('jitterX'))
+              xscale = jitter(x, xscale, s.jitterX);
             var y = (s[yvar][0] instanceof Array) ?
               s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
+            if (s.hasOwnProperty('jitterY'))
+              yscale = jitter(y, yscale, s.jitterY);
             s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight,
                    yvar == 'y2' ? 2 : 1);
             s.$on('$destroy', function() { g.remove(); });
@@ -3852,8 +3866,8 @@ radian.directive('lines',
           stroke instanceof Array)) {
       // Normal lines; single path.
       var line = d3.svg.line()
-        .x(function (d) { return xs(d[0]); })
-        .y(function (d) { return ys(d[1]); });
+        .x(function (d, i) { return xs(d[0], i); })
+        .y(function (d, i) { return ys(d[1], i); });
       svg.append('path').datum(d3.zip(x, y))
         .attr('class', 'line').attr('d', line)
         .style('fill', 'none')
@@ -3884,8 +3898,8 @@ radian.directive('lines',
         .style('stroke', function(d, i) { return strokes[i]; })
         .style('fill', 'none')
         .attr('d', d3.svg.line()
-              .x(function (d) { return xs(d[0]); })
-              .y(function (d) { return ys(d[1]); }));
+              .x(function (d, i) { return xs(d[0], i); })
+              .y(function (d, i) { return ys(d[1], i); }));
     }
   };
 
@@ -3932,8 +3946,8 @@ radian.directive('points',
     var points = d3.svg.symbol().type(sty(marker)).size(sty(markerSize));
     svg.selectAll('path').data(d3.zip(x, y))
       .enter().append('path')
-      .attr('transform', function(d) {
-        return 'translate(' + xs(d[0]) + ',' + ys(d[1]) + ')';
+      .attr('transform', function(d, i) {
+        return 'translate(' + xs(d[0], i) + ',' + ys(d[1], i) + ')';
       })
       .attr('d', points)
       .style('fill', sty(fill))
@@ -4017,27 +4031,27 @@ radian.directive('bars',
       .attr('class', 'bar')
       .attr('x', function(d, i) {
         if (d.length == 3)
-          return xs(d[0]);
+          return xs(d[0], i);
         else return d[0] instanceof Date ?
           xs(new Date(d[0].valueOf() -
                       (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
-                      (pxOffset ? barOffset : s.barWidths[i] * barOffset))) :
+                      (pxOffset ? barOffset : s.barWidths[i] * barOffset)), i) :
           xs(d[0] -
              (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
-             (pxOffset ? barOffset : s.barWidths[i] * barOffset));
+             (pxOffset ? barOffset : s.barWidths[i] * barOffset), i);
       })
-      .attr('y', function(d, i) { return ys(d[d.length-1]); })
+      .attr('y', function(d, i) { return ys(d[d.length-1], i); })
       .attr('width', function(d, i) {
         if (pxWidth)
           return pxBarWidth;
         else if (d.length == 3)
-          return xs(d[1]) - xs(d[0]);
+          return xs(d[1], i) - xs(d[0], i);
         else
           return d[0] instanceof Date ?
-            xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0)) -
-            xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0)) :
-            xs(d[0] + s.barWidths[i] * barWidth / 2.0) -
-            xs(d[0] - s.barWidths[i] * barWidth / 2.0);
+            xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0), i) -
+            xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0), i) :
+            xs(d[0] + s.barWidths[i] * barWidth / 2.0, i) -
+            xs(d[0] - s.barWidths[i] * barWidth / 2.0, i);
       })
       .attr('height', function(d, i) { return h - ys(d[d.length-1]); })
       .style('fill', sty(fill))
@@ -4106,9 +4120,9 @@ radian.directive('area',
     if (!(opacity instanceof Array || fill instanceof Array)) {
       // Normal area; single path.
       var area = d3.svg.area()
-        .x(function(d) { return xs(d[0]); })
-        .y0(function(d) { return ys(d[1]); })
-        .y1(function(d) { return ys(d[2]); });
+        .x(function(d) { return xs(d[0], i); })
+        .y0(function(d) { return ys(d[1], i); })
+        .y1(function(d) { return ys(d[2], i); });
       svg.append('path').datum(d3.zip(x, ymin, y))
         .attr('class', 'area').attr('d', area)
         .style('fill-opacity', opacity)

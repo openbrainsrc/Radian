@@ -8,9 +8,9 @@
 
 <plot height=600 aspect=1 order-x="I. virginica,I. versicolor,I. setosa"
       axis-x-label="Species" axis-y-label="Petal length"
-      marker="square" marker-size=50 stroke="none">
+      marker="circle" marker-size=10 stroke="none">
   <points x="[[iris.species]]"
-          jitter-x=0.1 y="[[iris.petal_length]]"
+          jitter-x=0.25 y="[[iris.petal_length]]"
           fill="[[irispal(iris.species)]]">
   </points>
 </plot>
