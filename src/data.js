@@ -230,7 +230,7 @@ radian.directive('metadata', [function()
       var name = as.name;
       var md = { };
       [ 'dateFormat', 'dateParseFormat', 'errorFor',
-        'format', 'label', 'units' ].forEach(function(a) {
+        'format', 'label', 'units', 'categoryOrder' ].forEach(function(a) {
           if (as.hasOwnProperty(a)) md[a] = as[a];
         });
 

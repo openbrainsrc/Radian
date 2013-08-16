@@ -353,13 +353,18 @@ radian.directive('plot',
     }
   };
 
-  function makeXScaler(scope, v, hasdate, discvals) {
+  function makeXScaler(scope, v, hasdate, discvals, discorder) {
     var xform = scope.axisXTransform || "linear";
     var ext = scope.rangeXExtendPixels;
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
+      if (scope.orderX)
+        discvals = scope.orderX.split(/ *, */);
+      else if (discorder)
+        discvals = discorder.split(/ *, */);
       v.x = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
       v.x.discrete = discvals;
+      v.x.discreteOrder = discorder;
     } else if (hasdate)
       v.x = d3.time.scale().range([b,t]).domain(scope.xextent);
     else if (xform == "log")
@@ -367,13 +372,18 @@ radian.directive('plot',
     else
       v.x = d3.scale.linear().range([b,t]).domain(scope.xextent);
   };
-  function makeX2Scaler(scope, v, hasdate, discvals) {
+  function makeX2Scaler(scope, v, hasdate, discvals, discorder) {
     var xform = scope.axisXTransform || "linear";
     var ext = scope.rangeXExtendPixels;
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
+      if (scope.orderX2)
+        discvals = scope.orderX2.split(/ *, */);
+      else if (discorder)
+        discvals = discorder.split(/ *, */);
       v.x2 = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
       v.x2.discrete = discvals;
+      v.x2.discreteOrder = discorder;
     } else if (hasdate)
       v.x2 = d3.time.scale().range([b,t]).domain(scope.x2extent);
     else if (xform == "log")
@@ -443,10 +453,12 @@ radian.directive('plot',
         }));
     };
     var xexts = [], yexts = [], hasdate = false;
-    var anyxdisc = false, anyxcont = false, discx = null;
+    var anyxdisc = false, anyxcont = false;
+    var discx = null, discorder = null;
     var xextend = [0, 0], yextend = [0, 0];
     var x2exts = [], y2exts = [], hasdate2 = false;
-    var anyx2disc = false, anyx2cont = false, discx2 = null;
+    var anyx2disc = false, anyx2cont = false;
+    var discx2 = null, discorder2 = null;
     dft(scope, function(s) {
       if (!scope.fixedXRange && s.enabled && s.x)
         xexts = xexts.concat(aext(s.x));
@@ -475,6 +487,8 @@ radian.directive('plot',
                 discx.some(function(x, i) { return x != vals[i]; }))
               throw Error("Incompatible discrete X values");
           } else discx = vals;
+          if (s.x.metadata && s.x.metadata.categoryOrder)
+            discorder = s.x.metadata.categoryOrder;
           anyxdisc = true;
         } else anyxcont = true;
       }
@@ -489,6 +503,8 @@ radian.directive('plot',
                 discx2.some(function(x, i) { return x != vals[i]; }))
               throw Error("Incompatible discrete X2 values");
           } else discx2 = vals;
+          if (s.x2.metadata && s.x2.metadata.categoryOrder)
+            discorder2 = s.x2.metadata.categoryOrder;
           anyx2disc = true;
         } else anyx2cont = true;
       }
@@ -646,8 +662,8 @@ radian.directive('plot',
     v.outw = v.realwidth + v.margin.left + v.margin.right;
 
     // Set up D3 X data ranges.
-    if (scope.xextent) makeXScaler(scope, v, hasdate, discx);
-    if (scope.x2extent) makeX2Scaler(scope, v, hasdate2, discx2);
+    if (scope.xextent) makeXScaler(scope, v, hasdate, discx, discorder);
+    if (scope.x2extent) makeX2Scaler(scope, v, hasdate2, discx2, discorder2);
     if (scope.hasOwnProperty("axisXTransform") && !scope.watchXTransform)
       scope.watchXTransform = scope.$watch('axisXTransform', function(n, o) {
         if (n == undefined || n == xAxisTransform) return;
@@ -746,10 +762,44 @@ radian.directive('plot',
       padding_delta = +padding - 3;
     }
 
-    // Drop out straight away for discrete axes.
+    // Process tick size information: there are global tick-sizes and
+    // tick-size, minor-tick-size and end-tick-size attributes, and
+    // there are also per-axis variants of these.
+    var tickSizeAttr = 'axis' + axatt + 'TickSize';
+    var minorTickSizeAttr = 'axis' + axatt + 'MinorTickSize';
+    var endTickSizeAttr = 'axis' + axatt + 'EndTickSize';
+    var tickSizesAttr = 'axis' + axatt + 'TickSizes';
+    var norm_val = 6, minor_val = 6, end_val = 6;
+    if (sc.tickSizes) {
+      var vals = sc.tickSizes.split(/ *, */);
+      if (vals.length >= 3) {
+        norm_val = vals[0];  minor_val = vals[1];  end_val = vals[2];
+      } else if (vals.length == 2) {
+        norm_val = minor_val = vals[0];  end_val = vals[1];
+      } else if (vals.length == 1)
+        norm_val = minor_val = end_val = vals[0];
+    }
+    if (sc.tickSize) norm_val = sc.tickSize;
+    if (sc.minorTickSize) minor_val = sc.minorTickSize;
+    if (sc.endTickSize) end_val = sc.endTickSize;
+    if (sc[tickSizesAttr]) {
+      var vals = sc[tickSizesAttr].split(/ *, */);
+      if (vals.length >= 3) {
+        norm_val = vals[0];  minor_val = vals[1];  end_val = vals[2];
+      } else if (vals.length == 2) {
+        norm_val = minor_val = vals[0];  end_val = vals[1];
+      } else if (vals.length == 1)
+        norm_val = minor_val = end_val = vals[0];
+    }
+    if (sc[tickSizeAttr]) norm_val = sc[tickSizeAttr];
+    if (sc[minorTickSizeAttr]) minor_val = sc[minorTickSizeAttr];
+    if (sc[endTickSizeAttr]) end_val = sc[endTickSizeAttr];
+    if (v[ax].discrete) end_val = 0;
+    axis.tickSize(norm_val, minor_val, end_val);
+
+    // Special treatment for discrete axes.
     if (v[ax].discrete) {
       var tickvals = [], ticklabs = [];
-      console.log(JSON.stringify(v[ax].discrete));
       v[ax].discrete.forEach(function(x, i) {
         tickvals.push(i + 1);
         ticklabs.push(x);
@@ -759,6 +809,7 @@ radian.directive('plot',
           var i = tickvals.indexOf(x);
           return x == -1 ? '' : ticklabs[i];
         });
+      axis.tickSize();
       return [axis, padding_delta];
     }
 
@@ -847,40 +898,6 @@ radian.directive('plot',
     var minorTicksAttr = 'axis' + axatt + 'MinorTicks';
     var minor = sc[minorTicksAttr] ? sc[minorTicksAttr] : sc.minorTicks;
     if (minor) axis.tickSubdivide(minor);
-
-    // Process tick size information: there are global tick-sizes and
-    // tick-size, minor-tick-size and end-tick-size attributes, and
-    // there are also per-axis variants of these.
-    var tickSizeAttr = 'axis' + axatt + 'TickSize';
-    var minorTickSizeAttr = 'axis' + axatt + 'MinorTickSize';
-    var endTickSizeAttr = 'axis' + axatt + 'EndTickSize';
-    var tickSizesAttr = 'axis' + axatt + 'TickSizes';
-    var norm_val = 6, minor_val = 6, end_val = 6;
-    if (sc.tickSizes) {
-      var vals = sc.tickSizes.split(/ *, */);
-      if (vals.length >= 3) {
-        norm_val = vals[0];  minor_val = vals[1];  end_val = vals[2];
-      } else if (vals.length == 2) {
-        norm_val = minor_val = vals[0];  end_val = vals[1];
-      } else if (vals.length == 1)
-        norm_val = minor_val = end_val = vals[0];
-    }
-    if (sc.tickSize) norm_val = sc.tickSize;
-    if (sc.minorTickSize) minor_val = sc.minorTickSize;
-    if (sc.endTickSize) end_val = sc.endTickSize;
-    if (sc[tickSizesAttr]) {
-      var vals = sc[tickSizesAttr].split(/ *, */);
-      if (vals.length >= 3) {
-        norm_val = vals[0];  minor_val = vals[1];  end_val = vals[2];
-      } else if (vals.length == 2) {
-        norm_val = minor_val = vals[0];  end_val = vals[1];
-      } else if (vals.length == 1)
-        norm_val = minor_val = end_val = vals[0];
-    }
-    if (sc[tickSizeAttr]) norm_val = sc[tickSizeAttr];
-    if (sc[minorTickSizeAttr]) minor_val = sc[minorTickSizeAttr];
-    if (sc[endTickSizeAttr]) end_val = sc[endTickSizeAttr];
-    axis.tickSize(norm_val, minor_val, end_val);
 
     return [axis, padding_delta];
   };
