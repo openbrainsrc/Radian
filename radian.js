@@ -122,8 +122,9 @@ radian.factory('calcPlotDimensions', function() {
 radian.directive('plot',
  ['processAttrs', 'calcPlotDimensions', 'addToLayout',
   '$timeout', '$rootScope', 'dumpScope', 'dft', 'radianLegend',
+  'plotLib',
  function(processAttrs, calcPlotDimensions, addToLayout,
-          $timeout, $rootScope, dumpScope, dft, radianLegend)
+          $timeout, $rootScope, dumpScope, dft, radianLegend, lib)
 {
   'use strict';
 
@@ -364,15 +365,19 @@ radian.directive('plot',
         discvals = scope.orderX.split(/ *, */);
       else if (discorder)
         discvals = discorder.split(/ *, */);
-      v.x = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
+      v.x =
+        d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
+      v.x.oton = function(x) { return discvals.indexOf(x) + 1; };
       v.x.discrete = discvals;
-      v.x.discreteOrder = discorder;
-    } else if (hasdate)
-      v.x = d3.time.scale().range([b,t]).domain(scope.xextent);
-    else if (xform == "log")
-      v.x = d3.scale.log().range([b,t]).domain(scope.xextent);
-    else
-      v.x = d3.scale.linear().range([b,t]).domain(scope.xextent);
+    } else {
+      if (hasdate)
+        v.x = d3.time.scale().range([b,t]).domain(scope.xextent);
+      else if (xform == "log")
+        v.x = d3.scale.log().range([b,t]).domain(scope.xextent);
+      else
+        v.x = d3.scale.linear().range([b,t]).domain(scope.xextent);
+      v.x.oton = function(x) { return x; };
+    }
   };
   function makeX2Scaler(scope, v, hasdate, discvals, discorder) {
     var xform = scope.axisXTransform || "linear";
@@ -383,9 +388,9 @@ radian.directive('plot',
         discvals = scope.orderX2.split(/ *, */);
       else if (discorder)
         discvals = discorder.split(/ *, */);
-      v.x2 = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
+      v.x2 = d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
       v.x2.discrete = discvals;
-      v.x2.discreteOrder = discorder;
+      v.x2.discmap = function(x) { return discvals.indexOf(x) + 1; };
     } else if (hasdate)
       v.x2 = d3.time.scale().range([b,t]).domain(scope.x2extent);
     else if (xform == "log")
@@ -425,14 +430,9 @@ radian.directive('plot',
     processRanges(scope, 'range2', 'rangeX2', 'rangeY2',
                   'fixedX2Range', 'x2extent', 'x2range',
                   'fixedY2Range', 'y2extent', 'y2range');
-    function nub(a) {
-      var ret = [], seen = { };
-      a.forEach(function(x) { if (!seen[x]) { ret.push(x); seen[x] = true; } });
-      return ret;
-    };
     function simpleExt(a) {
       if (typeof a[0] == 'string')
-        return [0.5, nub(a).length + 0.5];
+        return [0.5, lib.unique(a).length + 0.5];
       else
         return d3.extent(a);
     };
@@ -482,7 +482,7 @@ radian.directive('plot',
         hasdate = true;
       if (s.x && s.x instanceof Array) {
         if (typeof s.x[0] == 'string') {
-          var vals = nub(s.x);
+          var vals = lib.unique(s.x);
           vals.sort();
           if (discx) {
             if (discx.length != vals.length ||
@@ -498,7 +498,7 @@ radian.directive('plot',
         hasdate2 = true;
       if (s.x2 && s.x2 instanceof Array) {
         if (typeof s.x2[0] == 'string') {
-          var vals = nub(s.x2);
+          var vals = lib.unique(s.x2);
           vals.sort();
           if (discx2) {
             if (discx2.length != vals.length ||
@@ -905,13 +905,12 @@ radian.directive('plot',
   };
 
   function jitter(xs, scale, jit) {
-    var d = scale.domain(), r = scale.range();
-    var jsize = jit ? parseFloat(jit) : 0.1;
+    var jsize = jit ? parseFloat(jit) : 0.05, j = [];
     if (isNaN(jsize)) jsize = 0.1;
-    jsize *= (r[1] - r[0]) / d.length;
-    var j = [];
     xs.forEach(function(x) { j.push((Math.random() * 2 - 1) * jsize); });
-    return function(d, i) { return scale(d) + j[i]; };
+    var ret = function(d, i) { return scale(d + j[i]); };
+    ret.oton = scale.oton;
+    return ret;
   };
 
   function draw(v, scope) {
@@ -1035,24 +1034,23 @@ radian.directive('plot',
       dft(scope, function(s) {
         if (s.draw && s.enabled) {
           var xvar = false, yvar = false;
-          var xscale, yscale;
-          if (s.x)  { xvar = 'x';  xscale = v.x;  }
-          if (s.x2) { xvar = 'x2'; xscale = v.x2; }
-          if (s.y)  { yvar = 'y';  yscale = v.y;  }
-          if (s.y2) { yvar = 'y2'; yscale = v.y2; }
+          var xs, ys;
+          if (s.x)  { xvar = 'x';  xs = v.x;  }
+          if (s.x2) { xvar = 'x2'; xs = v.x2; }
+          if (s.y)  { yvar = 'y';  ys = v.y;  }
+          if (s.y2) { yvar = 'y2'; ys = v.y2; }
+          xs.full = xs, ys.full = ys;
 
           if (xvar && yvar) {
             // Append SVG group for this plot and draw the plot into it.
             var g = svg.append('g');
             var x = (s[xvar][0] instanceof Array) ?
               s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
-            if (s.hasOwnProperty('jitterX'))
-              xscale = jitter(x, xscale, s.jitterX);
+            if (s.hasOwnProperty('jitterX')) xs = jitter(x, xs, s.jitterX);
             var y = (s[yvar][0] instanceof Array) ?
               s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
-            if (s.hasOwnProperty('jitterY'))
-              yscale = jitter(y, yscale, s.jitterY);
-            s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight,
+            if (s.hasOwnProperty('jitterY')) ys = jitter(y, ys, s.jitterY);
+            s.draw(g, x, xs, y, ys, s, v.realwidth, v.realheight,
                    yvar == 'y2' ? 2 : 1);
             s.$on('$destroy', function() { g.remove(); });
           }
@@ -3943,11 +3941,16 @@ radian.directive('points',
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
+    function apSc(sc, d, i) {
+      var dtmp = d;
+      if (sc.oton) dtmp = sc.oton(d);
+      return sc(dtmp, i);
+    };
     var points = d3.svg.symbol().type(sty(marker)).size(sty(markerSize));
     svg.selectAll('path').data(d3.zip(x, y))
       .enter().append('path')
       .attr('transform', function(d, i) {
-        return 'translate(' + xs(d[0], i) + ',' + ys(d[1], i) + ')';
+        return 'translate(' + apSc(xs, d[0], i) + ',' + apSc(ys, d[1], i) + ')';
       })
       .attr('d', points)
       .style('fill', sty(fill))
@@ -3985,11 +3988,14 @@ radian.directive('points',
 // Bar charts.
 
 radian.directive('bars',
- ['plotTypeLink', function(plotTypeLink)
+ ['plotTypeLink', 'plotLib', function(plotTypeLink, lib)
 {
   'use strict';
 
-  function draw(svg, x, xs, y, ys, s, w, h) {
+  function draw(svg, xin, xs, yin, ys, s, w, h) {
+    var x = xin, y = yin;
+    var style = s.style || 'simple';
+    var aggregation = s.aggregation || 'none';
     var strokeWidth   = s.strokeWidth || 1;
     var strokeOpacity = s.strokeOpacity || 1.0;
     var stroke = s.stroke || '#000';
@@ -4016,8 +4022,37 @@ radian.directive('bars',
       pxOffset = true;
     }
 
+    // Data aggregation.
+    if (aggregation != 'none') {
+      var aggfn;
+      switch (aggregation) {
+      case 'mean': aggfn = lib.meanBy; break;
+      case 'sum':  aggfn = lib.sumBy;  break;
+      case 'max':  aggfn = lib.maxBy;  break;
+      case 'min':  aggfn = lib.minBy;  break;
+      default: throw Error("Unknown aggregation type: " + aggregation);
+      }
+      x = lib.unique(xin);
+      y = aggfn(yin, xin);
+      if (fill instanceof Array)
+        fill = lib.firstBy(fill, xin);
+      if (fillOpacity instanceof Array)
+        fillOpacity = lib.firstBy(fillOpacity, xin);
+      if (strokeWidth instanceof Array)
+        strokeWidth = lib.firstBy(strokeWidth, xin);
+      if (strokeOpacity instanceof Array)
+        strokeOpacity = lib.firstBy(strokeOpacity, xin);
+      if (stroke instanceof Array)
+        stroke = lib.firstBy(stroke, xin);
+    }
+
     // Plot bars: plot attributes are either single values or arrays
     // of values, one per bar.
+    function apSc(sc, d, i) {
+      var dtmp = d;
+      if (sc.oton) dtmp = sc.oton(d);
+      return sc(dtmp, i);
+    };
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
@@ -4031,12 +4066,12 @@ radian.directive('bars',
       .attr('class', 'bar')
       .attr('x', function(d, i) {
         if (d.length == 3)
-          return xs(d[0], i);
+          return apSc(xs, d[0], i);
         else return d[0] instanceof Date ?
           xs(new Date(d[0].valueOf() -
                       (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
                       (pxOffset ? barOffset : s.barWidths[i] * barOffset)), i) :
-          xs(d[0] -
+          xs(xs.oton(d[0]) -
              (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
              (pxOffset ? barOffset : s.barWidths[i] * barOffset), i);
       })
@@ -4045,13 +4080,13 @@ radian.directive('bars',
         if (pxWidth)
           return pxBarWidth;
         else if (d.length == 3)
-          return xs(d[1], i) - xs(d[0], i);
+          return apSc(xs, d[1], i) - apSc(xs, d[0], i);
         else
           return d[0] instanceof Date ?
             xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0), i) -
             xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0), i) :
-            xs(d[0] + s.barWidths[i] * barWidth / 2.0, i) -
-            xs(d[0] - s.barWidths[i] * barWidth / 2.0, i);
+            xs(xs.oton(d[0]) + s.barWidths[i] * barWidth / 2.0, i) -
+            xs(xs.oton(d[0]) - s.barWidths[i] * barWidth / 2.0, i);
       })
       .attr('height', function(d, i) { return h - ys(d[d.length-1]); })
       .style('fill', sty(fill))
@@ -4066,22 +4101,28 @@ radian.directive('bars',
     scope: true,
     link: function(scope, elm, as) {
       scope.$on('setupExtra', function() {
+        var barx = scope.x;
+        // Discrete data.
+        if (typeof scope.x[0] == 'string') {
+          barx = [];
+          scope.x.forEach(function(x, i) { barx.push(i + 1); });
+        }
         if (scope.barMin && scope.barMax) {
           scope.barWidths = scope.barMax.map(function(mx, i) {
             return mx - scope.barMin[i];
           });
-          var last = scope.x.length - 1;
-          scope.rangeXExtend = [scope.x[0] - scope.barMin[0],
-                                scope.barMax[last] - scope.x[last]];
+          var last = barx.length - 1;
+          scope.rangeXExtend = [barx[0] - scope.barMin[0],
+                                scope.barMax[last] - barx[last]];
         } else {
-          scope.barWidths = scope.x.map(function(xval, i) {
-            if (i == 0) return scope.x[1] - xval;
-            else if (i == scope.x.length - 1)
-              return xval - scope.x[scope.x.length - 2];
-            else return (scope.x[i+1] - scope.x[i-1]) / 2;
+          scope.barWidths = barx.map(function(xval, i) {
+            if (i == 0) return barx[1] - xval;
+            else if (i == barx.length - 1)
+              return xval - barx[barx.length - 2];
+            else return (barx[i+1] - barx[i-1]) / 2;
           });
           scope.rangeXExtend = [scope.barWidths[0] / 2,
-                                scope.barWidths[scope.x.length - 1] / 2];
+                                scope.barWidths[barx.length - 1] / 2];
         }
         var width = scope.strokeWidth instanceof Array &&
                     scope.strokeWidth.length > 0 ?
@@ -4619,14 +4660,6 @@ radian.factory('plotLib', function()
     return ret;
   };
 
-  // Extract unique values from an array.
-  function nub(xs) {
-    var ret = [];
-    var seen = { };
-    xs.forEach(function(x) { if (!seen[x]) { ret.push(x); seen[x] = true; } });
-    return ret;
-  };
-
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -4656,7 +4689,6 @@ radian.factory('plotLib', function()
            max: d3.max,
            extent: multiExtent,
            flatten: flatten,
-           nub: nub,
            sum: d3.sum,
            mean: d3.mean,
            median: d3.median,
@@ -4673,6 +4705,7 @@ radian.factory('plotLib', function()
            sumBy: by(d3.sum),
            meanBy: by(d3.mean),
            sdevBy: by(sdev),
+           firstBy: by(function(xs) { return xs[0]; }),
            normal: normal,
            lognormal: lognormal,
            gamma: gamma,

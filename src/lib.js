@@ -219,14 +219,6 @@ radian.factory('plotLib', function()
     return ret;
   };
 
-  // Extract unique values from an array.
-  function nub(xs) {
-    var ret = [];
-    var seen = { };
-    xs.forEach(function(x) { if (!seen[x]) { ret.push(x); seen[x] = true; } });
-    return ret;
-  };
-
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -256,7 +248,6 @@ radian.factory('plotLib', function()
            max: d3.max,
            extent: multiExtent,
            flatten: flatten,
-           nub: nub,
            sum: d3.sum,
            mean: d3.mean,
            median: d3.median,
@@ -273,6 +264,7 @@ radian.factory('plotLib', function()
            sumBy: by(d3.sum),
            meanBy: by(d3.mean),
            sdevBy: by(sdev),
+           firstBy: by(function(xs) { return xs[0]; }),
            normal: normal,
            lognormal: lognormal,
            gamma: gamma,

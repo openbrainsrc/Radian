@@ -105,11 +105,16 @@ radian.directive('points',
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
+    function apSc(sc, d, i) {
+      var dtmp = d;
+      if (sc.oton) dtmp = sc.oton(d);
+      return sc(dtmp, i);
+    };
     var points = d3.svg.symbol().type(sty(marker)).size(sty(markerSize));
     svg.selectAll('path').data(d3.zip(x, y))
       .enter().append('path')
       .attr('transform', function(d, i) {
-        return 'translate(' + xs(d[0], i) + ',' + ys(d[1], i) + ')';
+        return 'translate(' + apSc(xs, d[0], i) + ',' + apSc(ys, d[1], i) + ')';
       })
       .attr('d', points)
       .style('fill', sty(fill))
@@ -147,11 +152,14 @@ radian.directive('points',
 // Bar charts.
 
 radian.directive('bars',
- ['plotTypeLink', function(plotTypeLink)
+ ['plotTypeLink', 'plotLib', function(plotTypeLink, lib)
 {
   'use strict';
 
-  function draw(svg, x, xs, y, ys, s, w, h) {
+  function draw(svg, xin, xs, yin, ys, s, w, h) {
+    var x = xin, y = yin;
+    var style = s.style || 'simple';
+    var aggregation = s.aggregation || 'none';
     var strokeWidth   = s.strokeWidth || 1;
     var strokeOpacity = s.strokeOpacity || 1.0;
     var stroke = s.stroke || '#000';
@@ -178,8 +186,37 @@ radian.directive('bars',
       pxOffset = true;
     }
 
+    // Data aggregation.
+    if (aggregation != 'none') {
+      var aggfn;
+      switch (aggregation) {
+      case 'mean': aggfn = lib.meanBy; break;
+      case 'sum':  aggfn = lib.sumBy;  break;
+      case 'max':  aggfn = lib.maxBy;  break;
+      case 'min':  aggfn = lib.minBy;  break;
+      default: throw Error("Unknown aggregation type: " + aggregation);
+      }
+      x = lib.unique(xin);
+      y = aggfn(yin, xin);
+      if (fill instanceof Array)
+        fill = lib.firstBy(fill, xin);
+      if (fillOpacity instanceof Array)
+        fillOpacity = lib.firstBy(fillOpacity, xin);
+      if (strokeWidth instanceof Array)
+        strokeWidth = lib.firstBy(strokeWidth, xin);
+      if (strokeOpacity instanceof Array)
+        strokeOpacity = lib.firstBy(strokeOpacity, xin);
+      if (stroke instanceof Array)
+        stroke = lib.firstBy(stroke, xin);
+    }
+
     // Plot bars: plot attributes are either single values or arrays
     // of values, one per bar.
+    function apSc(sc, d, i) {
+      var dtmp = d;
+      if (sc.oton) dtmp = sc.oton(d);
+      return sc(dtmp, i);
+    };
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
@@ -193,12 +230,12 @@ radian.directive('bars',
       .attr('class', 'bar')
       .attr('x', function(d, i) {
         if (d.length == 3)
-          return xs(d[0], i);
+          return apSc(xs, d[0], i);
         else return d[0] instanceof Date ?
           xs(new Date(d[0].valueOf() -
                       (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
                       (pxOffset ? barOffset : s.barWidths[i] * barOffset)), i) :
-          xs(d[0] -
+          xs(xs.oton(d[0]) -
              (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
              (pxOffset ? barOffset : s.barWidths[i] * barOffset), i);
       })
@@ -207,13 +244,13 @@ radian.directive('bars',
         if (pxWidth)
           return pxBarWidth;
         else if (d.length == 3)
-          return xs(d[1], i) - xs(d[0], i);
+          return apSc(xs, d[1], i) - apSc(xs, d[0], i);
         else
           return d[0] instanceof Date ?
             xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0), i) -
             xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0), i) :
-            xs(d[0] + s.barWidths[i] * barWidth / 2.0, i) -
-            xs(d[0] - s.barWidths[i] * barWidth / 2.0, i);
+            xs(xs.oton(d[0]) + s.barWidths[i] * barWidth / 2.0, i) -
+            xs(xs.oton(d[0]) - s.barWidths[i] * barWidth / 2.0, i);
       })
       .attr('height', function(d, i) { return h - ys(d[d.length-1]); })
       .style('fill', sty(fill))
@@ -228,22 +265,28 @@ radian.directive('bars',
     scope: true,
     link: function(scope, elm, as) {
       scope.$on('setupExtra', function() {
+        var barx = scope.x;
+        // Discrete data.
+        if (typeof scope.x[0] == 'string') {
+          barx = [];
+          scope.x.forEach(function(x, i) { barx.push(i + 1); });
+        }
         if (scope.barMin && scope.barMax) {
           scope.barWidths = scope.barMax.map(function(mx, i) {
             return mx - scope.barMin[i];
           });
-          var last = scope.x.length - 1;
-          scope.rangeXExtend = [scope.x[0] - scope.barMin[0],
-                                scope.barMax[last] - scope.x[last]];
+          var last = barx.length - 1;
+          scope.rangeXExtend = [barx[0] - scope.barMin[0],
+                                scope.barMax[last] - barx[last]];
         } else {
-          scope.barWidths = scope.x.map(function(xval, i) {
-            if (i == 0) return scope.x[1] - xval;
-            else if (i == scope.x.length - 1)
-              return xval - scope.x[scope.x.length - 2];
-            else return (scope.x[i+1] - scope.x[i-1]) / 2;
+          scope.barWidths = barx.map(function(xval, i) {
+            if (i == 0) return barx[1] - xval;
+            else if (i == barx.length - 1)
+              return xval - barx[barx.length - 2];
+            else return (barx[i+1] - barx[i-1]) / 2;
           });
           scope.rangeXExtend = [scope.barWidths[0] / 2,
-                                scope.barWidths[scope.x.length - 1] / 2];
+                                scope.barWidths[barx.length - 1] / 2];
         }
         var width = scope.strokeWidth instanceof Array &&
                     scope.strokeWidth.length > 0 ?

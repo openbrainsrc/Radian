@@ -120,8 +120,9 @@ radian.factory('calcPlotDimensions', function() {
 radian.directive('plot',
  ['processAttrs', 'calcPlotDimensions', 'addToLayout',
   '$timeout', '$rootScope', 'dumpScope', 'dft', 'radianLegend',
+  'plotLib',
  function(processAttrs, calcPlotDimensions, addToLayout,
-          $timeout, $rootScope, dumpScope, dft, radianLegend)
+          $timeout, $rootScope, dumpScope, dft, radianLegend, lib)
 {
   'use strict';
 
@@ -362,15 +363,19 @@ radian.directive('plot',
         discvals = scope.orderX.split(/ *, */);
       else if (discorder)
         discvals = discorder.split(/ *, */);
-      v.x = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
+      v.x =
+        d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
+      v.x.oton = function(x) { return discvals.indexOf(x) + 1; };
       v.x.discrete = discvals;
-      v.x.discreteOrder = discorder;
-    } else if (hasdate)
-      v.x = d3.time.scale().range([b,t]).domain(scope.xextent);
-    else if (xform == "log")
-      v.x = d3.scale.log().range([b,t]).domain(scope.xextent);
-    else
-      v.x = d3.scale.linear().range([b,t]).domain(scope.xextent);
+    } else {
+      if (hasdate)
+        v.x = d3.time.scale().range([b,t]).domain(scope.xextent);
+      else if (xform == "log")
+        v.x = d3.scale.log().range([b,t]).domain(scope.xextent);
+      else
+        v.x = d3.scale.linear().range([b,t]).domain(scope.xextent);
+      v.x.oton = function(x) { return x; };
+    }
   };
   function makeX2Scaler(scope, v, hasdate, discvals, discorder) {
     var xform = scope.axisXTransform || "linear";
@@ -381,9 +386,9 @@ radian.directive('plot',
         discvals = scope.orderX2.split(/ *, */);
       else if (discorder)
         discvals = discorder.split(/ *, */);
-      v.x2 = d3.scale.ordinal().rangePoints([b,t], 1.0).domain(discvals);
+      v.x2 = d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
       v.x2.discrete = discvals;
-      v.x2.discreteOrder = discorder;
+      v.x2.discmap = function(x) { return discvals.indexOf(x) + 1; };
     } else if (hasdate)
       v.x2 = d3.time.scale().range([b,t]).domain(scope.x2extent);
     else if (xform == "log")
@@ -423,14 +428,9 @@ radian.directive('plot',
     processRanges(scope, 'range2', 'rangeX2', 'rangeY2',
                   'fixedX2Range', 'x2extent', 'x2range',
                   'fixedY2Range', 'y2extent', 'y2range');
-    function nub(a) {
-      var ret = [], seen = { };
-      a.forEach(function(x) { if (!seen[x]) { ret.push(x); seen[x] = true; } });
-      return ret;
-    };
     function simpleExt(a) {
       if (typeof a[0] == 'string')
-        return [0.5, nub(a).length + 0.5];
+        return [0.5, lib.unique(a).length + 0.5];
       else
         return d3.extent(a);
     };
@@ -480,7 +480,7 @@ radian.directive('plot',
         hasdate = true;
       if (s.x && s.x instanceof Array) {
         if (typeof s.x[0] == 'string') {
-          var vals = nub(s.x);
+          var vals = lib.unique(s.x);
           vals.sort();
           if (discx) {
             if (discx.length != vals.length ||
@@ -496,7 +496,7 @@ radian.directive('plot',
         hasdate2 = true;
       if (s.x2 && s.x2 instanceof Array) {
         if (typeof s.x2[0] == 'string') {
-          var vals = nub(s.x2);
+          var vals = lib.unique(s.x2);
           vals.sort();
           if (discx2) {
             if (discx2.length != vals.length ||
@@ -903,13 +903,12 @@ radian.directive('plot',
   };
 
   function jitter(xs, scale, jit) {
-    var d = scale.domain(), r = scale.range();
-    var jsize = jit ? parseFloat(jit) : 0.1;
+    var jsize = jit ? parseFloat(jit) : 0.05, j = [];
     if (isNaN(jsize)) jsize = 0.1;
-    jsize *= (r[1] - r[0]) / d.length;
-    var j = [];
     xs.forEach(function(x) { j.push((Math.random() * 2 - 1) * jsize); });
-    return function(d, i) { return scale(d) + j[i]; };
+    var ret = function(d, i) { return scale(d + j[i]); };
+    ret.oton = scale.oton;
+    return ret;
   };
 
   function draw(v, scope) {
@@ -1033,24 +1032,23 @@ radian.directive('plot',
       dft(scope, function(s) {
         if (s.draw && s.enabled) {
           var xvar = false, yvar = false;
-          var xscale, yscale;
-          if (s.x)  { xvar = 'x';  xscale = v.x;  }
-          if (s.x2) { xvar = 'x2'; xscale = v.x2; }
-          if (s.y)  { yvar = 'y';  yscale = v.y;  }
-          if (s.y2) { yvar = 'y2'; yscale = v.y2; }
+          var xs, ys;
+          if (s.x)  { xvar = 'x';  xs = v.x;  }
+          if (s.x2) { xvar = 'x2'; xs = v.x2; }
+          if (s.y)  { yvar = 'y';  ys = v.y;  }
+          if (s.y2) { yvar = 'y2'; ys = v.y2; }
+          xs.full = xs, ys.full = ys;
 
           if (xvar && yvar) {
             // Append SVG group for this plot and draw the plot into it.
             var g = svg.append('g');
             var x = (s[xvar][0] instanceof Array) ?
               s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
-            if (s.hasOwnProperty('jitterX'))
-              xscale = jitter(x, xscale, s.jitterX);
+            if (s.hasOwnProperty('jitterX')) xs = jitter(x, xs, s.jitterX);
             var y = (s[yvar][0] instanceof Array) ?
               s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
-            if (s.hasOwnProperty('jitterY'))
-              yscale = jitter(y, yscale, s.jitterY);
-            s.draw(g, x, xscale, y, yscale, s, v.realwidth, v.realheight,
+            if (s.hasOwnProperty('jitterY')) ys = jitter(y, ys, s.jitterY);
+            s.draw(g, x, xs, y, ys, s, v.realwidth, v.realheight,
                    yvar == 'y2' ? 2 : 1);
             s.$on('$destroy', function() { g.remove(); });
           }
