@@ -2,12 +2,12 @@
 // accessing plot data defined via a SRC attribute.  This can be
 // useful to implement client-side caching of plot data, for example.
 
-radian.factory('plotDataHttpProvider', ['$http', function($http)
+radian.factory('plotDataHttp', ['$http', function($http)
 {
-  var provider = $http;
-  function set(prov) { provider = prov; provider.set = set; };
-  provider.set = set;
-  return provider;
+  var p = { provider: $http };
+  function set(prov) { p.provider = prov; };
+  p.set = set;
+  return p;
 }]);
 
 
@@ -15,8 +15,8 @@ radian.factory('plotDataHttpProvider', ['$http', function($http)
 // body.
 
 radian.directive('plotData',
- ['$http', 'processAttrs', 'plotDataHttpProvider',
-  function($http, processAttrs, plotDataHttpProvider)
+ ['$http', 'processAttrs', 'plotDataHttp',
+  function($http, processAttrs, plotDataHttp)
 {
   'use strict';
 
@@ -150,7 +150,7 @@ radian.directive('plotData',
     // Get plot data via a HTTP request.
     function getData() {
       sc.firstDataLoad = true;
-      plotDataHttpProvider.get(sc.src)
+      plotDataHttp.provider.get(sc.src)
         .success(function(data, status, headers, config) {
           if (headers("Content-Type").indexOf('application/json') == 0)
             format = 'json';
