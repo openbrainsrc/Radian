@@ -4101,7 +4101,7 @@ radian.directive('bars',
     scope: true,
     link: function(scope, elm, as) {
       scope.$on('setupExtra', function() {
-        var barx = scope.x;
+        var barx = scope.x || [];
         // Discrete data.
         if (scope.x && scope.x instanceof Array &&
             typeof scope.x[0] == 'string') {
