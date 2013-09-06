@@ -267,7 +267,8 @@ radian.directive('bars',
       scope.$on('setupExtra', function() {
         var barx = scope.x;
         // Discrete data.
-        if (typeof scope.x[0] == 'string') {
+        if (scope.x && scope.x instanceof Array &&
+            typeof scope.x[0] == 'string') {
           barx = [];
           scope.x.forEach(function(x, i) { barx.push(i + 1); });
         }
