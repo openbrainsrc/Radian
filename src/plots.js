@@ -198,6 +198,7 @@ radian.directive('bars',
       }
       x = lib.unique(xin);
       y = aggfn(yin, xin);
+      s.barWidths = lib.firstBy(s.barWidths, xin);
       if (fill instanceof Array)
         fill = lib.firstBy(fill, xin);
       if (fillOpacity instanceof Array)
@@ -268,7 +269,9 @@ radian.directive('bars',
         var barx = scope.x || [];
         // Discrete data.
         if (scope.x && scope.x instanceof Array &&
-            typeof scope.x[0] == 'string') {
+            (typeof scope.x[0] == 'string' ||
+             scope.x[0] instanceof Array ||
+             scope.discreteX)) {
           barx = [];
           scope.x.forEach(function(x, i) { barx.push(i + 1); });
         }

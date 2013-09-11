@@ -4,6 +4,10 @@
   female #FF7F7F; male #7F7FFF
 </palette>
 
+<palette name="urpal" type="discrete">
+  rural #10520D; urban #505050
+</palette>
+
 <plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
       range-y=0 stroke="none">
   <bars x="[[d1#sex]]" y="[[d1#rate]]" fill="[[mfpal(x)]]"
@@ -12,26 +16,31 @@
 
 <plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
       range-y=0>
-  <bars x="[[[d1#sex,d1#env]]]" y="[[d1#rate]]"
-        style="simple" aggregation="mean"></bars>
+  <bars x="[[zip(d1#sex,d1#env)]]" y="[[d1#rate]]"
+        style="simple" aggregation="mean" bar-width=0.5
+        stroke-width=10
+        stroke="[[urpal(x#1)]]" fill="[[mfpal(x#0)]]"></bars>
 </plot>
 
 <plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
       range-y=0>
-  <bars x="[[[[d1#sex],d1#age]]]" y="[[d1#rate]]"
-        style="simple" aggregation="mean"></bars>
+  <bars x="[[zip(d1#sex,d1#age)]]" group-x="1" y="[[d1#rate]]"
+        style="simple" aggregation="mean" bar-width=0.5
+        stroke-width=2 fill="[[mfpal(x#0)]]"></bars>
 </plot>
 
 <plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
       range-y=0>
-  <bars x="[[[[d1#age],d1#sex]]]" y="[[d1#rate]]"
-        style="simple" aggregation="mean"></bars>
+  <bars x="[[zip(d1#age,d1#sex)]]" group-x="1" y="[[d1#rate]]"
+        style="simple" aggregation="mean" bar-width=0.5
+        stroke-width=2 fill="[[mfpal(x#1)]]"></bars>
 </plot>
 
 <plot-data name="d1">
-  <metadata name="sex" order="female,male"></metadata>
-  <metadata name="env" order="rural,urban"></metadata>
-  <metadata name="age" order="50-54,55-59,60-64,65-69,70-74"></metadata>
+  <metadata name="sex" category-order="female;male"></metadata>
+  <metadata name="env" category-order="rural;urban"></metadata>
+  <metadata name="age" category-order="50-54;55-59;60-64;65-69;70-74">
+  </metadata>
   [ { "sex": "female", "env": "rural", "age": "50-54", "rate": 15.5 },
     { "sex": "female", "env": "rural", "age": "55-59", "rate": 20.2 },
     { "sex": "female", "env": "rural", "age": "60-64", "rate": 32.1 },

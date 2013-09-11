@@ -360,12 +360,20 @@ radian.directive('plot',
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
       if (scope.orderX)
-        discvals = scope.orderX.split(/ *, */);
+        discvals = scope.orderX.split(/ *; */);
       else if (discorder)
-        discvals = discorder.split(/ *, */);
+        discvals = discorder.split(/ *; */);
       v.x =
         d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
-      v.x.oton = function(x) { return discvals.indexOf(x) + 1; };
+      v.x.oton = function(x) {
+        if (x instanceof Array) {
+          for (var i = 0; i < discvals.length; ++i)
+            if (discvals[i].every(function(d, i) { return d == x[i]; }))
+              return i + 1;
+          throw Error("Discrete value mismatch!");
+        } else
+          return discvals.indexOf(x) + 1;
+      };
       v.x.discrete = discvals;
     } else {
       if (hasdate)
@@ -383,10 +391,19 @@ radian.directive('plot',
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
       if (scope.orderX2)
-        discvals = scope.orderX2.split(/ *, */);
+        discvals = scope.orderX2.split(/ *; */);
       else if (discorder)
-        discvals = discorder.split(/ *, */);
+        discvals = discorder.split(/ *; */);
       v.x2 = d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
+      v.x2.oton = function(x) {
+        if (x instanceof Array) {
+          for (var i = 0; i < discvals.length; ++i)
+            if (discvals[i].every(function(d, i) { return d == x[i]; }))
+              return i + 1;
+          throw Error("Discrete value mismatch!");
+        } else
+          return discvals.indexOf(x) + 1;
+      };
       v.x2.discrete = discvals;
       v.x2.discmap = function(x) { return discvals.indexOf(x) + 1; };
     } else if (hasdate)
@@ -479,12 +496,30 @@ radian.directive('plot',
       if (s.x && s.x.metadata && s.x.metadata.format == 'date')
         hasdate = true;
       if (s.x && s.x instanceof Array) {
-        if (typeof s.x[0] == 'string') {
+        // There are three possible cases where we want to treat the
+        // X-values as discrete:
+        //  1. String values.
+        //  2. Array values (indicating parallel zipped data arrays
+        //     for hierarchical treatment).
+        //  3. When the X-data is explicitly marked as being discrete
+        //     -- this is needed to deal with the case where we have
+        //     integer values and want to treat them as discrete
+        //     values.
+        if (typeof s.x[0] == 'string' ||  // Case #1
+            s.x[0] instanceof Array ||    // Case #2
+            s.discreteX) {                // Case #3
+          // The unique function in the Radian library will work with
+          // array-valued entries without a problem.
           var vals = lib.unique(s.x);
           vals.sort();
           if (discx) {
             if (discx.length != vals.length ||
-                discx.some(function(x, i) { return x != vals[i]; }))
+                discx.some(function(x, i) {
+                  if (x instanceof Array)
+                    return x.some(function(y, j) { return y != vals[i][j]; });
+                  else
+                    return x != vals[i];
+                }))
               throw Error("Incompatible discrete X values");
           } else discx = vals;
           if (s.x.metadata && s.x.metadata.categoryOrder)
@@ -495,12 +530,19 @@ radian.directive('plot',
       if (s.x2 && s.x2.metadata && s.x2.metadata.format == 'date')
         hasdate2 = true;
       if (s.x2 && s.x2 instanceof Array) {
-        if (typeof s.x2[0] == 'string') {
+        if (typeof s.x2[0] == 'string' ||  // Case #1
+            s.x2[0] instanceof Array ||    // Case #2
+            s.discreteX2) {                // Case #3
           var vals = lib.unique(s.x2);
           vals.sort();
           if (discx2) {
             if (discx2.length != vals.length ||
-                discx2.some(function(x, i) { return x != vals[i]; }))
+                discx2.some(function(x, i) {
+                  if (x instanceof Array)
+                    return x.some(function(y, j) { return y != vals[i][j]; });
+                  else
+                    return x != vals[i];
+                }))
               throw Error("Incompatible discrete X2 values");
           } else discx2 = vals;
           if (s.x2.metadata && s.x2.metadata.categoryOrder)
@@ -1031,10 +1073,10 @@ radian.directive('plot',
     if (v.x && v.y || v.x2 && v.y || v.x && v.y2 || v.x2 && v.y2) {
       dft(scope, function(s) {
         if (s.draw && s.enabled) {
-          var xvar = false, yvar = false;
+          var xvar = false, yvar = false, xdiscrete = false;
           var xs, ys;
-          if (s.x)  { xvar = 'x';  xs = v.x;  }
-          if (s.x2) { xvar = 'x2'; xs = v.x2; }
+          if (s.x)  { xvar = 'x';  xs = v.x;  xdiscrete = !!v.x.discrete; }
+          if (s.x2) { xvar = 'x2'; xs = v.x2;  xdiscrete = !!v.x2.discrete; }
           if (s.y)  { yvar = 'y';  ys = v.y;  }
           if (s.y2) { yvar = 'y2'; ys = v.y2; }
           xs.full = xs, ys.full = ys;
@@ -1042,7 +1084,7 @@ radian.directive('plot',
           if (xvar && yvar) {
             // Append SVG group for this plot and draw the plot into it.
             var g = svg.append('g');
-            var x = (s[xvar][0] instanceof Array) ?
+            var x = (s[xvar][0] instanceof Array && !v.x.discrete) ?
               s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
             if (s.hasOwnProperty('jitterX')) xs = jitter(x, xs, s.jitterX);
             var y = (s[yvar][0] instanceof Array) ?
