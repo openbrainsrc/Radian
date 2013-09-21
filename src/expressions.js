@@ -145,7 +145,7 @@ radian.factory('radianEval',
 
     // Pluck expression transformations:
     //
-    //  a#id     ->  a.map(function($$x) { return $$x.id; })
+    //  a#id     ->  lib.rad$$pluck("a", "id")
     //  a#id(c)  ->  a.map(function($$x) { return $$x.id(c); })
     //  a#n      ->  a.map(function($$x) { return $$x[n]; })
     //  a#(expr) ->  a.map(function($$x) { return $$x[expr]; })
@@ -179,25 +179,35 @@ radian.factory('radianEval',
       },
       leave: function(n) {
         if (n.type == "PluckExpression") {
-          return {
-            type:"CallExpression",
-            callee:{ type:"MemberExpression", object:n.object,
-                     property:{ type:"Identifier", name:"map" },
-                     computed:false },
-            arguments:
-            [{ type:"FunctionExpression",
-               id:null, params:[{ type:"Identifier", name:"$$x"}],
-               body:{
-                 type:"BlockStatement",
-                 body:[{ type:"ReturnStatement",
-                         argument:{ type:"MemberExpression",
-                                    object:{ type:"Identifier", name:"$$x" },
-                                    property:n.property,
-                                    computed:n.computed}
-                       }]
-               }
-             }]
-          };
+          if (n.property.type == "Identifier" && !n.computed) {
+            return {
+              type:"CallExpression",
+              callee:{ type:"Identifier", name:"rad$$pluck" },
+              arguments:
+              [ n.object,
+               { type: "Literal",
+                 value: n.property.name,
+                 raw: "'" + n.property.name + "'" }]};
+          } else
+            return {
+              type:"CallExpression",
+              callee:{ type:"MemberExpression", object:n.object,
+                       property:{ type:"Identifier", name:"map" },
+                       computed:false },
+              arguments:
+              [{ type:"FunctionExpression",
+                 id:null, params:[{ type:"Identifier", name:"$$x"}],
+                 body:{
+                   type:"BlockStatement",
+                   body:[{ type:"ReturnStatement",
+                           argument:{ type:"MemberExpression",
+                                      object:{ type:"Identifier", name:"$$x" },
+                                      property:n.property,
+                                      computed:n.computed}
+                         }]
+                 }
+               }]
+            };
         }}});
 
     // Replace free variables in JS expression by calls to

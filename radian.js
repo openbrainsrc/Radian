@@ -361,10 +361,16 @@ radian.directive('plot',
     var ext = scope.rangeXExtendPixels;
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
+      var disctmp = null;
       if (scope.orderX)
-        discvals = scope.orderX.split(/ *; */);
+        disctmp = scope.orderX.split(/ *; */);
       else if (discorder)
-        discvals = discorder.split(/ *; */);
+        disctmp = discorder.split(/ *; */);
+      if (disctmp)
+        discvals = disctmp.map(function(s) {
+          var ss = s.split(/ *, */);
+          return ss.length == 1 ? s : ss;
+        });
       v.x =
         d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
       v.x.oton = function(x) {
@@ -392,10 +398,16 @@ radian.directive('plot',
     var ext = scope.rangeXExtendPixels;
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
+      var disctmp = null;
       if (scope.orderX2)
-        discvals = scope.orderX2.split(/ *; */);
+        disctmp = scope.orderX2.split(/ *; */);
       else if (discorder)
-        discvals = discorder.split(/ *; */);
+        disctmp = discorder.split(/ *; */);
+      if (disctmp)
+        discvals = disctmp.map(function(s) {
+          var ss = s.split(/ *, */);
+          return ss.length == 1 ? s : ss;
+        });
       v.x2 = d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
       v.x2.oton = function(x) {
         if (x instanceof Array) {
@@ -1331,7 +1343,7 @@ radian.factory('radianEval',
 
     // Pluck expression transformations:
     //
-    //  a#id     ->  a.map(function($$x) { return $$x.id; })
+    //  a#id     ->  lib.rad$$pluck("a", "id")
     //  a#id(c)  ->  a.map(function($$x) { return $$x.id(c); })
     //  a#n      ->  a.map(function($$x) { return $$x[n]; })
     //  a#(expr) ->  a.map(function($$x) { return $$x[expr]; })
@@ -1365,25 +1377,35 @@ radian.factory('radianEval',
       },
       leave: function(n) {
         if (n.type == "PluckExpression") {
-          return {
-            type:"CallExpression",
-            callee:{ type:"MemberExpression", object:n.object,
-                     property:{ type:"Identifier", name:"map" },
-                     computed:false },
-            arguments:
-            [{ type:"FunctionExpression",
-               id:null, params:[{ type:"Identifier", name:"$$x"}],
-               body:{
-                 type:"BlockStatement",
-                 body:[{ type:"ReturnStatement",
-                         argument:{ type:"MemberExpression",
-                                    object:{ type:"Identifier", name:"$$x" },
-                                    property:n.property,
-                                    computed:n.computed}
-                       }]
-               }
-             }]
-          };
+          if (n.property.type == "Identifier" && !n.computed) {
+            return {
+              type:"CallExpression",
+              callee:{ type:"Identifier", name:"rad$$pluck" },
+              arguments:
+              [ n.object,
+               { type: "Literal",
+                 value: n.property.name,
+                 raw: "'" + n.property.name + "'" }]};
+          } else
+            return {
+              type:"CallExpression",
+              callee:{ type:"MemberExpression", object:n.object,
+                       property:{ type:"Identifier", name:"map" },
+                       computed:false },
+              arguments:
+              [{ type:"FunctionExpression",
+                 id:null, params:[{ type:"Identifier", name:"$$x"}],
+                 body:{
+                   type:"BlockStatement",
+                   body:[{ type:"ReturnStatement",
+                           argument:{ type:"MemberExpression",
+                                      object:{ type:"Identifier", name:"$$x" },
+                                      property:n.property,
+                                      computed:n.computed}
+                         }]
+                 }
+               }]
+            };
         }}});
 
     // Replace free variables in JS expression by calls to
@@ -4706,6 +4728,52 @@ radian.factory('plotLib', function()
     return ret;
   };
 
+  // Zip vectors together building composite categorical ordering
+  // metadata as required.
+  function metaDataAwareZip() {
+    var d = arguments;
+    var n = d.length;
+    if (!n) return [];
+    var m = d3.min(d, function(a) { return a.length; });
+    var zips = new Array(m);
+    for (var i = 0; i < m; ++i) {
+      zips[i] = new Array(n);
+      for (var j = 0; j < n; ++j) zips[i][j] = d[j][i];
+    }
+    function buildOrder(lev) {
+      var this_levels = [];
+      if (d[lev].metadata && d[lev].metadata.categoryOrder)
+        this_levels = d[lev].metadata.categoryOrder.split(/;/);
+      if (lev >= d.length - 1) return this_levels;
+      var next_levels = buildOrder(lev + 1);
+      var ret = [];
+      if (this_levels.length == 0)
+        next_levels.forEach(function(n) { ret.push(',' + n); });
+      else
+        this_levels.forEach(function(t) {
+          next_levels.forEach(function(n) { ret.push(t + ',' + n); });
+        });
+      return ret;
+    };
+    var do_order = false;
+    for (var i = 0; i < n; ++i)
+      if (d[i].metadata && d[i].metadata.categoryOrder) {
+        do_order = true;
+        break;
+      }
+    if (do_order)
+      zips.metadata = { categoryOrder: buildOrder(0).join(';') };
+    return zips;
+  };
+
+  // Perform simple ID plucking, pulling metadata out along the way.
+  function metaDataAwarePluck(obj, key) {
+    var ret = obj.map(function(x) { return x[key]; });
+    if (obj.metadata && obj.metadata[key])
+      ret.metadata = obj.metadata[key];
+    return ret;
+  };
+
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -4741,7 +4809,7 @@ radian.factory('plotLib', function()
            quantile: d3.quantile,
            category10: vect(d3.scale.category10()),
            category20: vect(d3.scale.category20()),
-           zip: d3.zip,
+           zip: metaDataAwareZip,
            seq: seq,
            seqStep: seqStep,
            sdev: sdev,
@@ -4764,6 +4832,7 @@ radian.factory('plotLib', function()
            rad$$mul: vectOp(function(a, b) { return a * b; }),
            rad$$div: vectOp(function(a, b) { return a / b; }),
            rad$$pow: vectOp(function(a, b) { return Math.pow(a, b); }),
+           rad$$pluck: metaDataAwarePluck,
            rad$$pal: {}
          };
 });

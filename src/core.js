@@ -359,10 +359,16 @@ radian.directive('plot',
     var ext = scope.rangeXExtendPixels;
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
+      var disctmp = null;
       if (scope.orderX)
-        discvals = scope.orderX.split(/ *; */);
+        disctmp = scope.orderX.split(/ *; */);
       else if (discorder)
-        discvals = discorder.split(/ *; */);
+        disctmp = discorder.split(/ *; */);
+      if (disctmp)
+        discvals = disctmp.map(function(s) {
+          var ss = s.split(/ *, */);
+          return ss.length == 1 ? s : ss;
+        });
       v.x =
         d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
       v.x.oton = function(x) {
@@ -390,10 +396,16 @@ radian.directive('plot',
     var ext = scope.rangeXExtendPixels;
     var b = ext ? ext[0] : 0, t = v.realwidth - (ext ? ext[1] : 0);
     if (discvals) {
+      var disctmp = null;
       if (scope.orderX2)
-        discvals = scope.orderX2.split(/ *; */);
+        disctmp = scope.orderX2.split(/ *; */);
       else if (discorder)
-        discvals = discorder.split(/ *; */);
+        disctmp = discorder.split(/ *; */);
+      if (disctmp)
+        discvals = disctmp.map(function(s) {
+          var ss = s.split(/ *, */);
+          return ss.length == 1 ? s : ss;
+        });
       v.x2 = d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
       v.x2.oton = function(x) {
         if (x instanceof Array) {
