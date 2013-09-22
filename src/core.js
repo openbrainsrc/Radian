@@ -371,11 +371,42 @@ radian.directive('plot',
         });
       v.x =
         d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
+      var offsets;
+      if (discvals[0] instanceof Array) {
+        var nd = discvals[0].length;
+        var counts = new Array(nd);
+        for (var i = 0; i < nd; ++i)
+          counts[i] = lib.unique(discvals.map(function(v) {
+            return v[i];
+          })).length;
+        var dx = new Array(nd);
+        dx[nd - 1] = 1;
+        for (var i = nd - 1; i > 0; --i) dx[i - 1] = dx[i] * counts[i];
+        if (scope.groupX) {
+          var grouping = scope.groupX % nd;
+          var delta = scope.groupXDelta || 1.25;
+          for (var i = 0; i < grouping; ++i) dx[i] *= delta;
+        }
+        offsets = new Array(discvals.length);
+        var xs = new Array(nd);
+        for (var i = 0; i < discvals.length; ++i) {
+          var tmp = i;
+          for (var j = nd - 1; j >= 0; --j) {
+            xs[j] = tmp % counts[j];
+            tmp = Math.floor(tmp / counts[j]);
+          }
+          offsets[i] = 0;
+          for (var j = 0; j < nd; ++j) offsets[i] += xs[j] * dx[j];
+        }
+        var rescale = offsets[discvals.length - 1] / (discvals.length - 1);
+        for (var i = 0; i < discvals.length; ++i)
+          offsets[i] = offsets[i] / rescale + 1;
+      }
       v.x.oton = function(x) {
         if (x instanceof Array) {
           for (var i = 0; i < discvals.length; ++i)
             if (discvals[i].every(function(d, i) { return d == x[i]; }))
-              return i + 1;
+              return offsets[i];
           throw Error("Discrete value mismatch!");
         } else
           return discvals.indexOf(x) + 1;
@@ -407,11 +438,42 @@ radian.directive('plot',
           return ss.length == 1 ? s : ss;
         });
       v.x2 = d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
+      var offsets;
+      if (discvals[0] instanceof Array) {
+        var nd = discvals[0].length;
+        var counts = new Array(nd);
+        for (var i = 0; i < nd; ++i)
+          counts[i] = lib.unique(discvals.map(function(v) {
+            return v[i];
+          })).length;
+        var dx = new Array(nd);
+        dx[nd - 1] = 1;
+        for (var i = nd - 1; i > 0; --i) dx[i - 1] = dx[i] * counts[i];
+        if (scope.groupX) {
+          var grouping = scope.groupX2 % nd;
+          var delta = scope.groupX2Delta || 1.25;
+          for (var i = 0; i < grouping; ++i) dx[i] *= delta;
+        }
+        offsets = new Array(discvals.length);
+        var xs = new Array(nd);
+        for (var i = 0; i < discvals.length; ++i) {
+          var tmp = i;
+          for (var j = nd - 1; j >= 0; --j) {
+            xs[j] = tmp % counts[j];
+            tmp = Math.floor(tmp / counts[j]);
+          }
+          offsets[i] = 0;
+          for (var j = 0; j < nd; ++j) offsets[i] += xs[j] * dx[j];
+        }
+        var rescale = offsets[discvals.length - 1] / (discvals.length - 1);
+        for (var i = 0; i < discvals.length; ++i)
+          offsets[i] = offsets[i] / rescale + 1;
+      }
       v.x2.oton = function(x) {
         if (x instanceof Array) {
           for (var i = 0; i < discvals.length; ++i)
             if (discvals[i].every(function(d, i) { return d == x[i]; }))
-              return i + 1;
+              return offsets[i];
           throw Error("Discrete value mismatch!");
         } else
           return discvals.indexOf(x) + 1;
@@ -855,7 +917,7 @@ radian.directive('plot',
     if (v[ax].discrete) {
       var tickvals = [], ticklabs = [];
       v[ax].discrete.forEach(function(x, i) {
-        tickvals.push(i + 1);
+        tickvals.push(v[ax].oton(x));
         ticklabs.push(x);
       });
       axis.tickValues(tickvals);

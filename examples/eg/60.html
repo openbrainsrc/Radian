@@ -23,15 +23,15 @@
 </plot>
 
 <plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0>
-  <bars x="[[zip(d1#sex,d1#age)]]" group-x="1" y="[[d1#rate]]"
+      range-y=0 group-x="1">
+  <bars x="[[zip(d1#sex,d1#age)]]" y="[[d1#rate]]"
         style="simple" aggregation="mean" bar-width=0.5
         stroke-width=2 fill="[[mfpal(x#0)]]"></bars>
 </plot>
 
 <plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0>
-  <bars x="[[zip(d1#age,d1#sex)]]" group-x="1" y="[[d1#rate]]"
+      range-y=0 group-x="1">
+  <bars x="[[zip(d1#age,d1#sex)]]" y="[[d1#rate]]"
         style="simple" aggregation="mean" bar-width=0.5
         stroke-width=2 fill="[[mfpal(x#1)]]"></bars>
 </plot>
