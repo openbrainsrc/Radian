@@ -4149,7 +4149,7 @@ radian.directive('bars',
     }
 
     // Data aggregation.
-    if (aggregation != 'none') {
+    if (aggregation != 'none' || style != 'simple') {
       var aggfn;
       switch (aggregation) {
       case 'mean': aggfn = lib.meanBy; break;
@@ -4254,6 +4254,194 @@ radian.directive('bars',
           scope.rangeXExtend = [scope.barWidths[0] / 2,
                                 scope.barWidths[barx.length - 1] / 2];
         }
+        var width = scope.strokeWidth instanceof Array &&
+                    scope.strokeWidth.length > 0 ?
+          scope.strokeWidth.reduce(function(x,y) {
+            return Math.max(Number(x), Number(y));
+          }) : (Number(scope.strokeWidth) || 1);
+        scope.rangeExtendPixels([2*width, 2*width], null);
+      });
+      plotTypeLink(scope, elm, as, draw);
+    }
+  };
+}]);
+
+
+// Box and whisker plots.
+
+radian.directive('boxes',
+ ['plotTypeLink', 'plotLib', function(plotTypeLink, lib)
+{
+  'use strict';
+
+  function draw(svg, xin, xs, yin, ys, s, w, h) {
+    var x = xin, y = yin;
+    var strokeWidth   = s.strokeWidth || 1;
+    var strokeOpacity = s.strokeOpacity || 1.0;
+    var stroke = s.stroke || '#000';
+    var fillOpacity = s.fillOpacity || 1.0;
+    var fill = s.fill || 'none';
+    var barWidth = s.barWidth || 0.5;
+    var pxBarWidth, pxWidth = false;
+    if (typeof barWidth == 'string' &&
+        barWidth.trim().substr(-2,2) == 'px') {
+      pxBarWidth =
+        Number(barWidth.trim().substr(0, barWidth.trim().length - 2));
+      barWidth = xs.invert(pxBarWidth) - xs.invert(0);
+      pxWidth = true;
+    }
+
+    // Data aggregation.
+    x = lib.unique(xin);
+    var q25 = lib.quantileBy(yin, xin, 0.25);
+    var q50 = lib.quantileBy(yin, xin, 0.5);
+    var q75 = lib.quantileBy(yin, xin, 0.75);
+    var qs = d3.zip(q25, q50, q75);
+    s.barWidths = lib.firstBy(s.barWidths, xin);
+    if (fill instanceof Array)
+      fill = lib.firstBy(fill, xin);
+    if (fillOpacity instanceof Array)
+      fillOpacity = lib.firstBy(fillOpacity, xin);
+    if (strokeWidth instanceof Array)
+      strokeWidth = lib.firstBy(strokeWidth, xin);
+    if (strokeOpacity instanceof Array)
+      strokeOpacity = lib.firstBy(strokeOpacity, xin);
+    if (stroke instanceof Array)
+      stroke = lib.firstBy(stroke, xin);
+
+    // Plot bars: plot attributes are either single values or arrays
+    // of values, one per bar.
+    function sty(v) {
+      return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
+    };
+    var dat = d3.zip(x, qs);
+    svg.selectAll('rect').data(dat)
+      .enter().append('rect')
+      .attr('class', 'bar')
+      .attr('x', function(d, i) {
+        return xs(xs.oton(d[0]) -
+                  (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0, i);
+      })
+      .attr('y', function(d, i) { return ys(d[1][2], i); })
+      .attr('width', function(d, i) {
+        if (pxWidth)
+          return pxBarWidth;
+        else
+          return xs(xs.oton(d[0]) + s.barWidths[i] * barWidth / 2.0, i) -
+                 xs(xs.oton(d[0]) - s.barWidths[i] * barWidth / 2.0, i);
+      })
+      .attr('height', function(d, i) {
+        return ys(d[1][0], i) - ys(d[1][2], i);
+      })
+      .style('fill', sty(fill))
+      .style('fill-opacity', sty(fillOpacity))
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke));
+    svg.selectAll('line.median').data(dat).enter().append('line')
+      .attr('class', 'median')
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke))
+      .style('fill', 'none')
+      .attr('x1', function(d, i) {
+        return xs(xs.oton(d[0]) -
+                  (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0, i);
+      })
+      .attr('x2', function(d, i) {
+        return xs(xs.oton(d[0]) +
+                  (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0, i);
+      })
+      .attr('y1', function(d, i) { return ys(d[1][1], i); })
+      .attr('y2', function(d, i) { return ys(d[1][1], i); });
+    svg.selectAll('line.iqr-up').data(dat).enter().append('line')
+      .attr('class', 'iqr-up')
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke))
+      .style('fill', 'none')
+      .attr('x1', function(d, i) { return xs(xs.oton(d[0]), i); })
+      .attr('x2', function(d, i) { return xs(xs.oton(d[0]), i); })
+      .attr('y1', function(d, i) { return ys(d[1][2], i); })
+      .attr('y2', function(d, i) {
+        return ys(d[1][2] + 1.5 * (d[1][2] - d[1][0]), i);
+      });
+    svg.selectAll('line.iqr-up-bar').data(dat).enter().append('line')
+      .attr('class', 'iqr-up-bar')
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke))
+      .style('fill', 'none')
+      .attr('x1', function(d, i) {
+        return xs(xs.oton(d[0]) -
+                  (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 3.0, i);
+      })
+      .attr('x2', function(d, i) {
+        return xs(xs.oton(d[0]) +
+                  (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 3.0, i);
+      })
+      .attr('y1', function(d, i) {
+        return ys(d[1][2] + 1.5 * (d[1][2] - d[1][0]), i);
+      })
+      .attr('y2', function(d, i) {
+        return ys(d[1][2] + 1.5 * (d[1][2] - d[1][0]), i);
+      });
+    svg.selectAll('line.iqr-down').data(dat).enter().append('line')
+      .attr('class', 'iqr-down')
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke))
+      .style('fill', 'none')
+      .attr('x1', function(d, i) { return xs(xs.oton(d[0]), i); })
+      .attr('x2', function(d, i) { return xs(xs.oton(d[0]), i); })
+      .attr('y1', function(d, i) { return ys(d[1][0], i); })
+      .attr('y2', function(d, i) {
+        return ys(d[1][0] - 1.5 * (d[1][2] - d[1][0]), i);
+      });
+    svg.selectAll('line.iqr-down-bar').data(dat).enter().append('line')
+      .attr('class', 'iqr-down-bar')
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke))
+      .style('fill', 'none')
+      .attr('x1', function(d, i) {
+        return xs(xs.oton(d[0]) -
+                  (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 3.0, i);
+      })
+      .attr('x2', function(d, i) {
+        return xs(xs.oton(d[0]) +
+                  (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 3.0, i);
+      })
+      .attr('y1', function(d, i) {
+        return ys(d[1][0] - 1.5 * (d[1][2] - d[1][0]), i);
+      })
+      .attr('y2', function(d, i) {
+        return ys(d[1][0] - 1.5 * (d[1][2] - d[1][0]), i);
+      });
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      scope.$on('setupExtra', function() {
+        var barx = scope.x || [];
+        // Discrete data.
+        if (scope.x && scope.x instanceof Array &&
+            (typeof scope.x[0] == 'string' ||
+             scope.x[0] instanceof Array ||
+             scope.discreteX)) {
+          barx = [];
+          scope.x.forEach(function(x, i) { barx.push(i + 1); });
+        }
+        scope.barWidths = barx.map(function(xval, i) {
+          if (i == 0) return barx[1] - xval;
+          else if (i == barx.length - 1)
+            return xval - barx[barx.length - 2];
+          else return (barx[i+1] - barx[i-1]) / 2;
+        });
+        scope.rangeXExtend = [scope.barWidths[0] / 2,
+                              scope.barWidths[barx.length - 1] / 2];
         var width = scope.strokeWidth instanceof Array &&
                     scope.strokeWidth.length > 0 ?
           scope.strokeWidth.reduce(function(x,y) {
@@ -4836,6 +5024,22 @@ radian.factory('plotLib', function()
     return ret;
   };
 
+  // Calculate categorised quantiles.
+  function quantileBy(x, c, p) {
+    var cs = { }, ord = [];
+    x.forEach(function(e, i) {
+      if (cs[c[i]]) cs[c[i]].push(e);
+      else { ord.push(c[i]); cs[c[i]] = [e]; }
+    });
+    var ret = [];
+    ord.forEach(function(e) {
+      cs[e].sort();
+      ret.push(d3.quantile(cs[e], p));
+    });
+    return ret;
+  };
+
+
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -4880,8 +5084,10 @@ radian.factory('plotLib', function()
            maxBy: by(d3.max),
            sumBy: by(d3.sum),
            meanBy: by(d3.mean),
+           medianBy: by(d3.median),
            sdevBy: by(sdev),
            firstBy: by(function(xs) { return xs[0]; }),
+           quantileBy: quantileBy,
            normal: normal,
            lognormal: lognormal,
            gamma: gamma,

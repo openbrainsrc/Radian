@@ -265,6 +265,22 @@ radian.factory('plotLib', function()
     return ret;
   };
 
+  // Calculate categorised quantiles.
+  function quantileBy(x, c, p) {
+    var cs = { }, ord = [];
+    x.forEach(function(e, i) {
+      if (cs[c[i]]) cs[c[i]].push(e);
+      else { ord.push(c[i]); cs[c[i]] = [e]; }
+    });
+    var ret = [];
+    ord.forEach(function(e) {
+      cs[e].sort();
+      ret.push(d3.quantile(cs[e], p));
+    });
+    return ret;
+  };
+
+
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
   return { E: Math.E,
@@ -309,8 +325,10 @@ radian.factory('plotLib', function()
            maxBy: by(d3.max),
            sumBy: by(d3.sum),
            meanBy: by(d3.mean),
+           medianBy: by(d3.median),
            sdevBy: by(sdev),
            firstBy: by(function(xs) { return xs[0]; }),
+           quantileBy: quantileBy,
            normal: normal,
            lognormal: lognormal,
            gamma: gamma,
