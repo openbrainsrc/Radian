@@ -135,13 +135,16 @@ radian.directive('plotData',
 
     // Process attributes.
     processAttrs(sc, as);
-    if (!sc.name) throw Error('<plot-data> must have NAME attribute');
-    var dataset = sc.name, subname = sc.subname;
-    var format = sc.format || 'json';
-    var sep = sc.separator === '' ? ' ' : (sc.separator || ',');
-    var cols = sc.cols;
+    if (!as.hasOwnProperty('name'))
+      throw Error('<plot-data> must have NAME attribute');
+    var dataset = sc.name;
+    var subname = as.hasOwnProperty('subname') ? sc.subname : undefined;
+    var format = as.hasOwnProperty('format') ? sc.format : 'json';
+    var sep = as.hasOwnProperty('separator') ?
+      (sc.separator === '' ? ' ' : (sc.separator || ',')) : ',';
+    var cols = as.hasOwnProperty('cols') ? sc.cols : undefined;
     if (cols) cols = cols.split(',').map(function (s) { return s.trim(); });
-    if (!sc.src) {
+    if (!as.hasOwnProperty('src')) {
       var formats = ['json', 'csv'];
       if (formats.indexOf(format) == -1)
         throw Error('invalid FORMAT "' + format + '" in <plot-data>');
@@ -173,7 +176,7 @@ radian.directive('plotData',
       // Install data on nearest enclosing scope that isn't associated
       // with an ng-repeat.  Preserve any metadata.
       var md = sc[dataset] ? sc[dataset].metadata : null;
-      var s = sc;
+      var s = sc.$parent;
       while (s.$parent && s.hasOwnProperty('$index')) s = s.$parent;
       if (sc.subname) {
         s[dataset][subname] = d;
@@ -183,7 +186,7 @@ radian.directive('plotData',
         if (md) s[dataset].metadata = md;
       }
     };
-    if (sc.src)
+    if (as.hasOwnProperty('src') && sc.src)
       getData();
     else {
       var datatext = sc.$eval(as.ngModel);
@@ -203,7 +206,7 @@ radian.directive('plotData',
 
   return {
     restrict: 'E',
-    scope: false,
+    scope: true,
     compile: function(elm, as, trans) {
       return { post: postLink };
     }
