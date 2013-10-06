@@ -284,12 +284,14 @@ radian.directive('plot',
       init();
       reset();
       legend();
-      drawAxisSwitch();
+      if (scope.hasOwnProperty('uiAxisYTransform')) {
+        drawAxisSwitch();
+        scope.$on('axisChange', axisSwitch);
+      }
 
       // Register plot data change handlers.
       scope.$on('paintChange', reset);
       scope.$on('dataChange', reset);
-      scope.$on('axisChange', axisSwitch);
 
       // Register UI event handlers.
       scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });
