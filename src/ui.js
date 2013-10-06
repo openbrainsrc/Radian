@@ -150,25 +150,28 @@ radian.factory('radianLegend', function()
 radian.factory('radianAxisSwitch', function()
 {
   return function(scope) {
+    var v = scope.views[0], g = v.uigroup;
+    var state = scope.axisYTransform || 'linear';
     function clickHandler(d, i) {
-      d.type = d.type == 'linear' ? 'log' : 'linear';
-      scope.$emit('axisChange', d.type);
+      state = state == 'linear' ? 'log' : 'linear';
+      scope.$emit('axisChange', state);
     };
 
-    // Render axis type switcher UI.
-    var g = scope.views[0].uigroup;
-    var state = [{ type: scope.axisYTransform || 'linear' }];
+    var szg = scope.sizeviewgroup.append('g').attr('visibility', 'hidden');
+    var tstel = szg.append('text').attr('x', 0).attr('y', 0)
+      .style('font-size', '75%').text('LOG/LINEAR');
+    var th = tstel[0][0].getBBox().height, tw = tstel[0][0].getBBox().width;
+    szg.remove();
+
     g.selectAll('g.radian-axis-switch').remove();
-    var switchg = g.append('g')
-      .attr('class', 'radian-axis-switch').selectAll('g')
-      .data(state).enter().append('g').on('click', clickHandler)
-      .attr('transform', function(d, i) {
-        return 'translate(10,10)';
-      });
-    var switchc = switchg.append('circle').style('stroke-width', 1).attr('r', 5)
-      .attr('fill', function(d,i) {
-        return d.type == 'log' ? '#000' : '#f5f5f5';
-      })
-      .attr('stroke', '#000');
+    var pos = 'translate(' + (+v.margin.left) + ',' + (+v.margin.top) + ')';
+    var switchg = g.append('g').attr('class', 'radian-axis-switch')
+      .on('click', clickHandler).attr('transform', pos);
+    var switchr = switchg.append('rect')
+      .attr('width', tw + 4).attr('height', th + 3)
+      .attr('stroke-width', 1).attr('stroke', '#000').attr('fill', '#f5f5f5');
+    switchg.append('text').attr('x', tw / 2 + 2).attr('y', th - 2)
+      .style('font-size', '75%').attr('text-anchor', 'middle')
+      .text('LOG/LINEAR');
   };
 });
