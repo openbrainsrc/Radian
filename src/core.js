@@ -119,10 +119,11 @@ radian.factory('calcPlotDimensions', function() {
 
 radian.directive('plot',
  ['processAttrs', 'calcPlotDimensions', 'addToLayout',
-  '$timeout', '$rootScope', 'dumpScope', 'dft', 'radianLegend',
-  'plotLib',
+  '$timeout', '$rootScope', 'dumpScope', 'dft',
+  'radianLegend', 'radianAxisSwitch', 'plotLib',
  function(processAttrs, calcPlotDimensions, addToLayout,
-          $timeout, $rootScope, dumpScope, dft, radianLegend, lib)
+          $timeout, $rootScope, dumpScope, dft,
+          radianLegend, radianAxisSwitch, lib)
 {
   'use strict';
 
@@ -141,9 +142,10 @@ radian.directive('plot',
       scope.layoutTop = true;
       if (!scope.inStack) calcPlotDimensions(scope, elm, as)
       $(elm).css('width', scope.width).css('height', scope.height);
-      scope.svg = elm.children()[1];
+      scope.topLevel = elm[0];
+      scope.svg = elm.children()[0];
     } else
-      $(elm.children()[1]).remove();
+      $(elm.children()[0]).remove();
     if (scope.inLayout || scope.inStack)
       addToLayout(scope, scope, scope.layoutShare);
     if (as.hasOwnProperty('strokeSwitch')) scope.strokesel = 0;
@@ -200,9 +202,8 @@ radian.directive('plot',
   // We do the actual plotting after the transcluded plot type
   // elements are linked.
   function postLink(scope, elm) {
-    var svgs = [];
+    var viewgroups = [];
     var setupBrush = null;
-    var svgelm = null;
     scope.rangeExtendPixels = function(x, y) {
       if (x != null)
         scope.rangeXExtendPixels =
@@ -220,38 +221,41 @@ radian.directive('plot',
       scope.rangeXExtendPixels = [0, 0];
       scope.rangeYExtendPixels = [0, 0];
       scope.$broadcast('setupExtra');
-      scope.views = svgs.map(function(s, i) {
-        return setup(scope, s, i, svgs.length);
+      scope.views = viewgroups.map(function(grp, i) {
+        return setup(scope, grp, i, viewgroups.length);
       });
       if (setupBrush) setupBrush();
       redraw();
     };
-    function legend() { radianLegend(svgelm, scope); };
+    function legend() { radianLegend(scope); };
+    function drawAxisSwitch(e, type) { radianAxisSwitch(scope); };
+    function axisSwitch(e, type) {
+      if (type) scope.$apply('axisYTransform = "' + type + '"');
+      redraw();
+    }
     function init() {
       // Set up plot areas (including zoomers).
-      svgelm = d3.select(scope.svg);
-      if (scope.uivisible)
-        scope.height -= parseInt($(elm.children()[0]).css('height'));
+      var svgelm = d3.select(scope.svg);
       svgelm.attr('width', scope.width).attr('height', scope.height);
-      var mainsvg = svgelm.append('g')
+      var mainviewgroup = svgelm.append('g')
         .attr('width', scope.width).attr('height', scope.height);
-      svgs = [mainsvg];
-      if (!scope.sizesvg) {
+      viewgroups = [mainviewgroup];
+      if (!scope.sizeviewgroup) {
         var s = scope;
         if (scope.inStack)
           while (!s.hasOwnProperty('inStack')) s = s.$parent;
-        s.sizesvg = mainsvg;
+        s.sizeviewgroup = mainviewgroup;
       }
       if (scope.hasOwnProperty('zoomX')) {
         var zfrac = scope.zoomX == "" ? 0.2 : +scope.zoomX;
         zfrac = Math.min(0.95, Math.max(0.05, zfrac));
         var zoomHeight = (scope.height - 6) * zfrac;
         var mainHeight = (scope.height - 6) * (1 - zfrac);
-        var zoomsvg = svgelm.append('g').classed('radian-zoom-x', true)
+        var zoomviewgroup = svgelm.append('g').classed('radian-zoom-x', true)
           .attr('transform', 'translate(0,' + (mainHeight + 6) + ')')
           .attr('width', scope.width).attr('height', zoomHeight);
-        svgs.push(zoomsvg);
-        svgs[0].attr('height', mainHeight);
+        viewgroups.push(zoomviewgroup);
+        mainviewgroup.attr('height', mainHeight);
 
         setupBrush = function() {
           var brush = d3.svg.brush().x(scope.views[1].x);
@@ -278,12 +282,12 @@ radian.directive('plot',
       init();
       reset();
       legend();
+      drawAxisSwitch();
 
       // Register plot data change handlers.
       scope.$on('paintChange', reset);
-      scope.$on('paintChange', legend);
       scope.$on('dataChange', reset);
-      scope.$on('dataChange', legend);
+      scope.$on('axisChange', axisSwitch);
 
       // Register UI event handlers.
       scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });
@@ -506,8 +510,24 @@ radian.directive('plot',
       v.y2 = d3.scale.linear().range([t,b]).domain(scope.y2extent);
   };
 
-  function setup(scope, topgroup, idx, nviews) {
-    var v = { svg: topgroup };
+  function setup(scope, viewgroup, idx, nviews) {
+    var plotgroup = viewgroup.append('g').attr('class', 'radian-plot');
+    var uigroup = viewgroup.append('g').attr('class', 'radian-ui')
+      .attr('visibility', 'hidden');
+    function uiOn() { uigroup.attr('visibility', 'visible'); };
+    function uiOff(e) {
+      var elem = $(e.toElement), chk = $(uigroup[0][0]), uito = false;
+      while (!uito && elem[0].parentElement) {
+        if (elem[0] == chk[0]) uito = true;
+        elem = elem.parent();
+      }
+      if (!uito) uigroup.attr('visibility', 'hidden');
+    };
+    var uirect = uigroup.append('rect')
+      .attr('width', '100%').attr('height', '100%').attr('opacity', 0)
+      .attr('visibility', 'visible');
+    $(uirect[0][0]).on('mouseenter', uiOn).on('mouseleave', uiOff);
+    var v = { group: viewgroup, plotgroup: plotgroup, uigroup: uigroup };
 
     // Determine data ranges to use for plot -- either as specified in
     // RANGE-X, RANGE-Y or RANGE (for X1 and Y1 axes) and RANGE-X2,
@@ -715,13 +735,14 @@ radian.directive('plot',
     if (v.xaxis) v.margin.bottom += del1 + (showXAxisLabel ? del2 : 0);
     if (v.x2axis) v.margin.top += del1 + (showX2AxisLabel ? del2 : 0);
     if (v.title && !v.noTitle) v.margin.top += del3;
-    v.realheight = v.svg.attr('height') - v.margin.top - v.margin.bottom;
+    v.realheight = v.group.attr('height') - v.margin.top - v.margin.bottom;
     v.outh = v.realheight + v.margin.top + v.margin.bottom;
 
     // Set up D3 Y data ranges.
     if (scope.yextent) makeYScaler(scope, v);
     if (scope.y2extent) makeY2Scaler(scope, v);
-    if (scope.hasOwnProperty("axisYTransform") && !scope.watchYTransform)
+//    if (scope.hasOwnProperty("axisYTransform") && !scope.watchYTransform)
+    if (!scope.watchYTransform)
       scope.watchYTransform = scope.$watch('axisYTransform', function(n, o) {
         if (n == undefined || n == yAxisTransform) return;
         yAxisTransform = n || "linear";
@@ -738,33 +759,31 @@ radian.directive('plot',
       var tmp = v.y.copy();
       var fmt = scope.axisYFormat ? d3.format(scope.axisYFormat) : null;
       var nticks =
-        scope.axisYTicks ? scope.axisYTicks : v.svg.attr('height') / 36;
+        scope.axisYTicks ? scope.axisYTicks : v.group.attr('height') / 36;
       var fmtfn = tmp.tickFormat(nticks, fmt);
       var tst = '';
       tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var tstel = scope.sizesvg.append('g').attr('visibility', 'hidden')
-        .append('text')
-        .attr('x', 0).attr('y', 0)
-        .style('font-size', scope.fontSize)
-        .text(tst);
+      var g = scope.sizeviewgroup.append('g').attr('visibility', 'hidden');
+      var tstel = g.append('text').attr('x', 0).attr('y', 0)
+        .style('font-size', scope.fontSize).text(tst);
       yoffset = Math.max(del3, axisspace + tstel[0][0].getBBox().width);
-      tstel.remove();
+      g.remove();
     }
     if (v.y2axis && v.y2) {
       var tmp = v.y2.copy();
       var fmt = scope.axisY2Format ? d3.format(scope.axisY2Format) : null;
       var nticks =
-        scope.axisY2Ticks ? scope.axisY2Ticks : v.svg.attr('height') / 36;
+        scope.axisY2Ticks ? scope.axisY2Ticks : v.group.attr('height') / 36;
       var fmtfn = tmp.tickFormat(nticks, fmt);
       var tst = '';
       tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var tstel = scope.sizesvg.append('g').attr('visibility', 'hidden')
+      var tstel = scope.sizeviewgroup.append('g').attr('visibility', 'hidden')
         .append('text')
         .attr('x', 0).attr('y', 0)
         .style('font-size', scope.fontSize)
@@ -774,7 +793,7 @@ radian.directive('plot',
     }
     if (v.yaxis) v.margin.left += yoffset + (showYAxisLabel ? del2 : 0);
     if (v.y2axis) v.margin.right += y2offset + (showY2AxisLabel ? del2 : 0);
-    v.realwidth = v.svg.attr('width') - v.margin.left - v.margin.right;
+    v.realwidth = v.group.attr('width') - v.margin.left - v.margin.right;
     v.outw = v.realwidth + v.margin.left + v.margin.right;
 
     // Set up D3 X data ranges.
@@ -1029,29 +1048,28 @@ radian.directive('plot',
 
   function draw(v, scope) {
     // Clean out any pre-existing plots.
-    $(v.svg[0]).empty();
+    $(v.plotgroup[0]).empty();
 
     // Set up plot margins.
-    var outsvg = v.svg.append('g').attr('width', v.outw).attr('height', v.outh);
-    var svg = outsvg.append('g')
+    v.plotgroup.attr('width', v.outw).attr('height', v.outh);
+    v.innergroup = v.plotgroup.append('g')
       .attr('width', v.realwidth).attr('height', v.realheight)
       .attr('transform', 'translate(' + v.margin.left + ',' +
                                         v.margin.top + ')');
-    v.innersvg = svg;
-    if (v.clip) svg.attr('clip-path', 'url(#' + v.clip + ')');
+    if (v.clip) v.innergroup.attr('clip-path', 'url(#' + v.clip + ')');
 
     // Draw D3 axes.
     var del1 = Math.floor(scope.fontSize / 3.0);
     var del2 = Math.floor(3.0 * scope.fontSize);
     if (v.xaxis && v.x) {
-      var ax = makeAxis(scope, v, 'x', outsvg.attr('width') / 100);
+      var ax = makeAxis(scope, v, 'x', v.plotgroup.attr('width') / 100);
       var axis = ax[0], padding_delta = ax[1];
-      outsvg.append('g').attr('class', 'axis')
+      v.plotgroup.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.realheight + v.margin.top + del1) + ')')
         .call(axis);
       if (v.xlabel) {
-        var lab = outsvg.append('g').attr('class', 'axis-label')
+        var lab = v.plotgroup.append('g').attr('class', 'axis-label')
           .attr('transform', 'translate(' +
                 (+v.margin.left + v.realwidth / 2) +
                 ',' + (+v.realheight + v.margin.top) + ')')
@@ -1063,14 +1081,14 @@ radian.directive('plot',
       }
     }
     if (v.x2axis && v.x2) {
-      var ax = makeAxis(scope, v, 'x2', outsvg.attr('width') / 100);
+      var ax = makeAxis(scope, v, 'x2', v.plotgroup.attr('width') / 100);
       var axis = ax[0], padding_delta = ax[1];
-      outsvg.append('g').attr('class', 'axis')
+      v.plotgroup.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.margin.top + del1) + ')')
         .call(axis);
       if (v.x2label) {
-        var lab = outsvg.append('g').attr('class', 'axis-label')
+        var lab = v.plotgroup.append('g').attr('class', 'axis-label')
           .attr('transform', 'translate(' +
                 (+v.margin.left + v.realwidth / 2) + ',' +
                 (+v.margin.top) + ')')
@@ -1082,15 +1100,15 @@ radian.directive('plot',
       }
     }
     if (v.yaxis && v.y) {
-      var ax = makeAxis(scope, v, 'y', outsvg.attr('height') / 36);
+      var ax = makeAxis(scope, v, 'y', v.plotgroup.attr('height') / 36);
       var axis = ax[0], padding_delta = ax[1];
-      outsvg.append('g').attr('class', 'axis')
+      v.plotgroup.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' + (+v.margin.left - del1) + ',' +
               (+v.margin.top) + ')')
         .call(axis);
       if (v.ylabel) {
         var xpos = +scope.fontSize, ypos = +v.margin.top + v.realheight / 2;
-        var lab = outsvg.append('g').attr('class', 'axis-label')
+        var lab = v.plotgroup.append('g').attr('class', 'axis-label')
         .append('text')
         .attr('x', xpos - padding_delta).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
@@ -1100,9 +1118,9 @@ radian.directive('plot',
       }
     }
     if (v.y2axis && v.y2) {
-      var ax = makeAxis(scope, v, 'y2', outsvg.attr('height') / 36);
+      var ax = makeAxis(scope, v, 'y2', v.plotgroup.attr('height') / 36);
       var axis = ax[0], padding_delta = ax[1];
-      outsvg.append('g').attr('class', 'axis')
+      v.plotgroup.append('g').attr('class', 'axis')
         .attr('transform', 'translate(' +
               (+v.realwidth + v.margin.left) + ',' +
               (+v.margin.top) + ')')
@@ -1111,7 +1129,7 @@ radian.directive('plot',
         var xpos = v.realwidth + v.margin.left + v.margin.right -
           scope.fontSize;
         var ypos = +v.margin.top + v.realheight / 2;
-        var lab = outsvg.append('g').attr('class', 'axis-label')
+        var lab = v.plotgroup.append('g').attr('class', 'axis-label')
         .append('text')
         .attr('x', xpos + padding_delta).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
@@ -1123,13 +1141,13 @@ radian.directive('plot',
     setFont(d3.selectAll('.axis text'), scope);
 
     // Plot title.
-    outsvg.selectAll('g.no-data').remove();
+    v.plotgroup.selectAll('g.no-data').remove();
     if (scope.nplots == 0 && v == scope.views[0] && scope.noData)
-      outsvg.append('g').attr('class', 'no-data').append('text')
+      v.plotgroup.append('g').attr('class', 'no-data').append('text')
         .attr('x', v.outw / 2).attr('y', v.outh / 2)
         .attr('text-anchor', 'middle').text(scope.noData);
     if (v.title && !v.noTitle) {
-      var t = outsvg.append('g').attr('class', 'axis-label')
+      var t = v.plotgroup.append('g').attr('class', 'axis-label')
         .attr('transform', 'translate(' +
               (+v.margin.left + v.realwidth / 2) + ',0)')
         .append('text')
@@ -1157,7 +1175,7 @@ radian.directive('plot',
 
           if (xvar && yvar) {
             // Append SVG group for this plot and draw the plot into it.
-            var g = svg.append('g');
+            var g = v.innergroup.append('g');
             var x = (s[xvar][0] instanceof Array && !v.x.discrete) ?
               s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
             if (s.hasOwnProperty('jitterX')) xs = jitter(x, xs, s.jitterX);
@@ -1170,7 +1188,7 @@ radian.directive('plot',
           }
         }
       });
-      if (v.post) v.post(v.innersvg);
+      if (v.post) v.post(v.innergroup);
     }
   };
 
@@ -1178,8 +1196,7 @@ radian.directive('plot',
     restrict: 'E',
     template:
     ['<div class="radian">',
-       '<radian-ui></radian-ui>',
-         '<svg></svg>',
+       '<svg></svg>',
      '</div>'].join(""),
     replace: true,
     transclude: true,

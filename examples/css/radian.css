@@ -26,8 +26,15 @@
   */
 }
 
-.radian div.radian-ui { margin: 5px; }
+.radian div.radian-ui { position: absolute; margin: 5px; }
 .radian div.radian-ui .var-select { width: 50px; }
+
+.radian div.radian-ui input.axis-switch {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
 
 /* Axes */
 
