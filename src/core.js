@@ -222,6 +222,8 @@ radian.directive('plot',
       scope.rangeYExtendPixels = [0, 0];
       scope.$broadcast('setupExtra');
       scope.views = viewgroups.map(function(grp, i) {
+        grp.selectAll('.radian-plot').remove();
+        grp.selectAll('.radian-ui').remove();
         return setup(scope, grp, i, viewgroups.length);
       });
       if (setupBrush) setupBrush();
@@ -254,6 +256,7 @@ radian.directive('plot',
         var zoomviewgroup = svgelm.append('g').classed('radian-zoom-x', true)
           .attr('transform', 'translate(0,' + (mainHeight + 6) + ')')
           .attr('width', scope.width).attr('height', zoomHeight);
+        zoomviewgroup.zoomer = true;
         viewgroups.push(zoomviewgroup);
         mainviewgroup.attr('height', mainHeight);
 
@@ -264,7 +267,6 @@ radian.directive('plot',
                                     scope.views[1].x.domain() : brush.extent());
             draw(scope.views[0], scope);
           });
-          scope.views[1].noTitle = true;
           scope.views[1].post = function(svg) {
             svg.append('g')
               .attr('class', 'x brush')
@@ -293,7 +295,6 @@ radian.directive('plot',
       // Register plot data change handlers.
       scope.$on('paintChange', redraw);
       scope.$on('dataChange', reset);
-      scope.$on('dataChange', redraw);
 
       // Register UI event handlers.
       scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });
@@ -516,14 +517,13 @@ radian.directive('plot',
       v.y2 = d3.scale.linear().range([t,b]).domain(scope.y2extent);
   };
 
-  function setup(scope, viewgroup, idx, nviews) {
-    var plotgroup = viewgroup.append('g').attr('class', 'radian-plot');
-    var uigroup = viewgroup.append('g').attr('class', 'radian-ui')
+  function setupUI(viewgroup) {
+    var uigroup = viewgroup.append('g').classed('radian-ui', true)
       .attr('visibility', 'hidden');
     function uiOn() { uigroup.attr('visibility', 'visible'); };
     function uiOff(e) {
       var elem = $(e.toElement), chk = $(uigroup[0][0]), uito = false;
-      while (!uito && elem[0].parentElement) {
+      while (!uito && elem[0] && elem[0].parentElement) {
         if (elem[0] == chk[0]) uito = true;
         elem = elem.parent();
       }
@@ -533,7 +533,16 @@ radian.directive('plot',
       .attr('width', '100%').attr('height', '100%').attr('opacity', 0)
       .attr('visibility', 'visible');
     $(uirect[0][0]).on('mouseenter', uiOn).on('mouseleave', uiOff);
-    var v = { group: viewgroup, plotgroup: plotgroup, uigroup: uigroup };
+    return uigroup;
+  };
+
+  function setup(scope, viewgroup, idx, nviews) {
+    var plotgroup = viewgroup.append('g').classed('radian-plot', true);
+    var v = { group: viewgroup, plotgroup: plotgroup };
+    if (viewgroup.hasOwnProperty('zoomer'))
+      v.noTitle = true;
+    else
+      v.uigroup = setupUI(viewgroup);
 
     // Determine data ranges to use for plot -- either as specified in
     // RANGE-X, RANGE-Y or RANGE (for X1 and Y1 axes) and RANGE-X2,
@@ -715,8 +724,8 @@ radian.directive('plot',
     // Extract plot attributes.
     v.xaxis = !scope.axisX || scope.axisX != 'off';
     v.yaxis = !scope.axisY || scope.axisY != 'off';
-    v.x2axis = scope.x2extent && (!scope.axisX2 || scope.axisX2 != 'off');
-    v.y2axis = scope.y2extent && (!scope.axisY2 || scope.axisY2 != 'off');
+    v.x2axis = !!(scope.x2extent && (!scope.axisX2 || scope.axisX2 != 'off'));
+    v.y2axis = !!(scope.y2extent && (!scope.axisY2 || scope.axisY2 != 'off'));
     var showXAxisLabel = (nviews == 1 || nviews == 2 && idx == 1) &&
       (!scope.axisXLabel || scope.axisXLabel != 'off');
     var showYAxisLabel = !scope.axisYLabel || scope.axisYLabel != 'off';
