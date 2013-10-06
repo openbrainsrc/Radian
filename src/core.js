@@ -281,15 +281,19 @@ radian.directive('plot',
       // Draw plots and legend.
       init();
       reset();
-      legend();
       if (scope.hasOwnProperty('uiAxisYTransform')) {
         drawAxisSwitch();
         scope.$on('axisChange', axisSwitch);
       }
+      if (scope.hasOwnProperty('legendSwitches')) {
+        legend();
+        scope.$on('dataChange', legend);
+      }
 
       // Register plot data change handlers.
-      scope.$on('paintChange', reset);
+      scope.$on('paintChange', redraw);
       scope.$on('dataChange', reset);
+      scope.$on('dataChange', redraw);
 
       // Register UI event handlers.
       scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });

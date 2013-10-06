@@ -283,15 +283,19 @@ radian.directive('plot',
       // Draw plots and legend.
       init();
       reset();
-      legend();
       if (scope.hasOwnProperty('uiAxisYTransform')) {
         drawAxisSwitch();
         scope.$on('axisChange', axisSwitch);
       }
+      if (scope.hasOwnProperty('legendSwitches')) {
+        legend();
+        scope.$on('dataChange', legend);
+      }
 
       // Register plot data change handlers.
-      scope.$on('paintChange', reset);
+      scope.$on('paintChange', redraw);
       scope.$on('dataChange', reset);
+      scope.$on('dataChange', redraw);
 
       // Register UI event handlers.
       scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });
@@ -5233,34 +5237,31 @@ radian.directive('radianUi', ['$timeout', function($timeout)
 radian.factory('radianLegend', function()
 {
   return function(scope) {
-    // Render interactive legend.
-    var svgelm = scope.views[0].uigroup;
+    var v = scope.views[0], g = v.group;
     var nswitch = scope.switchable.length;
-    svgelm.selectAll('g.radian-legend').remove();
+    g.selectAll('g.radian-legend').remove();
     if (nswitch > 1) {
+      function colour(d) {
+        return d.enabled ? ((d.stroke instanceof Array ?
+                             d.stroke[0] : d.stroke) || '#000') : '#f5f5f5';
+      };
+      function clickHandler(d, i) {
+        d.enabled = !d.enabled;
+        d3.select(legcs[0][i]).attr('fill', colour(d));
+        scope.$emit('paintChange');
+      };
       var legendps = scope.switchable;
-      var leggs = svgelm.append('g')
+      var leggs = g.append('g')
         .attr('class', 'radian-legend').selectAll('g')
-        .data(legendps).enter().append('g');
+        .data(legendps).enter().append('g').on('click', clickHandler);
       var legcs = leggs.append('circle').style('stroke-width', 1).attr('r', 5)
-        .attr('fill', function(d,i) {
-          return d.enabled ?
-            ((d.stroke instanceof Array ? d.stroke[0] : d.stroke) || '#000') :
-          '#f5f5f5';
-        })
+        .attr('fill', colour)
         .attr('stroke', function(d,i) {
           return (d.stroke instanceof Array ? d.stroke[0] : d.stroke) || '#000';
         });
-      var clickHandler = function(d,i) {
-        d.enabled = !d.enabled;
-        scope.$emit('paintChange');
-      };
-      leggs.on('click', clickHandler);
       var legts = leggs.append('text')
         .attr('text-anchor', 'start').attr('dy', '.32em').attr('dx', '8')
-        .text(function(d,i) {
-          return d.label || ('data' + i);
-        });
+        .text(function(d,i) { return d.label || ('data' + i); });
       var widths = [];
       legts.each(function(d,i) { widths.push(d3.select(this).node().
                                              getComputedTextLength() + 10); });
@@ -5268,7 +5269,8 @@ radian.factory('radianLegend', function()
       var sep = mwidth + spacing;
       var len = nswitch * mwidth + (nswitch - 1) * spacing;
       leggs.attr('transform', function(d,i) {
-        return 'translate(' + (scope.width - len + sep*i - 10) + ',10)';
+        return 'translate(' + (scope.width - len + sep*i - 10) + ',' +
+          (+v.margin.top + 10) + ')';
       });
     }
   };
