@@ -298,8 +298,12 @@ radian.directive('plot',
 
       // Register UI event handlers.
       scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });
-      scope.$watch('xidx', function(n, o) { if (n != undefined) reset(); });
-      scope.$watch('yidx', function(n, o) { if (n != undefined) reset(); });
+      scope.$watch('xidx', function(n, o) {
+        if (n != undefined && n != o) reset();
+      });
+      scope.$watch('yidx', function(n, o) {
+        if (n != undefined && n != o) reset();
+      });
     }, 0);
 
     // Set up interactivity.
@@ -1186,7 +1190,6 @@ radian.directive('plot',
           if (s.x2) { xvar = 'x2'; xs = v.x2;  xdiscrete = !!v.x2.discrete; }
           if (s.y)  { yvar = 'y';  ys = v.y;  }
           if (s.y2) { yvar = 'y2'; ys = v.y2; }
-          xs.full = xs, ys.full = ys;
 
           if (xvar && yvar) {
             // Append SVG group for this plot and draw the plot into it.

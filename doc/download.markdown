@@ -5,11 +5,12 @@ title: Download
 
 ## Download
 
-The current release version is 0.1.1, which was released on
-2013-07-30:
+The current release version is 0.1.2, which was released on
+2013-10-09:
 
 | TGZ |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|ZIP |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|Date |
 |-----|-|-----|-|-----|
+|[radian-0.1.2.tar.gz](/downloads/radian-0.1.2.tar.gz)| |[radian-0.1.2.zip](/downloads/radian-0.1.2.zip)| |2013-10-09|
 |[radian-0.1.1.tar.gz](/downloads/radian-0.1.1.tar.gz)| |[radian-0.1.1.zip](/downloads/radian-0.1.1.zip)| |2013-07-30|
 |[radian-0.1.tar.gz](/downloads/radian-0.1.tar.gz)| |[radian-0.1.zip](/downloads/radian-0.1.zip)| |2013-07-10|
 
@@ -23,8 +24,12 @@ releases, is always available in our
 <hr>
 ## Changelog
 
-##### Unreleased changes in GitHub repository
+##### Version 0.1.2 (2013-10-09)
 
+ - Move custom version of estraverse into Radian code
+ - Begin UI reorganisation
+ - Basic categorical data handling: bar charts, grouping, ordering,
+   simple box plots
  - Fix behaviour of Radian expression free variable watchers for
    function values.
  - Improve data download behaviour: changes to `SRC` attributes now

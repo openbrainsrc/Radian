@@ -300,8 +300,12 @@ radian.directive('plot',
 
       // Register UI event handlers.
       scope.$watch('strokesel', function(n,o) { if (n!=undefined) redraw(); });
-      scope.$watch('xidx', function(n, o) { if (n != undefined) reset(); });
-      scope.$watch('yidx', function(n, o) { if (n != undefined) reset(); });
+      scope.$watch('xidx', function(n, o) {
+        if (n != undefined && n != o) reset();
+      });
+      scope.$watch('yidx', function(n, o) {
+        if (n != undefined && n != o) reset();
+      });
     }, 0);
 
     // Set up interactivity.
@@ -1188,7 +1192,6 @@ radian.directive('plot',
           if (s.x2) { xvar = 'x2'; xs = v.x2;  xdiscrete = !!v.x2.discrete; }
           if (s.y)  { yvar = 'y';  ys = v.y;  }
           if (s.y2) { yvar = 'y2'; ys = v.y2; }
-          xs.full = xs, ys.full = ys;
 
           if (xvar && yvar) {
             // Append SVG group for this plot and draw the plot into it.
@@ -5557,6 +5560,7 @@ radian.directive('radianUi', ['$timeout', function($timeout)
 radian.factory('radianLegend', function()
 {
   return function(scope) {
+    console.log("radianLegend...");
     var v = scope.views[0], g = v.group;
     var nswitch = scope.switchable.length;
     g.selectAll('g.radian-legend').remove();
@@ -5566,6 +5570,7 @@ radian.factory('radianLegend', function()
                              d.stroke[0] : d.stroke) || '#000') : '#f5f5f5';
       };
       function clickHandler(d, i) {
+        console.log("Click!");
         d.enabled = !d.enabled;
         d3.select(legcs[0][i]).attr('fill', colour(d));
         scope.$emit('paintChange');
