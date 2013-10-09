@@ -189,14 +189,21 @@ radian.directive('plotData',
     if (as.hasOwnProperty('src') && sc.src)
       getData();
     else {
-      var datatext = sc.$eval(as.ngModel);
-      if (!datatext) {
-        var datatext = '';
+      var datatext = '';
+      if (as.hasOwnProperty('ngModel')) {
+        datatext = sc.$eval(as.ngModel);
+        sc.$watch(as.ngModel, function(n, o) {
+          if (n == undefined || n == o) return;
+          datatext = sc.$eval(as.ngModel);
+          processData(datatext);
+        }, true);
+      }
+      if (datatext == '') {
         elm.contents().each(function(i,n) {
           if (n instanceof Text) datatext += n.textContent;
         });
       }
-      processData(datatext);
+          processData(datatext);
     }
     sc.$watch('src', function(n, o) {
       if (n == undefined || n == o && sc.firstDataLoad) return;

@@ -37,6 +37,17 @@ function EgCtrl(plotLib, $http, $scope, $location) {
     return ys;
   };
 
+  $scope.loadStockData = function() {
+    $http.get('/data/stocks/' + $scope.dset + '.csv').
+      success(function(data) {
+        $scope.datavalues = data;
+      });
+  };
+  $scope.stockInit = function() {
+    $scope.dset = 'CSCO';
+    $scope.loadStockData($scope.dset);
+  };
+
   $scope.$watch('$location.hash', function() {
     var url = "http://" + location.host + "/eg/" +
       location.hash.slice(2) + ".html";
@@ -54,7 +65,7 @@ function EgCtrl(plotLib, $http, $scope, $location) {
 }
 EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
-var negs = 67;
+var negs = 68;
 
 var eggrps = [ { title: "Plot types",
                  items: [["Basic plot; CSV data",   1],
@@ -83,16 +94,17 @@ var eggrps = [ { title: "Plot types",
                          ["X/Y variable UI",        7]] },
 
                { title: "Data access",
-                 items: [["Date handling",           9],
-                         ["JSON date handling",     65],
-                         ["Hierarchical JSON data", 66],
-                         ["Data aggr. funcs.",      10],
-                         ["Vectorisation",          14],
-                         ["Data binding",           15],
-                         ["Integer pluck",          23],
-                         ["Pluck expr. test",       40],
-                         ["Data via URL",           34],
-                         ["Data via URL (binding)", 67]] },
+                 items: [["Date handling",            9],
+                         ["JSON date handling",      65],
+                         ["Hierarchical JSON data",  66],
+                         ["Data aggr. funcs.",       10],
+                         ["Vectorisation",           14],
+                         ["Data binding",            15],
+                         ["Integer pluck",           23],
+                         ["Pluck expr. test",        40],
+                         ["Data via URL",            34],
+                         ["Data via URL (binding)",  67],
+                         ["Data via URL (ng-model)", 68]] },
 
                { title: "Layout",
                  items: [["Layout #1",             42],
