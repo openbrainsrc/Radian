@@ -105,7 +105,6 @@ radian.directive('radianUi', ['$timeout', function($timeout)
 radian.factory('radianLegend', function()
 {
   return function(scope) {
-    console.log("radianLegend...");
     var v = scope.views[0], g = v.group;
     var nswitch = scope.switchable.length;
     g.selectAll('g.radian-legend').remove();
@@ -115,7 +114,6 @@ radian.factory('radianLegend', function()
                              d.stroke[0] : d.stroke) || '#000') : '#f5f5f5';
       };
       function clickHandler(d, i) {
-        console.log("Click!");
         d.enabled = !d.enabled;
         d3.select(legcs[0][i]).attr('fill', colour(d));
         scope.$emit('paintChange');
