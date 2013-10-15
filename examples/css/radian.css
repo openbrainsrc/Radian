@@ -33,6 +33,7 @@ div.radian-ui {
     top: 0px;
     left: 0px; }
 div.radian-axis-switch { position: absolute; white-space: nowrap; }
+div.radian-stroke-switch { position: absolute; white-space: nowrap; }
 
 
 /* Axes */

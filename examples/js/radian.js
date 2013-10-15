@@ -246,6 +246,7 @@ radian.directive('plot',
       svgelm.attr('width', scope.width).attr('height', scope.height);
       var mainviewgroup = svgelm.append('g')
         .attr('width', scope.width).attr('height', scope.height);
+      $(scope.uielems).width(scope.width + 'px').height(scope.height + 'px');
       viewgroups = [mainviewgroup];
       if (!scope.sizeviewgroup) {
         var s = scope;
@@ -297,6 +298,8 @@ radian.directive('plot',
         scope.xAxisSwitchEnabled = true;
         scope.$on('xAxisChange', xAxisSwitch);
       }
+      if (scope.hasOwnProperty('strokeSwitch'))
+        scope.strokeSwitchEnabled = true;
       if (scope.hasOwnProperty('legendSwitches')) {
         legend();
         scope.$on('dataChange', legend);
@@ -534,9 +537,7 @@ radian.directive('plot',
   // function setupUI(scope, viewgroup) {
   function setupUI(scope) {
     scope.uivisible = false;
-    function uiOn(e) {
-      scope.$apply('uivisible = true');
-    };
+    function uiOn(e) { scope.$apply('uivisible = true'); };
     function uiOff(e) {
       var elem = $(e.relatedTarget), chk = $(scope.uielems), outside = true;
       while (elem[0] && elem[0].parentElement) {
@@ -554,7 +555,7 @@ radian.directive('plot',
     if (viewgroup.hasOwnProperty('zoomer'))
       v.noTitle = true;
     else
-      setupUI(scope, viewgroup);
+      setupUI(scope);
 
     // Determine data ranges to use for plot -- either as specified in
     // RANGE-X, RANGE-Y or RANGE (for X1 and Y1 axes) and RANGE-X2,
@@ -1230,6 +1231,8 @@ radian.directive('plot',
            '</radian-axis-switch>',
            '<radian-axis-switch axis="x" ng-show="xAxisSwitchEnabled">',
            '</radian-axis-switch>',
+           '<radian-stroke-switch ng-show="strokeSwitchEnabled">',
+           '</radian-stroke-switch>',
          '</div>',
        '</div>',
      '</div>'].join(""),
@@ -5485,8 +5488,6 @@ radian.factory('plotLib', function()
 //     template:
 //     ['<div class="radian-ui" ng-show="uivisible">',
 //        // '<span class="form-inline">',
-//          '<input ng-show="axisSwitch" class="axis-switch" ',
-//                 'type="checkbox" ng-model="axisType">',
 //        //   '<span ng-show="xvs">',
 //        //     '<span>{{xlab}}</span>',
 //        //     '<select ng-model="xidx" class="var-select" ',
@@ -5522,11 +5523,6 @@ radian.factory('plotLib', function()
 //      '</div>'].join(""),
 //     replace: true,
 //     link: function(scope, elm, as) {
-//       scope.uivisible = false;
-//       scope.axisSwitch = true;
-//       scope.axisType = false;
-//       scope.$on('uiOn', function() { scope.$apply('uivisible = true'); });
-//       scope.$on('uiOff', function() { scope.$apply('uivisible = false'); });
 //       // // Deal with switching between stroke types.
 //       // if (scope.strokeSwitch !== undefined) {
 //       //   scope.uivisible = true;
@@ -5622,7 +5618,7 @@ radian.factory('radianLegend', function()
 });
 
 
-radian.directive('radianAxisSwitch', ['$timeout', function($timeout)
+radian.directive('radianAxisSwitch', function()
 {
   return {
     restrict: 'E',
@@ -5650,7 +5646,50 @@ radian.directive('radianAxisSwitch', ['$timeout', function($timeout)
       };
     }
   };
-}]);
+});
+
+
+radian.directive('radianStrokeSwitch', function()
+{
+  return {
+    restrict: 'E',
+    template:
+    ['<div class="radian-stroke-switch">',
+       '<div ng-show="swbut">',
+         '<span>{{swbutlab}}</span>',
+         '<button class="btn btn-mini" data-toggle="button" ',
+                 'ng-click="$parent.strokesel=1-$parent.strokesel">',
+           '{{swbut}}',
+         '</button>',
+       '</div>',
+       '<div class="btn-group" ng-show="swsel">',
+         '<button class="btn btn-mini" ng-click="stepStroke()">',
+           '{{swsel[$parent.strokesel]}} &nbsp;&nbsp;&nbsp;&nbsp;&rArr;',
+         '</button>',
+       '</div>',
+     '</div>'].join(""),
+    replace: true,
+    scope: true,
+    link: function(scope, elm, as) {
+      if (!scope.strokeSwitch) return;
+      elm.css('top', '10px').css('right', '10px');
+      scope.switches = scope.strokeSwitch.split(';');
+      scope.stepStroke = function() {
+        scope.$parent.strokesel =
+          (scope.$parent.strokesel + 1) % scope.switches.length;
+      };
+      var label = scope.strokeSwitchLabel;
+      if (scope.switches.length == 1) {
+        // On/off UI.
+        scope.swbut = scope.switches[0];
+        scope.swbutlab = label;
+      } else {
+        // Selector UI.
+        scope.swsel = scope.switches;
+      }
+    }
+  };
+});
 // Depth-first traversal of Angular scopes.  Much like Angular's
 // scope.$broadcast capability, but with operations at each level
 // driven by the caller, rather than an event receiver.

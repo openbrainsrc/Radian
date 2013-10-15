@@ -244,6 +244,7 @@ radian.directive('plot',
       svgelm.attr('width', scope.width).attr('height', scope.height);
       var mainviewgroup = svgelm.append('g')
         .attr('width', scope.width).attr('height', scope.height);
+      $(scope.uielems).width(scope.width + 'px').height(scope.height + 'px');
       viewgroups = [mainviewgroup];
       if (!scope.sizeviewgroup) {
         var s = scope;
@@ -295,6 +296,8 @@ radian.directive('plot',
         scope.xAxisSwitchEnabled = true;
         scope.$on('xAxisChange', xAxisSwitch);
       }
+      if (scope.hasOwnProperty('strokeSwitch'))
+        scope.strokeSwitchEnabled = true;
       if (scope.hasOwnProperty('legendSwitches')) {
         legend();
         scope.$on('dataChange', legend);
@@ -532,9 +535,7 @@ radian.directive('plot',
   // function setupUI(scope, viewgroup) {
   function setupUI(scope) {
     scope.uivisible = false;
-    function uiOn(e) {
-      scope.$apply('uivisible = true');
-    };
+    function uiOn(e) { scope.$apply('uivisible = true'); };
     function uiOff(e) {
       var elem = $(e.relatedTarget), chk = $(scope.uielems), outside = true;
       while (elem[0] && elem[0].parentElement) {
@@ -552,7 +553,7 @@ radian.directive('plot',
     if (viewgroup.hasOwnProperty('zoomer'))
       v.noTitle = true;
     else
-      setupUI(scope, viewgroup);
+      setupUI(scope);
 
     // Determine data ranges to use for plot -- either as specified in
     // RANGE-X, RANGE-Y or RANGE (for X1 and Y1 axes) and RANGE-X2,
@@ -1228,6 +1229,8 @@ radian.directive('plot',
            '</radian-axis-switch>',
            '<radian-axis-switch axis="x" ng-show="xAxisSwitchEnabled">',
            '</radian-axis-switch>',
+           '<radian-stroke-switch ng-show="strokeSwitchEnabled">',
+           '</radian-stroke-switch>',
          '</div>',
        '</div>',
      '</div>'].join(""),

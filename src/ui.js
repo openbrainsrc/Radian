@@ -8,8 +8,6 @@
 //     template:
 //     ['<div class="radian-ui" ng-show="uivisible">',
 //        // '<span class="form-inline">',
-//          '<input ng-show="axisSwitch" class="axis-switch" ',
-//                 'type="checkbox" ng-model="axisType">',
 //        //   '<span ng-show="xvs">',
 //        //     '<span>{{xlab}}</span>',
 //        //     '<select ng-model="xidx" class="var-select" ',
@@ -45,11 +43,6 @@
 //      '</div>'].join(""),
 //     replace: true,
 //     link: function(scope, elm, as) {
-//       scope.uivisible = false;
-//       scope.axisSwitch = true;
-//       scope.axisType = false;
-//       scope.$on('uiOn', function() { scope.$apply('uivisible = true'); });
-//       scope.$on('uiOff', function() { scope.$apply('uivisible = false'); });
 //       // // Deal with switching between stroke types.
 //       // if (scope.strokeSwitch !== undefined) {
 //       //   scope.uivisible = true;
@@ -145,7 +138,7 @@ radian.factory('radianLegend', function()
 });
 
 
-radian.directive('radianAxisSwitch', ['$timeout', function($timeout)
+radian.directive('radianAxisSwitch', function()
 {
   return {
     restrict: 'E',
@@ -173,4 +166,47 @@ radian.directive('radianAxisSwitch', ['$timeout', function($timeout)
       };
     }
   };
-}]);
+});
+
+
+radian.directive('radianStrokeSwitch', function()
+{
+  return {
+    restrict: 'E',
+    template:
+    ['<div class="radian-stroke-switch">',
+       '<div ng-show="swbut">',
+         '<span>{{swbutlab}}</span>',
+         '<button class="btn btn-mini" data-toggle="button" ',
+                 'ng-click="$parent.strokesel=1-$parent.strokesel">',
+           '{{swbut}}',
+         '</button>',
+       '</div>',
+       '<div class="btn-group" ng-show="swsel">',
+         '<button class="btn btn-mini" ng-click="stepStroke()">',
+           '{{swsel[$parent.strokesel]}} &nbsp;&nbsp;&nbsp;&nbsp;&rArr;',
+         '</button>',
+       '</div>',
+     '</div>'].join(""),
+    replace: true,
+    scope: true,
+    link: function(scope, elm, as) {
+      if (!scope.strokeSwitch) return;
+      elm.css('top', '10px').css('right', '10px');
+      scope.switches = scope.strokeSwitch.split(';');
+      scope.stepStroke = function() {
+        scope.$parent.strokesel =
+          (scope.$parent.strokesel + 1) % scope.switches.length;
+      };
+      var label = scope.strokeSwitchLabel;
+      if (scope.switches.length == 1) {
+        // On/off UI.
+        scope.swbut = scope.switches[0];
+        scope.swbutlab = label;
+      } else {
+        // Selector UI.
+        scope.swsel = scope.switches;
+      }
+    }
+  };
+});
