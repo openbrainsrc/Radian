@@ -145,26 +145,32 @@ radian.factory('radianLegend', function()
 });
 
 
-radian.directive('radianAxisSwitch', function()
+radian.directive('radianAxisSwitch', ['$timeout', function($timeout)
 {
   return {
     restrict: 'E',
     template:
     ['<div class="radian-axis-switch">',
        '<button class="btn btn-mini" ng-click="switchState()">',
-         '{{buttonState}}',
+         '{{axisName}} axis &rArr; {{buttonState}}',
        '</button>',
     '</div>'].join(''),
     replace: true,
     scope: true,
     link: function(scope, elm, as) {
+      var axis = as.axis || 'y';
       var state = scope.axisYTransform || 'linear';
+      scope.axisName = axis == 'y' ? 'Y' : 'X';
       scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
+      if (axis == 'y')
+        elm.css('top', '10px').css('left', '10px');
+      else
+        elm.css('bottom', '10px').css('right', '10px');
       scope.switchState = function() {
         state = state == 'linear' ? 'log' : 'linear';
         scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
-        scope.$emit('axisChange', state);
+        scope.$emit(axis == 'y' ? 'yAxisChange' : 'xAxisChange', state);
       };
     }
   };
-});
+}]);

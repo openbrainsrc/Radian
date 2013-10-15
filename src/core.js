@@ -224,15 +224,18 @@ radian.directive('plot',
       scope.$broadcast('setupExtra');
       scope.views = viewgroups.map(function(grp, i) {
         grp.selectAll('.radian-plot').remove();
-        grp.selectAll('.radian-ui').remove();
         return setup(scope, grp, i, viewgroups.length);
       });
       if (setupBrush) setupBrush();
       redraw();
     };
     function legend() { radianLegend(scope); };
-    function axisSwitch(e, type) {
+    function yAxisSwitch(e, type) {
       if (type) scope.axisYTransform = type;
+      redraw();
+    }
+    function xAxisSwitch(e, type) {
+      if (type) scope.axisXTransform = type;
       redraw();
     }
     function init() {
@@ -259,6 +262,7 @@ radian.directive('plot',
         zoomviewgroup.zoomer = true;
         viewgroups.push(zoomviewgroup);
         mainviewgroup.attr('height', mainHeight);
+        $(scope.uielems).width(scope.width + 'px').height(mainHeight + 'px');
 
         setupBrush = function() {
           var brush = d3.svg.brush().x(scope.views[1].x);
@@ -285,7 +289,11 @@ radian.directive('plot',
       reset();
       if (scope.hasOwnProperty('uiAxisYTransform')) {
         scope.yAxisSwitchEnabled = true;
-        scope.$on('axisChange', axisSwitch);
+        scope.$on('yAxisChange', yAxisSwitch);
+      }
+      if (scope.hasOwnProperty('uiAxisXTransform')) {
+        scope.xAxisSwitchEnabled = true;
+        scope.$on('xAxisChange', xAxisSwitch);
       }
       if (scope.hasOwnProperty('legendSwitches')) {
         legend();
@@ -521,24 +529,21 @@ radian.directive('plot',
       v.y2 = d3.scale.linear().range([t,b]).domain(scope.y2extent);
   };
 
-  function setupUI(scope, viewgroup) {
+  // function setupUI(scope, viewgroup) {
+  function setupUI(scope) {
     scope.uivisible = false;
-    var uigroup = viewgroup.append('g').classed('radian-ui', true)
-      .attr('visibility', 'hidden');
-    function uiOn() { scope.$apply('uivisible = true'); };
+    function uiOn(e) {
+      scope.$apply('uivisible = true');
+    };
     function uiOff(e) {
-      var elem = $(e.toElement), chk = $(scope.uielems), uito = false;
-      while (!uito && elem[0] && elem[0].parentElement) {
-        if (elem[0] == chk[0]) uito = true;
+      var elem = $(e.relatedTarget), chk = $(scope.uielems), outside = true;
+      while (elem[0] && elem[0].parentElement) {
+        if (elem[0] == chk[0]) { outside = false;  break; }
         elem = elem.parent();
       }
-      if (!uito) scope.$apply('uivisible = false');
+      if (outside) scope.$apply('uivisible = false');
     };
-    var uirect = uigroup.append('rect')
-      .attr('width', '100%').attr('height', '100%').attr('opacity', 0)
-      .attr('visibility', 'visible');
-    $(uirect[0][0]).on('mouseenter', uiOn).on('mouseleave', uiOff);
-    return uigroup;
+    $(scope.uielems).mouseenter(uiOn).mouseleave(uiOff);
   };
 
   function setup(scope, viewgroup, idx, nviews) {
@@ -547,7 +552,7 @@ radian.directive('plot',
     if (viewgroup.hasOwnProperty('zoomer'))
       v.noTitle = true;
     else
-      v.uigroup = setupUI(scope, viewgroup);
+      setupUI(scope, viewgroup);
 
     // Determine data ranges to use for plot -- either as specified in
     // RANGE-X, RANGE-Y or RANGE (for X1 and Y1 axes) and RANGE-X2,
@@ -819,7 +824,8 @@ radian.directive('plot',
     // Set up D3 X data ranges.
     if (scope.xextent) makeXScaler(scope, v, hasdate, discx, discorder);
     if (scope.x2extent) makeX2Scaler(scope, v, hasdate2, discx2, discorder2);
-    if (scope.hasOwnProperty("axisXTransform") && !scope.watchXTransform)
+//    if (scope.hasOwnProperty("axisXTransform") && !scope.watchXTransform)
+    if (!scope.watchXTransform)
       scope.watchXTransform = scope.$watch('axisXTransform', function(n, o) {
         if (n == undefined || n == xAxisTransform) return;
         xAxisTransform = n || "linear";
@@ -1216,9 +1222,13 @@ radian.directive('plot',
     template:
     ['<div class="radian">',
        '<svg></svg>',
-       '<div class="radian-ui-elements" ng-show="uivisible">',
-         '<radian-axis-switch ng-show="yAxisSwitchEnabled">',
-         '</radian-axis-switch>',
+       '<div class="radian-ui">',
+         '<div ng-show="uivisible">',
+           '<radian-axis-switch axis="y" ng-show="yAxisSwitchEnabled">',
+           '</radian-axis-switch>',
+           '<radian-axis-switch axis="x" ng-show="xAxisSwitchEnabled">',
+           '</radian-axis-switch>',
+         '</div>',
        '</div>',
      '</div>'].join(""),
     replace: true,

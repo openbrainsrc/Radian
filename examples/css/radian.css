@@ -27,8 +27,12 @@
 }
 
 div.radian { position: relative; }
-div.radian-ui-elements { position: absolute; top: 0px; left: 0px; }
-div.radian-axis-switch { position: absolute; top: 10px; left: 10px; }
+div.radian-ui {
+    background-color: transparent;
+    position: absolute;
+    top: 0px;
+    left: 0px; }
+div.radian-axis-switch { position: absolute; white-space: nowrap; }
 
 
 /* Axes */
