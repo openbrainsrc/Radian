@@ -120,10 +120,10 @@ radian.factory('calcPlotDimensions', function() {
 radian.directive('plot',
  ['processAttrs', 'calcPlotDimensions', 'addToLayout',
   '$timeout', '$rootScope', 'dumpScope', 'dft',
-  'radianLegend', 'radianAxisSwitch', 'plotLib',
+  'radianLegend', 'plotLib',
  function(processAttrs, calcPlotDimensions, addToLayout,
           $timeout, $rootScope, dumpScope, dft,
-          radianLegend, radianAxisSwitch, lib)
+          radianLegend, lib)
 {
   'use strict';
 
@@ -146,6 +146,7 @@ radian.directive('plot',
       scope.svg = elm.children()[0];
     } else
       $(elm.children()[0]).remove();
+    scope.uielems = elm.children()[1];
     if (scope.inLayout || scope.inStack)
       addToLayout(scope, scope, scope.layoutShare);
     if (as.hasOwnProperty('strokeSwitch')) scope.strokesel = 0;
@@ -230,9 +231,8 @@ radian.directive('plot',
       redraw();
     };
     function legend() { radianLegend(scope); };
-    function drawAxisSwitch(e, type) { radianAxisSwitch(scope); };
     function axisSwitch(e, type) {
-      if (type) scope.$apply('axisYTransform = "' + type + '"');
+      if (type) scope.axisYTransform = type;
       redraw();
     }
     function init() {
@@ -284,7 +284,7 @@ radian.directive('plot',
       init();
       reset();
       if (scope.hasOwnProperty('uiAxisYTransform')) {
-        drawAxisSwitch();
+        scope.yAxisSwitchEnabled = true;
         scope.$on('axisChange', axisSwitch);
       }
       if (scope.hasOwnProperty('legendSwitches')) {
@@ -521,17 +521,18 @@ radian.directive('plot',
       v.y2 = d3.scale.linear().range([t,b]).domain(scope.y2extent);
   };
 
-  function setupUI(viewgroup) {
+  function setupUI(scope, viewgroup) {
+    scope.uivisible = false;
     var uigroup = viewgroup.append('g').classed('radian-ui', true)
       .attr('visibility', 'hidden');
-    function uiOn() { uigroup.attr('visibility', 'visible'); };
+    function uiOn() { scope.$apply('uivisible = true'); };
     function uiOff(e) {
-      var elem = $(e.toElement), chk = $(uigroup[0][0]), uito = false;
+      var elem = $(e.toElement), chk = $(scope.uielems), uito = false;
       while (!uito && elem[0] && elem[0].parentElement) {
         if (elem[0] == chk[0]) uito = true;
         elem = elem.parent();
       }
-      if (!uito) uigroup.attr('visibility', 'hidden');
+      if (!uito) scope.$apply('uivisible = false');
     };
     var uirect = uigroup.append('rect')
       .attr('width', '100%').attr('height', '100%').attr('opacity', 0)
@@ -546,7 +547,7 @@ radian.directive('plot',
     if (viewgroup.hasOwnProperty('zoomer'))
       v.noTitle = true;
     else
-      v.uigroup = setupUI(viewgroup);
+      v.uigroup = setupUI(scope, viewgroup);
 
     // Determine data ranges to use for plot -- either as specified in
     // RANGE-X, RANGE-Y or RANGE (for X1 and Y1 axes) and RANGE-X2,
@@ -1215,6 +1216,10 @@ radian.directive('plot',
     template:
     ['<div class="radian">',
        '<svg></svg>',
+       '<div class="radian-ui-elements" ng-show="uivisible">',
+         '<radian-axis-switch ng-show="yAxisSwitchEnabled">',
+         '</radian-axis-switch>',
+       '</div>',
      '</div>'].join(""),
     replace: true,
     transclude: true,

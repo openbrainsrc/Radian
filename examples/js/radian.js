@@ -122,10 +122,10 @@ radian.factory('calcPlotDimensions', function() {
 radian.directive('plot',
  ['processAttrs', 'calcPlotDimensions', 'addToLayout',
   '$timeout', '$rootScope', 'dumpScope', 'dft',
-  'radianLegend', 'radianAxisSwitch', 'plotLib',
+  'radianLegend', 'plotLib',
  function(processAttrs, calcPlotDimensions, addToLayout,
           $timeout, $rootScope, dumpScope, dft,
-          radianLegend, radianAxisSwitch, lib)
+          radianLegend, lib)
 {
   'use strict';
 
@@ -148,6 +148,7 @@ radian.directive('plot',
       scope.svg = elm.children()[0];
     } else
       $(elm.children()[0]).remove();
+    scope.uielems = elm.children()[1];
     if (scope.inLayout || scope.inStack)
       addToLayout(scope, scope, scope.layoutShare);
     if (as.hasOwnProperty('strokeSwitch')) scope.strokesel = 0;
@@ -232,9 +233,8 @@ radian.directive('plot',
       redraw();
     };
     function legend() { radianLegend(scope); };
-    function drawAxisSwitch(e, type) { radianAxisSwitch(scope); };
     function axisSwitch(e, type) {
-      if (type) scope.$apply('axisYTransform = "' + type + '"');
+      if (type) scope.axisYTransform = type;
       redraw();
     }
     function init() {
@@ -286,7 +286,7 @@ radian.directive('plot',
       init();
       reset();
       if (scope.hasOwnProperty('uiAxisYTransform')) {
-        drawAxisSwitch();
+        scope.yAxisSwitchEnabled = true;
         scope.$on('axisChange', axisSwitch);
       }
       if (scope.hasOwnProperty('legendSwitches')) {
@@ -523,17 +523,18 @@ radian.directive('plot',
       v.y2 = d3.scale.linear().range([t,b]).domain(scope.y2extent);
   };
 
-  function setupUI(viewgroup) {
+  function setupUI(scope, viewgroup) {
+    scope.uivisible = false;
     var uigroup = viewgroup.append('g').classed('radian-ui', true)
       .attr('visibility', 'hidden');
-    function uiOn() { uigroup.attr('visibility', 'visible'); };
+    function uiOn() { scope.$apply('uivisible = true'); };
     function uiOff(e) {
-      var elem = $(e.toElement), chk = $(uigroup[0][0]), uito = false;
+      var elem = $(e.toElement), chk = $(scope.uielems), uito = false;
       while (!uito && elem[0] && elem[0].parentElement) {
         if (elem[0] == chk[0]) uito = true;
         elem = elem.parent();
       }
-      if (!uito) uigroup.attr('visibility', 'hidden');
+      if (!uito) scope.$apply('uivisible = false');
     };
     var uirect = uigroup.append('rect')
       .attr('width', '100%').attr('height', '100%').attr('opacity', 0)
@@ -548,7 +549,7 @@ radian.directive('plot',
     if (viewgroup.hasOwnProperty('zoomer'))
       v.noTitle = true;
     else
-      v.uigroup = setupUI(viewgroup);
+      v.uigroup = setupUI(scope, viewgroup);
 
     // Determine data ranges to use for plot -- either as specified in
     // RANGE-X, RANGE-Y or RANGE (for X1 and Y1 axes) and RANGE-X2,
@@ -1217,6 +1218,10 @@ radian.directive('plot',
     template:
     ['<div class="radian">',
        '<svg></svg>',
+       '<div class="radian-ui-elements" ng-show="uivisible">',
+         '<radian-axis-switch ng-show="yAxisSwitchEnabled">',
+         '</radian-axis-switch>',
+       '</div>',
      '</div>'].join(""),
     replace: true,
     transclude: true,
@@ -5460,109 +5465,109 @@ radian.factory('plotLib', function()
            rad$$pal: {}
          };
 });
-radian.directive('radianUi', ['$timeout', function($timeout)
-{
-  'use strict';
+// radian.directive('radianUi', ['$timeout', function($timeout)
+// {
+//   'use strict';
 
-  return {
-    restrict: 'E',
-    scope: true,
-    template:
-    ['<div class="radian-ui" ng-show="uivisible">',
-       // '<span class="form-inline">',
-         '<input ng-show="axisSwitch" class="axis-switch" ',
-                'type="checkbox" ng-model="axisType">',
-       //   '<span ng-show="xvs">',
-       //     '<span>{{xlab}}</span>',
-       //     '<select ng-model="xidx" class="var-select" ',
-       //             'ng-options="v[0] as v[1] for v in xvs">',
-       //     '</select>',
-       //   '</span>',
-       //   '<span ng-show="xvs && yvs">',
-       //     '&nbsp;&nbsp;vs&nbsp;&nbsp;',
-       //   '</span>',
-       //   '<span ng-show="yvs">',
-       //     '<span>{{ylab}}</span>',
-       //     '<select ng-model="yidx" class="var-select" ',
-       //             'ng-options="v[0] as v[1] for v in yvs">',
-       //     '</select>',
-       //   '</span>',
-       //   '<span ng-show="yvs && (swbut || swsel)">',
-       //     '&nbsp;&nbsp;',
-       //   '</span>',
-       //   '<span ng-show="swbut">',
-       //     '<span>{{swbutlab}}</span>',
-       //     '<button class="btn" data-toggle="button" ',
-       //             'ng-click="strokesel=1-strokesel">',
-       //       '{{swbut}}',
-       //     '</button>',
-       //   '</span>',
-       //   '<span ng-show="swsel">',
-       //     '<label>{{swsellab}}&nbsp;</label>',
-       //     '<select ng-model="strokesel" .span1 ',
-       //             'ng-options="o[0] as o[1] for o in swsel">',
-       //     '</select>',
-       //   '</span>',
-       // '</span>',
-     '</div>'].join(""),
-    replace: true,
-    link: function(scope, elm, as) {
-      scope.uivisible = false;
-      scope.axisSwitch = true;
-      scope.axisType = false;
-      scope.$on('uiOn', function() { scope.$apply('uivisible = true'); });
-      scope.$on('uiOff', function() { scope.$apply('uivisible = false'); });
-      // // Deal with switching between stroke types.
-      // if (scope.strokeSwitch !== undefined) {
-      //   scope.uivisible = true;
-      //   var label = scope.strokeSwitchLabel;
-      //   var switches = scope.strokeSwitch.split(';');
-      //   if (switches.length == 1) {
-      //     // On/off UI.
-      //     scope.swbut = switches[0];
-      //     scope.swbutlab = label;
-      //   } else {
-      //     // Selector UI.
-      //     scope.swsel = switches.map(function(sw, i) { return [i, sw]; });
-      //     scope.swsellab = label;
-      //   }
-      // }
+//   return {
+//     restrict: 'E',
+//     scope: true,
+//     template:
+//     ['<div class="radian-ui" ng-show="uivisible">',
+//        // '<span class="form-inline">',
+//          '<input ng-show="axisSwitch" class="axis-switch" ',
+//                 'type="checkbox" ng-model="axisType">',
+//        //   '<span ng-show="xvs">',
+//        //     '<span>{{xlab}}</span>',
+//        //     '<select ng-model="xidx" class="var-select" ',
+//        //             'ng-options="v[0] as v[1] for v in xvs">',
+//        //     '</select>',
+//        //   '</span>',
+//        //   '<span ng-show="xvs && yvs">',
+//        //     '&nbsp;&nbsp;vs&nbsp;&nbsp;',
+//        //   '</span>',
+//        //   '<span ng-show="yvs">',
+//        //     '<span>{{ylab}}</span>',
+//        //     '<select ng-model="yidx" class="var-select" ',
+//        //             'ng-options="v[0] as v[1] for v in yvs">',
+//        //     '</select>',
+//        //   '</span>',
+//        //   '<span ng-show="yvs && (swbut || swsel)">',
+//        //     '&nbsp;&nbsp;',
+//        //   '</span>',
+//        //   '<span ng-show="swbut">',
+//        //     '<span>{{swbutlab}}</span>',
+//        //     '<button class="btn" data-toggle="button" ',
+//        //             'ng-click="strokesel=1-strokesel">',
+//        //       '{{swbut}}',
+//        //     '</button>',
+//        //   '</span>',
+//        //   '<span ng-show="swsel">',
+//        //     '<label>{{swsellab}}&nbsp;</label>',
+//        //     '<select ng-model="strokesel" .span1 ',
+//        //             'ng-options="o[0] as o[1] for o in swsel">',
+//        //     '</select>',
+//        //   '</span>',
+//        // '</span>',
+//      '</div>'].join(""),
+//     replace: true,
+//     link: function(scope, elm, as) {
+//       scope.uivisible = false;
+//       scope.axisSwitch = true;
+//       scope.axisType = false;
+//       scope.$on('uiOn', function() { scope.$apply('uivisible = true'); });
+//       scope.$on('uiOff', function() { scope.$apply('uivisible = false'); });
+//       // // Deal with switching between stroke types.
+//       // if (scope.strokeSwitch !== undefined) {
+//       //   scope.uivisible = true;
+//       //   var label = scope.strokeSwitchLabel;
+//       //   var switches = scope.strokeSwitch.split(';');
+//       //   if (switches.length == 1) {
+//       //     // On/off UI.
+//       //     scope.swbut = switches[0];
+//       //     scope.swbutlab = label;
+//       //   } else {
+//       //     // Selector UI.
+//       //     scope.swsel = switches.map(function(sw, i) { return [i, sw]; });
+//       //     scope.swsellab = label;
+//       //   }
+//       // }
 
-      // // Deal with selection of X and Y variables.
-      // if (scope.selectX !== undefined) {
-      //   scope.uivisible = true;
-      //   var xvars = scope.selectX.split(',');
-      //   if (xvars.length > 1) {
-      //     // Selector UI.
-      //     scope.xidx = 0;
-      //     scope.xvs = xvars.map(function(v, i) { return [i, v]; });
-      //     scope.xlab = scope.selectXLabel;
-      //     if (scope.selectX == scope.selectY)
-      //       scope.$watch('xidx',
-      //                    function(n, o) {
-      //                      if (n == scope.yidx) scope.yidx = o;
-      //                      scope.yvs = [].concat(scope.xvs);
-      //                      scope.yvs.splice(n, 1);
-      //                    });
-      //   }
-      // }
-      // if (scope.selectY !== undefined) {
-      //   scope.uivisible = true;
-      //   var yvars = scope.selectY.split(',');
-      //   if (yvars.length > 1) {
-      //     // Selector UI.
-      //     scope.yidx = 0;
-      //     scope.yvs = yvars.map(function(v, i) { return [i, v]; });
-      //     scope.ylab = scope.selectYLabel;
-      //     if (scope.selectX == scope.selectY) {
-      //       scope.yvs.splice(1);
-      //       scope.yidx = 1;
-      //     }
-      //   }
-      // }
-    }
-  };
-}]);
+//       // // Deal with selection of X and Y variables.
+//       // if (scope.selectX !== undefined) {
+//       //   scope.uivisible = true;
+//       //   var xvars = scope.selectX.split(',');
+//       //   if (xvars.length > 1) {
+//       //     // Selector UI.
+//       //     scope.xidx = 0;
+//       //     scope.xvs = xvars.map(function(v, i) { return [i, v]; });
+//       //     scope.xlab = scope.selectXLabel;
+//       //     if (scope.selectX == scope.selectY)
+//       //       scope.$watch('xidx',
+//       //                    function(n, o) {
+//       //                      if (n == scope.yidx) scope.yidx = o;
+//       //                      scope.yvs = [].concat(scope.xvs);
+//       //                      scope.yvs.splice(n, 1);
+//       //                    });
+//       //   }
+//       // }
+//       // if (scope.selectY !== undefined) {
+//       //   scope.uivisible = true;
+//       //   var yvars = scope.selectY.split(',');
+//       //   if (yvars.length > 1) {
+//       //     // Selector UI.
+//       //     scope.yidx = 0;
+//       //     scope.yvs = yvars.map(function(v, i) { return [i, v]; });
+//       //     scope.ylab = scope.selectYLabel;
+//       //     if (scope.selectX == scope.selectY) {
+//       //       scope.yvs.splice(1);
+//       //       scope.yidx = 1;
+//       //     }
+//       //   }
+//       // }
+//     }
+//   };
+// }]);
 
 radian.factory('radianLegend', function()
 {
@@ -5607,32 +5612,27 @@ radian.factory('radianLegend', function()
 });
 
 
-radian.factory('radianAxisSwitch', function()
+radian.directive('radianAxisSwitch', function()
 {
-  return function(scope) {
-    var v = scope.views[0], g = v.uigroup;
-    var state = scope.axisYTransform || 'linear';
-    function clickHandler(d, i) {
-      state = state == 'linear' ? 'log' : 'linear';
-      scope.$emit('axisChange', state);
-    };
-
-    var szg = scope.sizeviewgroup.append('g').attr('visibility', 'hidden');
-    var tstel = szg.append('text').attr('x', 0).attr('y', 0)
-      .style('font-size', '75%').text('LOG/LINEAR');
-    var th = tstel[0][0].getBBox().height, tw = tstel[0][0].getBBox().width;
-    szg.remove();
-
-    g.selectAll('g.radian-axis-switch').remove();
-    var pos = 'translate(' + (+v.margin.left) + ',' + (+v.margin.top) + ')';
-    var switchg = g.append('g').attr('class', 'radian-axis-switch')
-      .on('click', clickHandler).attr('transform', pos);
-    var switchr = switchg.append('rect')
-      .attr('width', tw + 4).attr('height', th + 3)
-      .attr('stroke-width', 1).attr('stroke', '#000').attr('fill', '#f5f5f5');
-    switchg.append('text').attr('x', tw / 2 + 2).attr('y', th - 2)
-      .style('font-size', '75%').attr('text-anchor', 'middle')
-      .text('LOG/LINEAR');
+  return {
+    restrict: 'E',
+    template:
+    ['<div class="radian-axis-switch">',
+       '<button class="btn btn-mini" ng-click="switchState()">',
+         '{{buttonState}}',
+       '</button>',
+    '</div>'].join(''),
+    replace: true,
+    scope: true,
+    link: function(scope, elm, as) {
+      var state = scope.axisYTransform || 'linear';
+      scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
+      scope.switchState = function() {
+        state = state == 'linear' ? 'log' : 'linear';
+        scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
+        scope.$emit('axisChange', state);
+      };
+    }
   };
 });
 // Depth-first traversal of Angular scopes.  Much like Angular's
