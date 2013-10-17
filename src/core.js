@@ -119,11 +119,9 @@ radian.factory('calcPlotDimensions', function() {
 
 radian.directive('plot',
  ['processAttrs', 'calcPlotDimensions', 'addToLayout',
-  '$timeout', '$rootScope', 'dumpScope', 'dft',
-  'radianLegend', 'plotLib',
+  '$timeout', '$rootScope', 'dumpScope', 'dft', 'plotLib',
  function(processAttrs, calcPlotDimensions, addToLayout,
-          $timeout, $rootScope, dumpScope, dft,
-          radianLegend, lib)
+          $timeout, $rootScope, dumpScope, dft, lib)
 {
   'use strict';
 
@@ -226,10 +224,10 @@ radian.directive('plot',
         grp.selectAll('.radian-plot').remove();
         return setup(scope, grp, i, viewgroups.length);
       });
+      scope.$broadcast('setupExtraAfter');
       if (setupBrush) setupBrush();
       redraw();
     };
-    function legend() { radianLegend(scope); };
     function yAxisSwitch(e, type) {
       if (type) scope.axisYTransform = type;
       redraw();
@@ -252,6 +250,7 @@ radian.directive('plot',
           while (!s.hasOwnProperty('inStack')) s = s.$parent;
         s.sizeviewgroup = mainviewgroup;
       }
+      scope.uivisible = false;
       if (scope.hasOwnProperty('zoomX')) {
         var zfrac = scope.zoomX == "" ? 0.2 : +scope.zoomX;
         zfrac = Math.min(0.95, Math.max(0.05, zfrac));
@@ -283,25 +282,27 @@ radian.directive('plot',
         };
       }
     };
+    if (scope.hasOwnProperty('uiAxisYTransform'))
+      scope.yAxisSwitchEnabled = true;
+    if (scope.hasOwnProperty('uiAxisXTransform'))
+      scope.xAxisSwitchEnabled = true;
+    if (scope.hasOwnProperty('uiHistogramBins')) {
+      scope.histogramSwitchEnabled = true;
+      scope.histogramBinsVar = scope.uiHistogramBins;
+    }
+    if (scope.hasOwnProperty('strokeSwitch'))
+      scope.strokeSwitchEnabled = true;
+    if (scope.hasOwnProperty('legendSwitches'))
+      scope.legendEnabled = true;
 
     $timeout(function() {
       // Draw plots and legend.
       init();
       reset();
-      if (scope.hasOwnProperty('uiAxisYTransform')) {
-        scope.yAxisSwitchEnabled = true;
+      if (scope.hasOwnProperty('uiAxisYTransform'))
         scope.$on('yAxisChange', yAxisSwitch);
-      }
-      if (scope.hasOwnProperty('uiAxisXTransform')) {
-        scope.xAxisSwitchEnabled = true;
+      if (scope.hasOwnProperty('uiAxisXTransform'))
         scope.$on('xAxisChange', xAxisSwitch);
-      }
-      if (scope.hasOwnProperty('strokeSwitch'))
-        scope.strokeSwitchEnabled = true;
-      if (scope.hasOwnProperty('legendSwitches')) {
-        legend();
-        scope.$on('dataChange', legend);
-      }
 
       // Register plot data change handlers.
       scope.$on('paintChange', redraw);
@@ -534,7 +535,6 @@ radian.directive('plot',
 
   // function setupUI(scope, viewgroup) {
   function setupUI(scope) {
-    scope.uivisible = false;
     function uiOn(e) { scope.$apply('uivisible = true'); };
     function uiOff(e) {
       var elem = $(e.relatedTarget), chk = $(scope.uielems), outside = true;
@@ -1225,6 +1225,9 @@ radian.directive('plot',
        '<svg></svg>',
        '<div class="radian-ui">',
          '<div ng-show="uivisible">',
+           '<radian-histogram-switch ng-show="histogramSwitchEnabled">',
+           '</radian-histogram-switch>',
+           '<radian-legend ng-show="legendEnabled"></radian-legend>',
            '<radian-axis-switch axis="y" ng-show="yAxisSwitchEnabled">',
            '</radian-axis-switch>',
            '<radian-axis-switch axis="x" ng-show="xAxisSwitchEnabled">',

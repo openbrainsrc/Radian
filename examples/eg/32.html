@@ -1,18 +1,7 @@
 <h3>Example 32 (histograms #1)</h3>
 
-<div class="form-inline">
-  <label>Number of bins</label>
-  <select ng-model="nbins" ng-init="nbins=10">
-    <option>5</option>
-    <option>10</option>
-    <option>15</option>
-    <option>20</option>
-    <option>25</option>
-  </select>
-</div>
-<br>
-
-<plot height=300 aspect=2 range-y="0" hist="[[histogram(tstdata.x,nbins)]]">
+<plot height=300 aspect=2 range-y="0" hist="[[histogram(tstdata.x,nbins)]]"
+      ui-histogram-bins="nbins" ng-init="nbins=10">
   <bars x="[[hist.centres]]" y="[[hist.freqs]]"></bars>
 </plot>
 

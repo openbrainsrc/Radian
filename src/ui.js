@@ -26,39 +26,10 @@
 //        //   '<span ng-show="yvs && (swbut || swsel)">',
 //        //     '&nbsp;&nbsp;',
 //        //   '</span>',
-//        //   '<span ng-show="swbut">',
-//        //     '<span>{{swbutlab}}</span>',
-//        //     '<button class="btn" data-toggle="button" ',
-//        //             'ng-click="strokesel=1-strokesel">',
-//        //       '{{swbut}}',
-//        //     '</button>',
-//        //   '</span>',
-//        //   '<span ng-show="swsel">',
-//        //     '<label>{{swsellab}}&nbsp;</label>',
-//        //     '<select ng-model="strokesel" .span1 ',
-//        //             'ng-options="o[0] as o[1] for o in swsel">',
-//        //     '</select>',
-//        //   '</span>',
 //        // '</span>',
 //      '</div>'].join(""),
 //     replace: true,
 //     link: function(scope, elm, as) {
-//       // // Deal with switching between stroke types.
-//       // if (scope.strokeSwitch !== undefined) {
-//       //   scope.uivisible = true;
-//       //   var label = scope.strokeSwitchLabel;
-//       //   var switches = scope.strokeSwitch.split(';');
-//       //   if (switches.length == 1) {
-//       //     // On/off UI.
-//       //     scope.swbut = switches[0];
-//       //     scope.swbutlab = label;
-//       //   } else {
-//       //     // Selector UI.
-//       //     scope.swsel = switches.map(function(sw, i) { return [i, sw]; });
-//       //     scope.swsellab = label;
-//       //   }
-//       // }
-
 //       // // Deal with selection of X and Y variables.
 //       // if (scope.selectX !== undefined) {
 //       //   scope.uivisible = true;
@@ -95,43 +66,30 @@
 //   };
 // }]);
 
-radian.factory('radianLegend', function()
+
+radian.directive('radianLegend', function()
 {
-  return function(scope) {
-    var v = scope.views[0], g = v.group;
-    var nswitch = scope.switchable.length;
-    g.selectAll('g.radian-legend').remove();
-    if (nswitch > 1) {
-      function colour(d) {
-        return d.enabled ? ((d.stroke instanceof Array ?
-                             d.stroke[0] : d.stroke) || '#000') : '#f5f5f5';
+  return {
+    restrict: 'E',
+    template:
+    ['<div class="radian-legend">',
+       '<span ng-style="colour(v)" ng-repeat="v in switchable">',
+         '{{v.label}}&nbsp;',
+         '<input type="checkbox" ng-model="v.enabled" ',
+                'ng-change="$emit(\'paintChange\')">',
+         '&nbsp;&nbsp;&nbsp;',
+       '</span>',
+     '</div>'].join(""),
+    replace: true,
+    scope: true,
+    link: function(scope, elm, as) {
+      scope.colour = function(v) {
+        var c = (v.stroke instanceof Array ? v.stroke[0] : v.stroke) || '#000';
+        return { color: c };
       };
-      function clickHandler(d, i) {
-        d.enabled = !d.enabled;
-        d3.select(legcs[0][i]).attr('fill', colour(d));
-        scope.$emit('paintChange');
-      };
-      var legendps = scope.switchable;
-      var leggs = g.append('g')
-        .attr('class', 'radian-legend').selectAll('g')
-        .data(legendps).enter().append('g').on('click', clickHandler);
-      var legcs = leggs.append('circle').style('stroke-width', 1).attr('r', 5)
-        .attr('fill', colour)
-        .attr('stroke', function(d,i) {
-          return (d.stroke instanceof Array ? d.stroke[0] : d.stroke) || '#000';
-        });
-      var legts = leggs.append('text')
-        .attr('text-anchor', 'start').attr('dy', '.32em').attr('dx', '8')
-        .text(function(d,i) { return d.label || ('data' + i); });
-      var widths = [];
-      legts.each(function(d,i) { widths.push(d3.select(this).node().
-                                             getComputedTextLength() + 10); });
-      var mwidth = d3.max(widths), spacing = 15;
-      var sep = mwidth + spacing;
-      var len = nswitch * mwidth + (nswitch - 1) * spacing;
-      leggs.attr('transform', function(d,i) {
-        return 'translate(' + (scope.width - len + sep*i - 10) + ',' +
-          (+v.margin.top + 10) + ')';
+      scope.$on('setupExtraAfter', function() {
+        var m = scope.views[0].margin;
+        elm.css('top', (m.top+3)+'px').css('right', (m.right+3)+'px');
       });
     }
   };
@@ -155,10 +113,13 @@ radian.directive('radianAxisSwitch', function()
       var state = scope.axisYTransform || 'linear';
       scope.axisName = axis == 'y' ? 'Y' : 'X';
       scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
-      if (axis == 'y')
-        elm.css('top', '10px').css('left', '10px');
-      else
-        elm.css('bottom', '10px').css('right', '10px');
+      scope.$on('setupExtraAfter', function() {
+        var m = scope.views[0].margin;
+        if (axis == 'y')
+          elm.css('top', (m.top+3)+'px').css('left', (m.left+3)+'px');
+        else
+          elm.css('bottom', (m.bottom+3)+'px').css('right', (m.right+3)+'px');
+      });
       scope.switchState = function() {
         state = state == 'linear' ? 'log' : 'linear';
         scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
@@ -192,7 +153,13 @@ radian.directive('radianStrokeSwitch', function()
     scope: true,
     link: function(scope, elm, as) {
       if (!scope.strokeSwitch) return;
-      elm.css('top', '10px').css('right', '10px');
+      scope.$on('setupExtraAfter', function() {
+        var m = scope.views[0].margin;
+        console.log(scope);
+        console.log(scope.legendEnabled);
+        var dt = scope.legendEnabled ? 25 : 0;
+        elm.css('top', (m.top+dt+3)+'px').css('right', (m.right+3)+'px');
+      });
       scope.switches = scope.strokeSwitch.split(';');
       scope.stepStroke = function() {
         scope.$parent.strokesel =
@@ -207,6 +174,53 @@ radian.directive('radianStrokeSwitch', function()
         // Selector UI.
         scope.swsel = scope.switches;
       }
+    }
+  };
+});
+
+
+radian.directive('radianHistogramSwitch', function()
+{
+  return {
+    restrict: 'E',
+    template:
+    ['<div class="radian-histogram-switch btn-group">',
+       '<button class="btn btn-mini">',
+         'Bins: {{uiNBins}}',
+       '</button>',
+       '<button class="btn btn-mini" ng-click="dn(5)">',
+         '<strong>-5</strong>',
+       '</button>',
+       '<button class="btn btn-mini" ng-click="dn(1)">',
+         '-1',
+       '</button>',
+       '<button class="btn btn-mini" ng-click="up(1)">',
+         '+1',
+       '</button>',
+       '<button class="btn btn-mini" ng-click="up(5)">',
+         '<strong>+5</strong>',
+       '</button>',
+     '</div>'].join(""),
+    replace: true,
+    scope: true,
+    link: function(scope, elm, as) {
+      if (!scope.uiHistogramBins) return;
+      scope.$on('setupExtraAfter', function() {
+        var m = scope.views[0].margin;
+        elm.css('bottom', (m.bottom+3)+'px').css('left', (m.left+3)+'px');
+      });
+      scope.uiNBins = scope[scope.histogramBinsVar];
+      scope.$watch('histogramBinsVar', function(n, o) {
+        scope.uiNBins = scope[scope.histogramBinsVar];
+      });
+      scope.up = function(n) {
+        scope.uiNBins += n;
+        scope.$parent[scope.histogramBinsVar] = scope.uiNBins;
+      };
+      scope.dn = function(n) {
+        scope.uiNBins = Math.max(scope.uiNBins - n, 1);
+        scope.$parent[scope.histogramBinsVar] = scope.uiNBins;
+      };
     }
   };
 });
