@@ -36,7 +36,7 @@ radian%js: Makefile
 #	@rm $@.tmp
 #	@chmod a-w $@
 
-radian.css:
+radian.css: src/radian.css
 	@cp src/radian.css radian.css
 
 examples: radian.js src/radian.css
