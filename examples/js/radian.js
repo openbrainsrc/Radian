@@ -1095,6 +1095,7 @@ radian.directive('plot',
       var ax = makeAxis(scope, v, 'x', v.plotgroup.attr('width') / 100);
       var axis = ax[0], padding_delta = ax[1];
       v.plotgroup.append('g').attr('class', 'axis')
+        .style('font-size', scope.fontSize)
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.realheight + v.margin.top + del1) + ')')
         .call(axis);
@@ -1114,6 +1115,7 @@ radian.directive('plot',
       var ax = makeAxis(scope, v, 'x2', v.plotgroup.attr('width') / 100);
       var axis = ax[0], padding_delta = ax[1];
       v.plotgroup.append('g').attr('class', 'axis')
+        .style('font-size', scope.fontSize)
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.margin.top + del1) + ')')
         .call(axis);
@@ -1133,6 +1135,7 @@ radian.directive('plot',
       var ax = makeAxis(scope, v, 'y', v.plotgroup.attr('height') / 36);
       var axis = ax[0], padding_delta = ax[1];
       v.plotgroup.append('g').attr('class', 'axis')
+        .style('font-size', scope.fontSize)
         .attr('transform', 'translate(' + (+v.margin.left - del1) + ',' +
               (+v.margin.top) + ')')
         .call(axis);
@@ -1151,6 +1154,7 @@ radian.directive('plot',
       var ax = makeAxis(scope, v, 'y2', v.plotgroup.attr('height') / 36);
       var axis = ax[0], padding_delta = ax[1];
       v.plotgroup.append('g').attr('class', 'axis')
+        .style('font-size', scope.fontSize)
         .attr('transform', 'translate(' +
               (+v.realwidth + v.margin.left) + ',' +
               (+v.margin.top) + ')')
