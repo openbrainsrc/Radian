@@ -141,10 +141,10 @@ radian.factory('layoutSizes', ['layoutToString', function(layoutToString) {
 
 radian.factory('addToLayout', function()
 {
-  return function(sc, sublayout, size) {
+  return function(sc, sublayout, size, elm) {
     if (sublayout.hasOwnProperty('$id'))
       sc.layoutItems.push({ size: size != null ? Number(size) : null,
-                            item: { type: 'plot', items: sublayout } });
+                            item: { type: 'plot', items: sublayout }});
     else
       sc.layoutItems.push({ size: size != null ? Number(size) : null,
                             item: sublayout });
@@ -210,13 +210,14 @@ radian.factory('layoutDirective',
         if (!sc.inStack) calcPlotDimensions(sc, elm, as);
         $(elm).css('width', sc.width).css('height', sc.height);
         sc.layoutsvg = elm.children()[0];
-      } else
-        $(elm.children()[1]).remove();
+      }
       sc.layoutItems = [];
       transclude(sc.$new(), function (cl) { elm.append(cl); });
     };
 
     function postLink(sc, elm) {
+      if (sc.inLayout && !sc.hasOwnProperty('layoutTop'))
+        $(elm.children()[0]).remove();
       var items = { type: container, items: sc.layoutItems };
       if (sc.hasOwnProperty('layoutTop')) {
         var spacing = sc.spacing || 0;
@@ -226,18 +227,22 @@ radian.factory('layoutDirective',
         frames.forEach(function(fr) {
           fr.plot.width = fr.w;
           fr.plot.height = fr.h;
+          $(fr.plot.topelem).css('width', fr.w).css('height', fr.h).
+            css('top', fr.y).css('left', fr.x);
           fr.plot.svg = d3.select(sc.layoutsvg).append('g')
             .attr('width', fr.w).attr('height', fr.h)
             .attr('transform', 'translate(' + fr.x + ',' + fr.y + ')')[0][0];
         });
       }
       if (!sc.hasOwnProperty('layoutTop') || sc.inStack)
-        addToLayout(sc.$parent, items, sc.layoutShare);
+        addToLayout(sc.$parent, items, sc.layoutShare, elm);
     };
 
     return {
       restrict: 'E',
-      template: '<div class="radian"><svg></svg></div>',
+      template: '<div class="radian" style="top: 0px; left: 0px">' +
+                  '<svg></svg>' +
+                '</div>',
       replace: true,
       transclude: true,
       scope: true,
@@ -311,7 +316,7 @@ radian.directive('plotGrid',
       });
     }
     if (!sc.hasOwnProperty('layoutTop') || sc.inStack)
-      addToLayout(sc.$parent, items, sc.layoutShare);
+      addToLayout(sc.$parent, items, sc.layoutShare, elm);
   };
 
   return {
@@ -341,7 +346,8 @@ radian.directive('plotStack',
     if (sc.inLayout)
       throw Error("<plot-stack> cannot appear inside other layout directives");
     if (!sc.inStack) calcPlotDimensions(sc, elm, as);
-    if (sc.inStack) addToLayout(sc.$parent, { type: 'stack', items: sc }, null);
+    if (sc.inStack) addToLayout(sc.$parent, { type: 'stack', items: sc },
+                                null, elm);
     sc.inStack = true;
     sc.layoutItems = [];
     if (!$rootScope.radianNavIDs) $rootScope.radianNavIDs = { };

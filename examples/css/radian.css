@@ -27,6 +27,7 @@
 }
 
 div.radian { position: relative; }
+div.radian div.radian { position: absolute; }
 div.radian-ui {
     background-color: transparent;
     position: absolute;

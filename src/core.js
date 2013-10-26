@@ -136,17 +136,17 @@ radian.directive('plot',
     // expressions).
     processAttrs(scope, as);
     scope.plotid = ++plotidgen;
+    scope.topelem = elm;
+    scope.uielems = elm.children()[1];
     if (!scope.inLayout) {
       scope.layoutTop = true;
       if (!scope.inStack) calcPlotDimensions(scope, elm, as)
       $(elm).css('width', scope.width).css('height', scope.height);
       scope.topLevel = elm[0];
       scope.svg = elm.children()[0];
-    } else
-      $(elm.children()[0]).remove();
-    scope.uielems = elm.children()[1];
+    }
     if (scope.inLayout || scope.inStack)
-      addToLayout(scope, scope, scope.layoutShare);
+      addToLayout(scope, scope, scope.layoutShare, elm);
     if (as.hasOwnProperty('strokeSwitch')) scope.strokesel = 0;
 
     // Font attributes.
@@ -201,6 +201,7 @@ radian.directive('plot',
   // We do the actual plotting after the transcluded plot type
   // elements are linked.
   function postLink(scope, elm) {
+    if (scope.inLayout) $(elm.children()[0]).remove();
     var viewgroups = [];
     var setupBrush = null;
     scope.rangeExtendPixels = function(x, y) {
