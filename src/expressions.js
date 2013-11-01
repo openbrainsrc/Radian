@@ -412,8 +412,12 @@ radian.factory('radianEval',
           if (v.name != 'scope' && !exc[v.name]) {
             var free = true;
             if (w &&
-                (w.type == "MemberExpression" || w.type == "PluckExpression") &&
-                v == w.property && !w.computed) free = false;
+                (((w.type == "MemberExpression" ||
+                   w.type == "PluckExpression") &&
+                  v == w.property && !w.computed) ||
+                 (!w.hasOwnProperty("type") &&
+                  w.hasOwnProperty("key") && v == w.key)))
+              free = false;
             if (free) fvs[v.name] = 1;
           }
         }
