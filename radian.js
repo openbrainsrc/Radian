@@ -39,7 +39,6 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
       entry.fvwatchers = { };
       entry.fvs.forEach(function(v) {
         entry.fvwatchers[v] = scope.$watch(v, function(n, o) {
-          if (n == undefined || n == o && typeof n != 'function') return;
           scope[a] = radianEval(scope, entry.expr);
         }, true);
       });
@@ -1205,16 +1204,19 @@ radian.directive('plot',
           if (s.x2) { xvar = 'x2'; xs = v.x2;  xdiscrete = !!v.x2.discrete; }
           if (s.y)  { yvar = 'y';  ys = v.y;  }
           if (s.y2) { yvar = 'y2'; ys = v.y2; }
+          if (!xs) xs = v.x;
+          if (!ys) ys = v.y;
 
-          if (xvar && yvar) {
+          if (xvar && yvar ||
+              s.checkPlottable && s.checkPlottable(xvar, yvar)) {
             // Append SVG group for this plot and draw the plot into it.
             var g = v.innergroup.append('g');
-            var x = (s[xvar][0] instanceof Array && !v.x.discrete) ?
-              s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
-            if (s.hasOwnProperty('jitterX')) xs = jitter(x, xs, s.jitterX);
-            var y = (s[yvar][0] instanceof Array) ?
-              s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
-            if (s.hasOwnProperty('jitterY')) ys = jitter(y, ys, s.jitterY);
+            var x = xvar ? ((s[xvar][0] instanceof Array && !v.x.discrete) ?
+                            s[xvar][s.xidx ? s.xidx : 0] : s[xvar]) : undefined;
+            if (s.hasOwnProperty('jitterX') && x) xs = jitter(x, xs, s.jitterX);
+            var y = yvar ? ((s[yvar][0] instanceof Array) ?
+                            s[yvar][s.yidx ? s.yidx : 0] : s[yvar]) : undefined;
+            if (s.hasOwnProperty('jitterY') && y) ys = jitter(y, ys, s.jitterY);
             s.draw(g, x, xs, y, ys, s, v.realwidth, v.realheight,
                    yvar == 'y2' ? 2 : 1);
             s.$on('$destroy', function() { g.remove(); });
@@ -1733,8 +1735,12 @@ radian.factory('radianEval',
           if (v.name != 'scope' && !exc[v.name]) {
             var free = true;
             if (w &&
-                (w.type == "MemberExpression" || w.type == "PluckExpression") &&
-                v == w.property && !w.computed) free = false;
+                (((w.type == "MemberExpression" ||
+                   w.type == "PluckExpression") &&
+                  v == w.property && !w.computed) ||
+                 (!w.hasOwnProperty("type") &&
+                  w.hasOwnProperty("key") && v == w.key)))
+              free = false;
             if (free) fvs[v.name] = 1;
           }
         }
@@ -4887,6 +4893,53 @@ radian.directive('area',
 }]);
 
 
+// Rug plots.
+
+radian.directive('rug',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s) {
+    var stroke = s.stroke || '#000';
+    var strokeWidth = s.strokeWidth || 1.0;
+    var strokeOpacity = s.strokeOpacity || 1.0;
+    var tickLength = Number(s.tickLength || 5);
+
+    // Plot points: plot attributes are either single values or arrays
+    // of values, one per point.
+    function sty(v) {
+      return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
+    };
+    var xrugs = [ ], yrugs = [ ], xr = xs.range(), yr = ys.range();
+    if (x) {
+      var y0 = ys.invert(yr[0]), y1 = ys.invert(yr[0] - tickLength);
+      xrugs = x.map(function(xval) { return [[xval, y0], [xval, y1]]; });
+    }
+    if (y) {
+      var x0 = xs.invert(xr[0]), x1 = xs.invert(xr[0] + tickLength);
+      yrugs = y.map(function(yval) { return [[x0, yval], [x1, yval]]; });
+    }
+    var rugs = xrugs.concat(yrugs);
+    svg.selectAll('path').data(rugs).enter().append('path')
+      .attr('class', 'line')
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke))
+      .attr('d', d3.svg.line()
+            .x(function (d, i) { return xs(d[0], i); })
+            .y(function (d, i) { return ys(d[1], i); }));
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      scope.checkPlottable = function(xvar, yvar) { return xvar || yvar; };
+      plotTypeLink(scope, elm, as, draw);
+    }
+  };
+}]);
 // Process palette directive.
 
 radian.directive('palette',

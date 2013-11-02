@@ -1202,16 +1202,19 @@ radian.directive('plot',
           if (s.x2) { xvar = 'x2'; xs = v.x2;  xdiscrete = !!v.x2.discrete; }
           if (s.y)  { yvar = 'y';  ys = v.y;  }
           if (s.y2) { yvar = 'y2'; ys = v.y2; }
+          if (!xs) xs = v.x;
+          if (!ys) ys = v.y;
 
-          if (xvar && yvar) {
+          if (xvar && yvar ||
+              s.checkPlottable && s.checkPlottable(xvar, yvar)) {
             // Append SVG group for this plot and draw the plot into it.
             var g = v.innergroup.append('g');
-            var x = (s[xvar][0] instanceof Array && !v.x.discrete) ?
-              s[xvar][s.xidx ? s.xidx : 0] : s[xvar];
-            if (s.hasOwnProperty('jitterX')) xs = jitter(x, xs, s.jitterX);
-            var y = (s[yvar][0] instanceof Array) ?
-              s[yvar][s.yidx ? s.yidx : 0] : s[yvar];
-            if (s.hasOwnProperty('jitterY')) ys = jitter(y, ys, s.jitterY);
+            var x = xvar ? ((s[xvar][0] instanceof Array && !v.x.discrete) ?
+                            s[xvar][s.xidx ? s.xidx : 0] : s[xvar]) : undefined;
+            if (s.hasOwnProperty('jitterX') && x) xs = jitter(x, xs, s.jitterX);
+            var y = yvar ? ((s[yvar][0] instanceof Array) ?
+                            s[yvar][s.yidx ? s.yidx : 0] : s[yvar]) : undefined;
+            if (s.hasOwnProperty('jitterY') && y) ys = jitter(y, ys, s.jitterY);
             s.draw(g, x, xs, y, ys, s, v.realwidth, v.realheight,
                    yvar == 'y2' ? 2 : 1);
             s.$on('$destroy', function() { g.remove(); });

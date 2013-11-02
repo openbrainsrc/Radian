@@ -537,3 +537,50 @@ radian.directive('area',
 }]);
 
 
+// Rug plots.
+
+radian.directive('rug',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s) {
+    var stroke = s.stroke || '#000';
+    var strokeWidth = s.strokeWidth || 1.0;
+    var strokeOpacity = s.strokeOpacity || 1.0;
+    var tickLength = Number(s.tickLength || 5);
+
+    // Plot points: plot attributes are either single values or arrays
+    // of values, one per point.
+    function sty(v) {
+      return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
+    };
+    var xrugs = [ ], yrugs = [ ], xr = xs.range(), yr = ys.range();
+    if (x) {
+      var y0 = ys.invert(yr[0]), y1 = ys.invert(yr[0] - tickLength);
+      xrugs = x.map(function(xval) { return [[xval, y0], [xval, y1]]; });
+    }
+    if (y) {
+      var x0 = xs.invert(xr[0]), x1 = xs.invert(xr[0] + tickLength);
+      yrugs = y.map(function(yval) { return [[x0, yval], [x1, yval]]; });
+    }
+    var rugs = xrugs.concat(yrugs);
+    svg.selectAll('path').data(rugs).enter().append('path')
+      .attr('class', 'line')
+      .style('stroke-width', sty(strokeWidth))
+      .style('stroke-opacity', sty(strokeOpacity))
+      .style('stroke', sty(stroke))
+      .attr('d', d3.svg.line()
+            .x(function (d, i) { return xs(d[0], i); })
+            .y(function (d, i) { return ys(d[1], i); }));
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      scope.checkPlottable = function(xvar, yvar) { return xvar || yvar; };
+      plotTypeLink(scope, elm, as, draw);
+    }
+  };
+}]);
