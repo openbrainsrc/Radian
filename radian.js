@@ -4525,12 +4525,14 @@ radian.directive('bars',
     var barMin = s.barMin || null;
     var barMax = s.barMax || null;
     var barWidth = s.barWidth || 1.0;
-    var pxBarWidth, pxWidth = false;
+    var pxBarWidth, pxWidth = false, pxSpacing = false;
     if (typeof barWidth == 'string' &&
         barWidth.trim().substr(-2,2) == 'px') {
       pxBarWidth =
         Number(barWidth.trim().substr(0, barWidth.trim().length - 2));
-      barWidth = xs.invert(pxBarWidth) - xs.invert(0);
+      if (pxBarWidth < 0) pxSpacing = true;
+      barWidth = xs.invert(Math.abs(pxBarWidth)) - xs.invert(0);
+      pxBarWidth = Math.abs(pxBarWidth);
       pxWidth = true;
     }
     var barOffset = s.barOffset || 0.0;
@@ -4578,6 +4580,16 @@ radian.directive('bars',
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
+    function bw(i) {
+      if (pxWidth) {
+        if (pxSpacing)
+          return xs.invert(xs(s.barWidths[i]) - xs(0) - pxBarWidth) -
+                 xs.invert(0);
+        else
+          return barWidth;
+      } else
+        return s.barWidths[i] * barWidth;
+    };
     var dat;
     if (barMin && barMax)
       dat = d3.zip(barMin, barMax, y);
@@ -4590,18 +4602,19 @@ radian.directive('bars',
         if (d.length == 3)
           return apSc(xs, d[0], i);
         else return d[0] instanceof Date ?
-          xs(new Date(d[0].valueOf() -
-                      (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
+          xs(new Date(d[0].valueOf() - bw(i) / 2.0 +
                       (pxOffset ? barOffset : s.barWidths[i] * barOffset)), i) :
-          xs(xs.oton(d[0]) -
-             (pxWidth ? barWidth : s.barWidths[i] * barWidth) / 2.0 +
+          xs(xs.oton(d[0]) - bw(i) / 2.0 +
              (pxOffset ? barOffset : s.barWidths[i] * barOffset), i);
       })
       .attr('y', function(d, i) { return ys(d[d.length-1], i); })
       .attr('width', function(d, i) {
-        if (pxWidth)
-          return pxBarWidth;
-        else if (d.length == 3)
+        if (pxWidth) {
+          if (pxSpacing)
+            return xs(s.barWidths[i]) - xs(0) - pxBarWidth;
+          else
+            return pxBarWidth;
+        } else if (d.length == 3)
           return apSc(xs, d[1], i) - apSc(xs, d[0], i);
         else
           return d[0] instanceof Date ?
