@@ -8,28 +8,27 @@
   rural #10520D; urban #505050
 </palette>
 
-<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0 stroke="none">
+<plot height=600 aspect=1.5 axis-x-label="off"
+      axis-y-label="Rate" stroke="none">
   <bars x="[[d1#sex]]" y="[[d1#rate]]" fill="[[mfpal(x)]]"
         aggregation="mean" bar-width=0.5></bars>
 </plot>
 
-<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0>
+<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate">
   <bars x="[[zip(d1#sex,d1#env)]]" y="[[d1#rate]]"
         aggregation="mean" bar-width=0.5 stroke-width=10
         stroke="[[urpal(x#1)]]" fill="[[mfpal(x#0)]]"></bars>
 </plot>
 
 <plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0 group-x="1">
+      group-x="1">
   <bars x="[[zip(d1#sex,d1#age)]]" y="[[d1#rate]]"
         aggregation="mean" bar-width=0.5 stroke-width=2
         fill="[[mfpal(x#0)]]"></bars>
 </plot>
 
 <plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0 group-x="1">
+      group-x="1">
   <bars x="[[zip(d1#age,d1#sex)]]" y="[[d1#rate]]"
         aggregation="mean" bar-width=0.5 stroke-width=2
         fill="[[mfpal(x#1)]]"></bars>

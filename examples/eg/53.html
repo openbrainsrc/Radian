@@ -1,6 +1,6 @@
 <h3>Example 53 (histograms #2)</h3>
 
-<plot height=300 aspect=2 range-y="0" axis-x-transform="log"
+<plot height=300 aspect=2 axis-x-transform="log"
       hist="[[histogram(abs(tstdata.x), {transform:'log',nbins:10})]]">
   <bars x="[[hist.centres]]" bar-min="[[hist.bins#0]]" bar-max="[[hist.bins#1]]"
         y="[[hist.freqs]]"></bars>

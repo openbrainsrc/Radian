@@ -567,6 +567,7 @@ radian.directive('plot',
     processRanges(scope, 'range2', 'rangeX2', 'rangeY2',
                   'fixedX2Range', 'x2extent', 'x2range',
                   'fixedY2Range', 'y2extent', 'y2range');
+    scope.$broadcast('setupRanges', scope);
     function simpleExt(a) {
       if (typeof a[0] == 'string')
         return [0.5, lib.unique(a).length + 0.5];
@@ -4654,6 +4655,12 @@ radian.directive('bars',
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.strokeWidth) || 1);
         scope.rangeExtendPixels([2*width, 2*width], null);
+      });
+      scope.$on('setupRanges', function(e, s) {
+        if (s.yrange) s.yrange[0] = 0;
+        else          s.yrange = [0, null];
+        if (s.y2range) s.y2range[0] = 0;
+        else           s.y2range = [0, null];
       });
       plotTypeLink(scope, elm, as, draw);
     }

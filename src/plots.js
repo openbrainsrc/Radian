@@ -299,6 +299,12 @@ radian.directive('bars',
           }) : (Number(scope.strokeWidth) || 1);
         scope.rangeExtendPixels([2*width, 2*width], null);
       });
+      scope.$on('setupRanges', function(e, s) {
+        if (s.yrange) s.yrange[0] = 0;
+        else          s.yrange = [0, null];
+        if (s.y2range) s.y2range[0] = 0;
+        else           s.y2range = [0, null];
+      });
       plotTypeLink(scope, elm, as, draw);
     }
   };

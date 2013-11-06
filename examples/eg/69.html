@@ -1,12 +1,12 @@
 <h3>Example 69 (UI in layout)</h3>
 
 <plot-row height=300 aspect=4>
-  <plot range-y="0" axis-x-transform="log"
+  <plot axis-x-transform="log"
         hist="[[histogram(abs(tstdata.x), {transform:'log',nbins:10})]]">
     <bars x="[[hist.centres]]" bar-min="[[hist.bins#0]]"
           bar-max="[[hist.bins#1]]" y="[[hist.freqs]]"></bars>
   </plot>
-  <plot range-y="0" hist="[[histogram(tstdata.x,nbins)]]"
+  <plot hist="[[histogram(tstdata.x,nbins)]]"
         ui-histogram-bins="nbins" ng-init="nbins=10">
     <bars x="[[hist.centres]]" y="[[hist.freqs]]"></bars>
   </plot>

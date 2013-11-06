@@ -565,6 +565,7 @@ radian.directive('plot',
     processRanges(scope, 'range2', 'rangeX2', 'rangeY2',
                   'fixedX2Range', 'x2extent', 'x2range',
                   'fixedY2Range', 'y2extent', 'y2range');
+    scope.$broadcast('setupRanges', scope);
     function simpleExt(a) {
       if (typeof a[0] == 'string')
         return [0.5, lib.unique(a).length + 0.5];

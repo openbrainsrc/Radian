@@ -1,7 +1,6 @@
 <h3>Example 54 (histograms #3)</h3>
 
-<plot height=300 aspect=2 range-y="0" stroke="black"
-      ext="[[extent(dat1.x,dat2.x)]]"
+<plot height=300 aspect=2 stroke="black" ext="[[extent(dat1.x,dat2.x)]]"
       h1="[[histogram(dat1.x,{binrange:ext,nbins:20})]]"
       h2="[[histogram(dat2.x,{binrange:ext,nbins:20})]]">
   <bars x="[[h1.centres]]" y="[[h1.freqs]]" fill="red"

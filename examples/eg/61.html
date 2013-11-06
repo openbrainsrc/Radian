@@ -12,26 +12,23 @@
 </palette>
 
 <plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0 axis-x-ticks="[[['Female','Male']]]">
+      axis-x-ticks="[[['Female','Male']]]">
   <bars x="[[d1#sex]]" y="[[d1#rate]]" fill="[[mfpal(d1#sex)]]"
         aggregation="mean"></bars>
 </plot>
 
-<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0>
+<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate">
   <bars x="[[zip(d1#sex,d1#env)]]" y="[[d1#rate]]"
         fill="[[comppal(d1#sex+':'+d1#env)]]" aggregation="mean"></bars>
 </plot>
 
-<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0 group-x="1">
+<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate" group-x="1">
   <bars x="[[zip(d1#sex,d1#age)]]" y="[[d1#rate]]"
         aggregation="mean" fill="[[mfpal(d1#sex)]]"
         axis-x-labels="[[d1#age]]"></bars>
 </plot>
 
-<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate"
-      range-y=0 group-x=1>
+<plot height=600 aspect=1.5 axis-x-label="off" axis-y-label="Rate" group-x=1>
   <bars x="[[zip(d1#age,d1#sex)]]" y="[[d1#rate]]"
         aggregation="mean" fill="[[mfpal(d1#sex)]]"></bars>
 </plot>
