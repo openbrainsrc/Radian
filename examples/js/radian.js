@@ -4583,7 +4583,7 @@ radian.directive('bars',
     function bw(i) {
       if (pxWidth) {
         if (pxSpacing)
-          return xs.invert(xs(s.barWidths[i]) - xs(0) - pxBarWidth) -
+          return xs.invert(xs(s.barWidths[0]) - xs(0) - pxBarWidth) -
                  xs.invert(0);
         else
           return barWidth;
@@ -4601,27 +4601,47 @@ radian.directive('bars',
       .attr('x', function(d, i) {
         if (d.length == 3)
           return apSc(xs, d[0], i);
-        else return d[0] instanceof Date ?
-          xs(new Date(d[0].valueOf() - bw(i) / 2.0 +
-                      (pxOffset ? barOffset : s.barWidths[i] * barOffset)), i) :
+        else if (pxWidth && pxSpacing) {
+          var xc = s.x[i];
+          var xb = i > 0 ? s.x[i-1] : xc / (s.x[i+1] / xc);
+          var xd = i < s.x.length - 1 ? s.x[i+1] : xc * (xc / s.x[i-1]);
+          var xhi = xc * Math.sqrt(xd / xc), xlo = xc * Math.sqrt(xb / xc);
+          var phi = xs(xhi), plo = xs(xlo);
+          return plo + pxBarWidth;
+        } else {
+          return d[0] instanceof Date ?
+            xs(new Date(d[0].valueOf() - bw(i) / 2.0 +
+                        (pxOffset ? barOffset :
+                         s.barWidths[i] * barOffset)), i) :
           xs(xs.oton(d[0]) - bw(i) / 2.0 +
              (pxOffset ? barOffset : s.barWidths[i] * barOffset), i);
+        }
       })
       .attr('y', function(d, i) { return ys(d[d.length-1], i); })
       .attr('width', function(d, i) {
+        var ret;
         if (pxWidth) {
-          if (pxSpacing)
-            return xs(s.barWidths[i]) - xs(0) - pxBarWidth;
-          else
-            return pxBarWidth;
+          if (pxSpacing) {
+            if (s.axisXTransform == 'log') {
+              var xc = s.x[i];
+              var xb = i > 0 ? s.x[i-1] : xc / (s.x[i+1] / xc);
+              var xd = i < s.x.length - 1 ? s.x[i+1] : xc * (xc / s.x[i-1]);
+              var xhi = xc * Math.sqrt(xd / xc), xlo = xc * Math.sqrt(xb / xc);
+              var phi = xs(xhi), plo = xs(xlo);
+              ret = phi - plo - pxBarWidth;
+            } else
+              ret = xs(s.barWidths[i]) - xs(0) - pxBarWidth;
+          } else
+            ret = pxBarWidth;
         } else if (d.length == 3)
-          return apSc(xs, d[1], i) - apSc(xs, d[0], i);
+          ret = apSc(xs, d[1], i) - apSc(xs, d[0], i);
         else
-          return d[0] instanceof Date ?
+          ret = d[0] instanceof Date ?
             xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0), i) -
             xs(new Date(d[0].valueOf() - s.barWidths[i] * barWidth / 2.0), i) :
             xs(xs.oton(d[0]) + s.barWidths[i] * barWidth / 2.0, i) -
             xs(xs.oton(d[0]) - s.barWidths[i] * barWidth / 2.0, i);
+        return ret;
       })
       .attr('height', function(d, i) { return h - ys(d[d.length-1]); })
       .style('fill', sty(fill))
