@@ -103,17 +103,28 @@ radian.directive('radianAxisSwitch', function()
     template:
     ['<div class="radian-axis-switch">',
        '<button class="btn btn-mini" ng-click="switchState()">',
-         '{{axisName}} axis &rArr; {{buttonState}}',
+         '{{axisName}} axis &rArr; {{labels[1-idx]}}',
        '</button>',
     '</div>'].join(''),
     replace: true,
     scope: true,
     link: function(scope, elm, as) {
       var axis = as.axis || 'y';
-      var state = scope[axis == 'y' ? 'axisYTransform' : 'axisXTransform'] ||
-        'linear';
+      var uiattr = axis == 'y' ? 'uiAxisYTransform' : 'uiAxisXTransform';
+      var attr = axis == 'y' ? 'axisYTransform' : 'axisXTransform';
+      var type = scope[uiattr] || 'log';
+      if (type != 'log' && type != 'from-zero')
+        throw Error("invalid UI axis switch type");
       scope.axisName = axis == 'y' ? 'Y' : 'X';
-      scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
+      if (type == 'log') {
+        scope.states = ['linear', 'log'];
+        scope.labels = ['Linear', 'Log'];
+      } else {
+        scope.states = ['linear', 'from-zero'];
+        scope.labels = ['Linear', 'Linear (from 0)'];
+      }
+      scope.state = scope[attr] || 'linear';
+      scope.idx = scope.state == 'linear' ? 0 : 1;
       scope.$on('setupExtraAfter', function() {
         var m = scope.views[0].margin;
         if (axis == 'y')
@@ -122,9 +133,9 @@ radian.directive('radianAxisSwitch', function()
           elm.css('bottom', (m.bottom+3)+'px').css('right', (m.right+3)+'px');
       });
       scope.switchState = function() {
-        state = state == 'linear' ? 'log' : 'linear';
-        scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
-        scope.$emit(axis == 'y' ? 'yAxisChange' : 'xAxisChange', state);
+        scope.idx = 1 - scope.idx;
+        scope.state = scope.states[scope.idx];
+        scope.$emit(axis == 'y' ? 'yAxisChange' : 'xAxisChange', scope.state);
       };
     }
   };

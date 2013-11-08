@@ -218,26 +218,53 @@ radian.directive('plot',
     function redraw() {
       scope.views.forEach(function(v) { draw(v, scope); });
     };
-    function reset() {
+    function reset(suppressProcessRanges) {
       scope.rangeXExtendPixels = [0, 0];
       scope.rangeYExtendPixels = [0, 0];
       scope.$broadcast('setupExtra');
       scope.views = viewgroups.map(function(grp, i) {
         grp.selectAll('.radian-plot').remove();
-        return setup(scope, grp, i, viewgroups.length);
+        return setup(scope, grp, i, viewgroups.length, suppressProcessRanges);
       });
       scope.$broadcast('setupExtraAfter');
       if (setupBrush) setupBrush();
       redraw();
     };
-    function yAxisSwitch(e, type) {
-      if (type) scope.axisYTransform = type;
-      redraw();
+    function handleAxisSwitch(axis, type) {
+      var uaxis = axis.toUpperCase(), laxis = axis.toLowerCase();
+      var xform = 'axis' + uaxis + 'Transform';
+      var rng = laxis + 'range';
+      var saverng = 'save' + uaxis + 'Range';
+      var doReset = false;
+      switch (type) {
+      case 'log':
+        scope[xform] = 'log';
+        break;
+      case 'from-zero':
+        scope[saverng] = angular.copy(scope.yrange);
+        if (scope[rng])
+          scope[rng][0] = 0;
+        else
+          scope[rng] = [0, null];
+        doReset = true;
+        break;
+      default:
+        scope[xform] = 'linear';
+        if (scope.hasOwnProperty(saverng)) {
+          scope[rng] = scope[saverng];
+          delete scope[saverng];
+          doReset = true;
+        }
+        break;
+      }
+      if (doReset)
+        reset(true);
+      else
+        redraw();
     }
-    function xAxisSwitch(e, type) {
-      if (type) scope.axisXTransform = type;
-      redraw();
-    }
+    function yAxisSwitch(e, type) { handleAxisSwitch('y', type); }
+    function xAxisSwitch(e, type) { handleAxisSwitch('x', type); }
+
     function init() {
       // Set up plot areas (including zoomers).
       var svgelm = d3.select(scope.svg);
@@ -549,7 +576,7 @@ radian.directive('plot',
     $(scope.uielems).mouseenter(uiOn).mouseleave(uiOff);
   };
 
-  function setup(scope, viewgroup, idx, nviews) {
+  function setup(scope, viewgroup, idx, nviews, suppressProcessRanges) {
     var plotgroup = viewgroup.append('g').classed('radian-plot', true);
     var v = { group: viewgroup, plotgroup: plotgroup };
     if (viewgroup.hasOwnProperty('zoomer'))
@@ -561,13 +588,15 @@ radian.directive('plot',
     // RANGE-X, RANGE-Y or RANGE (for X1 and Y1 axes) and RANGE-X2,
     // RANGE-Y2 or RANGE2 (for X2 and Y2 axes) attributes on the plot
     // element, or the union of the data ranges for all plots.
-    processRanges(scope, 'range', 'rangeX', 'rangeY',
-                  'fixedXRange', 'xextent', 'xrange',
-                  'fixedYRange', 'yextent', 'yrange');
-    processRanges(scope, 'range2', 'rangeX2', 'rangeY2',
-                  'fixedX2Range', 'x2extent', 'x2range',
-                  'fixedY2Range', 'y2extent', 'y2range');
-    scope.$broadcast('setupRanges', scope);
+    if (!suppressProcessRanges) {
+      processRanges(scope, 'range', 'rangeX', 'rangeY',
+                    'fixedXRange', 'xextent', 'xrange',
+                    'fixedYRange', 'yextent', 'yrange');
+      processRanges(scope, 'range2', 'rangeX2', 'rangeY2',
+                    'fixedX2Range', 'x2extent', 'x2range',
+                    'fixedY2Range', 'y2extent', 'y2range');
+      scope.$broadcast('setupRanges', scope);
+    }
     function simpleExt(a) {
       if (typeof a[0] == 'string')
         return [0.5, lib.unique(a).length + 0.5];
@@ -704,10 +733,8 @@ radian.directive('plot',
     if (!scope.fixedYRange && yexts.length > 0) {
       scope.yextent = d3.extent(yexts);
       if (scope.yrange) {
-        if (scope.yrange[0] != null)
-          scope.yextent[0] = Math.min(scope.yextent[0], scope.yrange[0]);
-        if (scope.yrange[1] != null)
-          scope.yextent[1] = Math.max(scope.yextent[1], scope.yrange[1]);
+        if (scope.yrange[0] != null) scope.yextent[0] = scope.yrange[0];
+        if (scope.yrange[1] != null) scope.yextent[1] = scope.yrange[1];
       }
       scope.yextent[0] -= yextend[0];
       scope.yextent[1] += yextend[1];
@@ -5694,22 +5721,28 @@ radian.directive('radianAxisSwitch', function()
     template:
     ['<div class="radian-axis-switch">',
        '<button class="btn btn-mini" ng-click="switchState()">',
-         '{{axisName}} axis &rArr; {{buttonState}}',
+         '{{axisName}} axis &rArr; {{labels[1-idx]}}',
        '</button>',
     '</div>'].join(''),
     replace: true,
     scope: true,
     link: function(scope, elm, as) {
       var axis = as.axis || 'y';
-      var state = scope[axis == 'y' ? 'axisYTransform' : 'axisXTransform'] ||
-        'linear';
-      console.log("radianAxisSwitch link");
-      console.log(as);
-      console.log(as.axis);
-      console.log(scope);
-      console.log(scope.axisYTransform);
+      var uiattr = axis == 'y' ? 'uiAxisYTransform' : 'uiAxisXTransform';
+      var attr = axis == 'y' ? 'axisYTransform' : 'axisXTransform';
+      var type = scope[uiattr] || 'log';
+      if (type != 'log' && type != 'from-zero')
+        throw Error("invalid UI axis switch type");
       scope.axisName = axis == 'y' ? 'Y' : 'X';
-      scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
+      if (type == 'log') {
+        scope.states = ['linear', 'log'];
+        scope.labels = ['Linear', 'Log'];
+      } else {
+        scope.states = ['linear', 'from-zero'];
+        scope.labels = ['Linear', 'Linear (from 0)'];
+      }
+      scope.state = scope[attr] || 'linear';
+      scope.idx = scope.state == 'linear' ? 0 : 1;
       scope.$on('setupExtraAfter', function() {
         var m = scope.views[0].margin;
         if (axis == 'y')
@@ -5718,9 +5751,9 @@ radian.directive('radianAxisSwitch', function()
           elm.css('bottom', (m.bottom+3)+'px').css('right', (m.right+3)+'px');
       });
       scope.switchState = function() {
-        state = state == 'linear' ? 'log' : 'linear';
-        scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
-        scope.$emit(axis == 'y' ? 'yAxisChange' : 'xAxisChange', state);
+        scope.idx = 1 - scope.idx;
+        scope.state = scope.states[scope.idx];
+        scope.$emit(axis == 'y' ? 'yAxisChange' : 'xAxisChange', scope.state);
       };
     }
   };
