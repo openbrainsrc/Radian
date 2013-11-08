@@ -55,3 +55,40 @@
     <lines y="[[sin(x)+cos(x)]]" stroke="[[['green',@P{grey:green}]]]"></lines>
   </plot>
 </plot-stack>
+
+
+<plot-stack width=600 aspect=1 stroke-width=2
+            x="[[seq(0,2*PI+0.2,101)]]" axis-x-label="Time"
+            axis-x-ticks="[[[0,[PI,'&pi;'],[2*PI,'2&pi;']]]]"
+            end-tick-size=0>
+  <plot-grid rows=2 cols=2 title="2 x 2">
+    <plot axis-y-label="sin(x)" stroke-switch="Fade">
+      <lines y="[[sin(x)]]" stroke="[[['red',@P{grey:red}]]]"></lines>
+    </plot>
+    <plot axis-y-label="cos(x)" stroke-switch="Fade">
+      <lines y="[[cos(x)]]" stroke="[[['blue',@P{grey:blue}]]]"></lines>
+    </plot>
+    <plot axis-y-label="cos(x)" stroke-switch="Fade">
+      <lines y="[[cos(x)]]" stroke="[[['blue',@P{grey:blue}]]]"></lines>
+    </plot>
+    <plot axis-y-label="sin(x)" stroke-switch="Fade">
+      <lines y="[[sin(x)]]" stroke="[[['red',@P{grey:red}]]]"></lines>
+    </plot>
+  </plot-grid>
+  <plot-row title="Hierarchical">
+    <plot-col layout-share=1>
+      <plot axis-y-label="sin(x)" stroke-switch="Fade">
+        <lines y="[[sin(x)]]" stroke="[[['red',@P{grey:red}]]]"></lines>
+      </plot>
+      <plot axis-y-label="sin(x)" stroke-switch="Fade">
+        <lines y="[[sin(x)]]" stroke="[[['red',@P{grey:red}]]]"></lines>
+      </plot>
+      <plot axis-y-label="sin(x)" stroke-switch="Fade">
+        <lines y="[[sin(x)]]" stroke="[[['red',@P{grey:red}]]]"></lines>
+      </plot>
+    </plot-col>
+    <plot layout-share=3 axis-y-label="cos(x)" stroke-switch="Fade">
+      <lines y="[[cos(x)]]" stroke="[[['blue',@P{grey:blue}]]]"></lines>
+    </plot>
+  </plot-row>
+</plot-stack>

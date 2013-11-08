@@ -4219,13 +4219,14 @@ radian.directive('plotGrid',
       if (!sc.inStack) calcPlotDimensions(sc, elm, as);
       $(elm).css('width', sc.width).css('height', sc.height);
       sc.layoutsvg = elm.children()[0];
-    } else
-      $(elm.children()[1]).remove();
+    }
     sc.layoutItems = [];
     transclude(sc.$new(), function (cl) { elm.append(cl); });
   };
 
   function postLink(sc, elm) {
+    if (sc.inLayout && !sc.hasOwnProperty('layoutTop'))
+      $(elm.children()[0]).remove();
     var nrows = sc.rows || Math.floor(Math.sqrt(sc.layoutItems.length));
     var ncols = sc.cols || Math.ceil(sc.layoutItems.length / nrows);
     var rows = [];
@@ -4249,6 +4250,8 @@ radian.directive('plotGrid',
       frames.forEach(function(fr) {
         fr.plot.width = fr.w;
         fr.plot.height = fr.h;
+        $(fr.plot.topelem).css('width', fr.w).css('height', fr.h).
+          css('top', fr.y).css('left', fr.x);
         fr.plot.svg = d3.select(sc.layoutsvg).append('g')
           .attr('width', fr.w).attr('height', fr.h)
           .attr('transform', 'translate(' + fr.x + ',' + fr.y + ')')[0][0];
@@ -4260,7 +4263,9 @@ radian.directive('plotGrid',
 
   return {
     restrict: 'E',
-    template: '<div class="radian"><svg></svg></div>',
+    template: '<div class="radian" style="top: 0px; left: 0px">' +
+                '<svg></svg>' +
+              '</div>',
     replace: true,
     transclude: true,
     scope: true,
@@ -4583,8 +4588,7 @@ radian.directive('bars',
     function bw(i) {
       if (pxWidth) {
         if (pxSpacing)
-          return xs.invert(xs(s.barWidths[0]) - xs(0) - pxBarWidth) -
-                 xs.invert(0);
+          return xs.invert(xs(s.barWidths[0]) - pxBarWidth);
         else
           return barWidth;
       } else
@@ -4601,7 +4605,7 @@ radian.directive('bars',
       .attr('x', function(d, i) {
         if (d.length == 3)
           return apSc(xs, d[0], i);
-        else if (pxWidth && pxSpacing) {
+        else if (pxWidth && pxSpacing && s.axisXTransform == 'log') {
           var xc = s.x[i];
           var xb = i > 0 ? s.x[i-1] : xc / (s.x[i+1] / xc);
           var xd = i < s.x.length - 1 ? s.x[i+1] : xc * (xc / s.x[i-1]);

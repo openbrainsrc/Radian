@@ -226,8 +226,7 @@ radian.directive('bars',
     function bw(i) {
       if (pxWidth) {
         if (pxSpacing)
-          return xs.invert(xs(s.barWidths[0]) - xs(0) - pxBarWidth) -
-                 xs.invert(0);
+          return xs.invert(xs(s.barWidths[0]) - pxBarWidth);
         else
           return barWidth;
       } else
@@ -244,7 +243,7 @@ radian.directive('bars',
       .attr('x', function(d, i) {
         if (d.length == 3)
           return apSc(xs, d[0], i);
-        else if (pxWidth && pxSpacing) {
+        else if (pxWidth && pxSpacing && s.axisXTransform == 'log') {
           var xc = s.x[i];
           var xb = i > 0 ? s.x[i-1] : xc / (s.x[i+1] / xc);
           var xd = i < s.x.length - 1 ? s.x[i+1] : xc * (xc / s.x[i-1]);
