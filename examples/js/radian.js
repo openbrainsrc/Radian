@@ -5701,7 +5701,13 @@ radian.directive('radianAxisSwitch', function()
     scope: true,
     link: function(scope, elm, as) {
       var axis = as.axis || 'y';
-      var state = scope.axisYTransform || 'linear';
+      var state = scope[axis == 'y' ? 'axisYTransform' : 'axisXTransform'] ||
+        'linear';
+      console.log("radianAxisSwitch link");
+      console.log(as);
+      console.log(as.axis);
+      console.log(scope);
+      console.log(scope.axisYTransform);
       scope.axisName = axis == 'y' ? 'Y' : 'X';
       scope.buttonState = state == 'linear' ? 'Log' : 'Linear';
       scope.$on('setupExtraAfter', function() {
