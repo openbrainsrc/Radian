@@ -5376,14 +5376,20 @@ radian.factory('plotLib', function()
 
     // Coordinate transforms: forwards.
     function idfn(x) { return x; }
-    var hxs = xs, xform = null;
+    var hxs = xs, xform = null, xformname = null;
     if (opts.hasOwnProperty('transform')) {
       xform = opts.transform;
       if (typeof xform == 'string') {
         switch (xform) {
-          case 'linear': xform = [idfn, idfn];          break;
-          case 'log':    xform = [Math.log, Math.exp];  break;
-          default: throw Error("unknown coordinate transform in histogram");
+        case 'linear':
+          xform = [idfn, idfn];
+          xformname = 'linear';
+          break;
+        case 'log':
+          xform = [Math.log, Math.exp];
+          xformname = 'log';
+          break;
+        default: throw Error("unknown coordinate transform in histogram");
         }
       }
       if (!(xform instanceof Array && xform.length == 2))
@@ -5393,7 +5399,13 @@ radian.factory('plotLib', function()
 
     // Bin width calculations.  Performed in transformed coordinates.
     var rng = d3.extent(hxs);
-    if (opts.hasOwnProperty('binrange')) rng = opts.binrange;
+    if (opts.hasOwnProperty('binrange')) {
+      rng = angular.copy(opts.binrange);
+      if (xformname == 'log') {
+        rng[0] = Math.log(rng[0]);
+        rng[1] = Math.log(rng[1]);
+      }
+    }
     var binwidth = null, nbins = null;
     if (opts.hasOwnProperty('nbins')) {
       nbins = opts.nbins;
