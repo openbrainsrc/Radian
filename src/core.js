@@ -241,7 +241,7 @@ radian.directive('plot',
       switch (type) {
       case 'linear': scope[xform] = 'linear'; break;
       case 'log':    scope[xform] = 'log';    break;
-      case 'from-zero':
+      case 'linear-0':
         scope[xform] = 'linear';
         scope[saverng] = angular.copy(scope[rng]);
         if (scope[rng])
@@ -598,6 +598,22 @@ radian.directive('plot',
       processRanges(scope, 'range2', 'rangeX2', 'rangeY2',
                     'fixedX2Range', 'x2extent', 'x2range',
                     'fixedY2Range', 'y2extent', 'y2range');
+      if (scope.axisYTransform == 'linear-0') {
+        if (!scope.hasOwnProperty('saveYRange'))
+          scope.saveYRange = angular.copy(scope.yrange);
+        if (scope.yrange)
+          scope.yrange[0] = 0;
+        else
+          scope.yrange = [0, null];
+      }
+      if (scope.axisXTransform == 'linear-0') {
+        if (!scope.hasOwnProperty('saveXRange'))
+          scope.saveXRange = angular.copy(scope.xrange);
+        if (scope.xrange)
+          scope.xrange[0] = 0;
+        else
+          scope.xrange = [0, null];
+      }
       scope.$broadcast('setupRanges', scope);
     }
     function simpleExt(a) {
@@ -781,8 +797,6 @@ radian.directive('plot',
                  bottom: +scope.bottomMargin || 2,
                  left: +scope.leftMargin || 2 };
     v.margin.top += 0.5 * scope.fontSize;
-    var xAxisTransform = scope.axisXTransform || "linear";
-    var yAxisTransform = scope.axisYTransform || "linear";
     v.title = scope.title;
 
     // Set up top and bottom plot margins.

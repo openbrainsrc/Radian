@@ -118,13 +118,13 @@ radian.directive('radianAxisSwitch', function()
       if (scope.states.length == 1 && scope.states[0] != 'linear')
         scope.states.unshift('linear');
       for (var i = 0; i < scope.states.length; ++i)
-        if (['linear', 'log', 'from-zero'].indexOf(scope.states[i]) < 0)
+        if (['linear', 'log', 'linear-0'].indexOf(scope.states[i]) < 0)
           throw Error("invalid UI axis switch type");
       function setLabel() {
         switch (scope.states[(scope.idx + 1) % scope.states.length]) {
-        case 'linear':    scope.label = 'Linear';           break;
-        case 'log':       scope.label = 'Log';              break;
-        case 'from-zero': scope.label = 'Linear (from 0)';  break;
+        case 'linear':   scope.label = 'Linear';           break;
+        case 'log':      scope.label = 'Log';              break;
+        case 'linear-0': scope.label = 'Linear (from 0)';  break;
         }
       };
       scope.state = scope[attr] || scope.states[0];
