@@ -1,0 +1,7 @@
+<h3>Example 76 (axis transformations)</h3>
+
+<plot height=300 aspect=3 stroke-width=1 zoom-x
+      ui-axis-y-transform="linear,log,from-zero"
+      ui-axis-x-transform="linear,log,from-zero">
+  <lines x="[[seq(0.2,1,1001)]]" y="[[1.5 + sin(1/x)]]" stroke="red"/>
+</plot>

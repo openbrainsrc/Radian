@@ -231,17 +231,21 @@ radian.directive('plot',
       redraw();
     };
     function handleAxisSwitch(axis, type) {
-      var uaxis = axis.toUpperCase(), laxis = axis.toLowerCase();
-      var xform = 'axis' + uaxis + 'Transform';
-      var rng = laxis + 'range';
-      var saverng = 'save' + uaxis + 'Range';
+      var xform = 'axis' + axis.toUpperCase() + 'Transform';
+      var rng = axis.toLowerCase() + 'range';
+      var saverng = 'save' + axis.toUpperCase() + 'Range';
       var doReset = false;
+      if (scope.hasOwnProperty(saverng)) {
+        scope[rng] = scope[saverng];
+        delete scope[saverng];
+        doReset = true;
+      }
       switch (type) {
-      case 'log':
-        scope[xform] = 'log';
-        break;
+      case 'linear': scope[xform] = 'linear'; break;
+      case 'log':    scope[xform] = 'log';    break;
       case 'from-zero':
-        scope[saverng] = angular.copy(scope.yrange);
+        scope[xform] = 'linear';
+        scope[saverng] = angular.copy(scope[rng]);
         if (scope[rng])
           scope[rng][0] = 0;
         else
@@ -249,18 +253,11 @@ radian.directive('plot',
         doReset = true;
         break;
       default:
-        scope[xform] = 'linear';
-        if (scope.hasOwnProperty(saverng)) {
-          scope[rng] = scope[saverng];
-          delete scope[saverng];
-          doReset = true;
-        }
-        break;
+        throw Error("invalid axis type transition");
       }
-      if (doReset)
-        reset(true);
-      else
-        redraw();
+      // Just do a reset if the plot range has changed.  Otherwise
+      // redraw is triggered by the axis?Transform watcher.
+      if (doReset) reset(true);
     }
     function yAxisSwitch(e, type) { handleAxisSwitch('y', type); }
     function xAxisSwitch(e, type) { handleAxisSwitch('x', type); }
@@ -332,6 +329,14 @@ radian.directive('plot',
         scope.$on('yAxisChange', yAxisSwitch);
       if (scope.hasOwnProperty('uiAxisXTransform'))
         scope.$on('xAxisChange', xAxisSwitch);
+      scope.$watch('axisYTransform', function(n, o) {
+        if (n == undefined || n == o) return;
+        reset();
+      });
+      scope.$watch('axisXTransform', function(n, o) {
+        if (n == undefined || n == o) return;
+        reset();
+      });
 
       // Register plot data change handlers.
       scope.$on('paintChange', redraw);
@@ -797,17 +802,6 @@ radian.directive('plot',
     // Set up D3 Y data ranges.
     if (scope.yextent) makeYScaler(scope, v);
     if (scope.y2extent) makeY2Scaler(scope, v);
-//    if (scope.hasOwnProperty("axisYTransform") && !scope.watchYTransform)
-    if (!scope.watchYTransform)
-      scope.watchYTransform = scope.$watch('axisYTransform', function(n, o) {
-        if (n == undefined || n == yAxisTransform) return;
-        yAxisTransform = n || "linear";
-        scope.views.forEach(function(v) {
-          makeYScaler(scope, v);
-          if (scope.y2) makeY2Scaler(scope, v);
-          draw(v, scope);
-        });
-      });
 
     // Set up left and right plot margins.
     var yoffset = del3, y2offset = del3;
@@ -816,7 +810,7 @@ radian.directive('plot',
       var fmt = scope.axisYFormat ? d3.format(scope.axisYFormat) : null;
       var nticks =
         scope.axisYTicks ? scope.axisYTicks : v.group.attr('height') / 36;
-      var fmtfn = tmp.tickFormat(nticks, fmt);
+      var fmtfn = fmt ? tmp.tickFormat(nticks, fmt) : tmp.tickFormat(nticks);
       var tst = '';
       tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
         if (s.length > tst.length) tst = s;
@@ -833,7 +827,7 @@ radian.directive('plot',
       var fmt = scope.axisY2Format ? d3.format(scope.axisY2Format) : null;
       var nticks =
         scope.axisY2Ticks ? scope.axisY2Ticks : v.group.attr('height') / 36;
-      var fmtfn = tmp.tickFormat(nticks, fmt);
+      var fmtfn = fmt ? tmp.tickFormat(nticks, fmt) : tmp.tickFormat(nticks);
       var tst = '';
       tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
         if (s.length > tst.length) tst = s;
@@ -855,17 +849,6 @@ radian.directive('plot',
     // Set up D3 X data ranges.
     if (scope.xextent) makeXScaler(scope, v, hasdate, discx, discorder);
     if (scope.x2extent) makeX2Scaler(scope, v, hasdate2, discx2, discorder2);
-//    if (scope.hasOwnProperty("axisXTransform") && !scope.watchXTransform)
-    if (!scope.watchXTransform)
-      scope.watchXTransform = scope.$watch('axisXTransform', function(n, o) {
-        if (n == undefined || n == xAxisTransform) return;
-        xAxisTransform = n || "linear";
-        scope.views.forEach(function(v) {
-          makeXScaler(scope, v, hasdate);
-          if (scope.x2) makeX2Scaler(scope, v, hasdate2);
-          draw(v, scope);
-        });
-      });
 
     // Figure out axis labels.
     function axisLabel(labelText, v, idxvar, selectvar, def) {
@@ -5733,28 +5716,33 @@ radian.directive('radianAxisSwitch', function()
     template:
     ['<div class="radian-axis-switch">',
        '<button class="btn btn-mini" ng-click="switchState()">',
-         '{{axisName}} axis &rArr; {{labels[1-idx]}}',
+         '{{axisName}} axis &rArr; {{label}}',
        '</button>',
     '</div>'].join(''),
     replace: true,
     scope: true,
     link: function(scope, elm, as) {
       var axis = as.axis || 'y';
+      scope.axisName = axis == 'y' ? 'Y' : 'X';
       var uiattr = axis == 'y' ? 'uiAxisYTransform' : 'uiAxisXTransform';
       var attr = axis == 'y' ? 'axisYTransform' : 'axisXTransform';
       var type = scope[uiattr] || 'log';
-      if (type != 'log' && type != 'from-zero')
-        throw Error("invalid UI axis switch type");
-      scope.axisName = axis == 'y' ? 'Y' : 'X';
-      if (type == 'log') {
-        scope.states = ['linear', 'log'];
-        scope.labels = ['Linear', 'Log'];
-      } else {
-        scope.states = ['linear', 'from-zero'];
-        scope.labels = ['Linear', 'Linear (from 0)'];
-      }
-      scope.state = scope[attr] || 'linear';
-      scope.idx = scope.state == 'linear' ? 0 : 1;
+      scope.states = type.split(/,/);
+      if (scope.states.length == 1 && scope.states[0] != 'linear')
+        scope.states.unshift('linear');
+      for (var i = 0; i < scope.states.length; ++i)
+        if (['linear', 'log', 'from-zero'].indexOf(scope.states[i]) < 0)
+          throw Error("invalid UI axis switch type");
+      function setLabel() {
+        switch (scope.states[(scope.idx + 1) % scope.states.length]) {
+        case 'linear':    scope.label = 'Linear';           break;
+        case 'log':       scope.label = 'Log';              break;
+        case 'from-zero': scope.label = 'Linear (from 0)';  break;
+        }
+      };
+      scope.state = scope[attr] || scope.states[0];
+      scope.idx = Math.max(0, scope.states.indexOf(scope.state));
+      setLabel();
       scope.$on('setupExtraAfter', function() {
         var m = scope.views[0].margin;
         if (axis == 'y')
@@ -5763,8 +5751,9 @@ radian.directive('radianAxisSwitch', function()
           elm.css('bottom', (m.bottom+3)+'px').css('right', (m.right+3)+'px');
       });
       scope.switchState = function() {
-        scope.idx = 1 - scope.idx;
+        scope.idx = (scope.idx + 1) % scope.states.length;
         scope.state = scope.states[scope.idx];
+        setLabel();
         scope.$emit(axis == 'y' ? 'yAxisChange' : 'xAxisChange', scope.state);
       };
     }

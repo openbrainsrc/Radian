@@ -103,28 +103,33 @@ radian.directive('radianAxisSwitch', function()
     template:
     ['<div class="radian-axis-switch">',
        '<button class="btn btn-mini" ng-click="switchState()">',
-         '{{axisName}} axis &rArr; {{labels[1-idx]}}',
+         '{{axisName}} axis &rArr; {{label}}',
        '</button>',
     '</div>'].join(''),
     replace: true,
     scope: true,
     link: function(scope, elm, as) {
       var axis = as.axis || 'y';
+      scope.axisName = axis == 'y' ? 'Y' : 'X';
       var uiattr = axis == 'y' ? 'uiAxisYTransform' : 'uiAxisXTransform';
       var attr = axis == 'y' ? 'axisYTransform' : 'axisXTransform';
       var type = scope[uiattr] || 'log';
-      if (type != 'log' && type != 'from-zero')
-        throw Error("invalid UI axis switch type");
-      scope.axisName = axis == 'y' ? 'Y' : 'X';
-      if (type == 'log') {
-        scope.states = ['linear', 'log'];
-        scope.labels = ['Linear', 'Log'];
-      } else {
-        scope.states = ['linear', 'from-zero'];
-        scope.labels = ['Linear', 'Linear (from 0)'];
-      }
-      scope.state = scope[attr] || 'linear';
-      scope.idx = scope.state == 'linear' ? 0 : 1;
+      scope.states = type.split(/,/);
+      if (scope.states.length == 1 && scope.states[0] != 'linear')
+        scope.states.unshift('linear');
+      for (var i = 0; i < scope.states.length; ++i)
+        if (['linear', 'log', 'from-zero'].indexOf(scope.states[i]) < 0)
+          throw Error("invalid UI axis switch type");
+      function setLabel() {
+        switch (scope.states[(scope.idx + 1) % scope.states.length]) {
+        case 'linear':    scope.label = 'Linear';           break;
+        case 'log':       scope.label = 'Log';              break;
+        case 'from-zero': scope.label = 'Linear (from 0)';  break;
+        }
+      };
+      scope.state = scope[attr] || scope.states[0];
+      scope.idx = Math.max(0, scope.states.indexOf(scope.state));
+      setLabel();
       scope.$on('setupExtraAfter', function() {
         var m = scope.views[0].margin;
         if (axis == 'y')
@@ -133,8 +138,9 @@ radian.directive('radianAxisSwitch', function()
           elm.css('bottom', (m.bottom+3)+'px').css('right', (m.right+3)+'px');
       });
       scope.switchState = function() {
-        scope.idx = 1 - scope.idx;
+        scope.idx = (scope.idx + 1) % scope.states.length;
         scope.state = scope.states[scope.idx];
+        setLabel();
         scope.$emit(axis == 'y' ? 'yAxisChange' : 'xAxisChange', scope.state);
       };
     }
