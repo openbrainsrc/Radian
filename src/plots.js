@@ -523,7 +523,7 @@ radian.directive('boxes',
           scope.strokeWidth.reduce(function(x,y) {
             return Math.max(Number(x), Number(y));
           }) : (Number(scope.strokeWidth) || 1);
-        scope.rangeExtendPixels([2*width, 2*width], null);
+        scope.rangeExtendPixels([2*width, 2*width], [20, 20]);
       });
       plotTypeLink(scope, elm, as, draw);
     }

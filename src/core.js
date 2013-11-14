@@ -84,8 +84,19 @@ radian.factory('calcPlotDimensions', function() {
   return function(scope, elm, as) {
     var h = 300, asp = 1.618, w = asp * h;
     var aw = as.width, ah = as.height, aasp = as.aspect;
+    var pw = elm.parent().width(), ph = elm.parent().height();
     var cw = elm.width(), ch = elm.height();
     var casp = elm.css('aspect') ? parseFloat(elm.css('aspect')) : null;
+    if (aw) {
+      var aws = aw.toString();
+      if (aws.charAt(aws.length - 1) == '%')
+        aw = pw * Number(aws.slice(0, aws.length - 1)) / 100;
+    }
+    if (ah) {
+      var ahs = ah.toString();
+      if (ahs.charAt(ahs.length - 1) == '%')
+        ah = ph * Number(ahs.slice(0, ahs.length - 1)) / 100;
+    }
     if (aw && ah && aasp || ah && aw) { h = ah; w = aw; asp = w / h; }
     else if (ah && aasp) { h = ah; asp = aasp; w = h * asp; }
     else if (aw && aasp) { w = aw; asp = aasp; h = w / asp; }
@@ -110,7 +121,7 @@ radian.factory('calcPlotDimensions', function() {
     else if (ch) { h = ch; w = h * asp; }
     else if (cw) { w = cw; h = w / asp; }
     else if (casp) { asp = casp; h = w / asp; }
-    scope.width = Number(w); scope.height = Number(h);
+    scope.pxwidth = Number(w); scope.pxheight = Number(h);
   };
 });
 
@@ -137,10 +148,11 @@ radian.directive('plot',
     scope.plotid = ++plotidgen;
     scope.topelem = elm;
     scope.uielems = elm.children()[1];
+    scope.sizeAttrs = { width: as.width, height: as.height, aspect: as.aspect };
     if (!scope.inLayout) {
       scope.layoutTop = true;
-      if (!scope.inStack) calcPlotDimensions(scope, elm, as)
-      $(elm).css('width', scope.width).css('height', scope.height);
+      if (!scope.inStack) calcPlotDimensions(scope, elm, scope.sizeAttrs)
+      $(elm).css('width', scope.pxwidth).css('height', scope.pxheight);
       scope.topLevel = elm[0];
       scope.svg = elm.children()[0];
     }
@@ -201,6 +213,7 @@ radian.directive('plot',
   // elements are linked.
   function postLink(scope, elm) {
     if (scope.inLayout) $(elm.children()[0]).remove();
+    $(window).resize(function () { windowResize(scope, elm); });
     var viewgroups = [];
     var setupBrush = null;
     scope.rangeExtendPixels = function(x, y) {
@@ -260,14 +273,26 @@ radian.directive('plot',
     function yAxisSwitch(e, type) { handleAxisSwitch('y', type); }
     function xAxisSwitch(e, type) { handleAxisSwitch('x', type); }
 
-    function init() {
+    function windowResize(scope, elm) {
+      calcPlotDimensions(scope, elm, scope.sizeAttrs);
+      init(false);
+      reset();
+    };
+
+    function init(first) {
       // Set up plot areas (including zoomers).
       var svgelm = d3.select(scope.svg);
-      svgelm.attr('width', scope.width).attr('height', scope.height);
-      var mainviewgroup = svgelm.append('g')
-        .attr('width', scope.width).attr('height', scope.height);
-      $(scope.uielems).width(scope.width + 'px').height(scope.height + 'px');
-      viewgroups = [mainviewgroup];
+      svgelm.attr('width', scope.pxwidth).attr('height', scope.pxheight);
+      var mainviewgroup;
+      if (first)
+        mainviewgroup = svgelm.append('g');
+      else
+        mainviewgroup = viewgroups[0];
+      mainviewgroup.attr('width', scope.pxwidth).attr('height', scope.pxheight);
+      $(scope.uielems)
+        .width(scope.pxwidth + 'px')
+        .height(scope.pxheight + 'px');
+      if (first) viewgroups = [mainviewgroup];
       if (!scope.sizeviewgroup) {
         var s = scope;
         if (scope.inStack)
@@ -278,15 +303,19 @@ radian.directive('plot',
       if (scope.hasOwnProperty('zoomX')) {
         var zfrac = scope.zoomX == "" ? 0.2 : +scope.zoomX;
         zfrac = Math.min(0.95, Math.max(0.05, zfrac));
-        var zoomHeight = (scope.height - 6) * zfrac;
-        var mainHeight = (scope.height - 6) * (1 - zfrac);
-        var zoomviewgroup = svgelm.append('g').classed('radian-zoom-x', true)
-          .attr('transform', 'translate(0,' + (mainHeight + 6) + ')')
-          .attr('width', scope.width).attr('height', zoomHeight);
-        zoomviewgroup.zoomer = true;
-        viewgroups.push(zoomviewgroup);
+        var zoomHeight = (scope.pxheight - 6) * zfrac;
+        var mainHeight = (scope.pxheight - 6) * (1 - zfrac);
+        var zoomviewgroup;
+        if (first) {
+          zoomviewgroup = svgelm.append('g').classed('radian-zoom-x', true);
+          zoomviewgroup.zoomer = true;
+          viewgroups.push(zoomviewgroup);
+        } else
+          zoomviewgroup = viewgroups[1];
+        zoomviewgroup.attr('transform', 'translate(0,' + (mainHeight + 6) + ')')
+          .attr('width', scope.pxwidth).attr('height', zoomHeight);
         mainviewgroup.attr('height', mainHeight);
-        $(scope.uielems).width(scope.width + 'px').height(mainHeight + 'px');
+        $(scope.uielems).width(scope.pxwidth + 'px').height(mainHeight + 'px');
 
         setupBrush = function() {
           var brush = d3.svg.brush().x(scope.views[1].x);
@@ -296,12 +325,13 @@ radian.directive('plot',
             draw(scope.views[0], scope);
           });
           scope.views[1].post = function(svg) {
-            svg.append('g')
-              .attr('class', 'x brush')
-              .call(brush)
-              .selectAll('rect')
-              .attr('y', -6)
-              .attr('height', scope.views[1].realheight + 7);
+            if (first)
+              scope.brushgroup = svg.append('g')
+                .attr('class', 'x brush')
+                .call(brush)
+                .selectAll('rect')
+                .attr('y', -6);
+            scope.brushgroup.attr('height', scope.views[1].realheight + 7);
           }
         };
       }
@@ -321,7 +351,7 @@ radian.directive('plot',
 
     $timeout(function() {
       // Draw plots and legend.
-      init();
+      init(true);
       reset();
       if (scope.hasOwnProperty('uiAxisYTransform'))
         scope.$on('yAxisChange', yAxisSwitch);
@@ -355,7 +385,6 @@ radian.directive('plot',
     // ===> TODO: "layer" visibility
     // ===> TODO: styling changes
   };
-
 
   function processRanges(scope, rangea, rangexa, rangeya,
                          fixedxrv, xextv, xrngv,
