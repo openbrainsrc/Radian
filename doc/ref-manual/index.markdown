@@ -32,6 +32,7 @@ for easy server-side rendering of plots.</span>
 ### [3. Palettes and interpolators](03-palettes-and-interpolators.html)
 ### [4. User interface features](04-user-interface-features.html)
 ### [5. Plot layout directives](05-plot-layout-directives.html)
+### [6. The Radian plotting library](06-radian-plotting-library.html)
 ### [Appendix. Reserved names](A-reserved-names.html)
 
 <hr>

@@ -24,6 +24,7 @@ values from page UI elements or other sources.
 |`COLS`     | |Column names for CSV data|
 |`SEPARATOR`| |Separator character for columns in CSV data (defaults to ",")|
 |`SRC`      | |URL for data source|
+|`NG-MODEL` | |Angular data binding attribute|
 
 ### Body
 
@@ -46,14 +47,20 @@ with `ng-repeat`).  The `<plot-data>` element does not create a scope
 of its own.  For CSV data, if no `COLS` attribute is given, the column
 names are taken from the first line of the data.
 
-When data is loaded from a URL, the semantics of the `<plot-data>`
-directive are identical to the case where the data is included
-directly in the directive body (except for possible rendering issues
-if the data download takes a long time: you may see warnings from the
-`radianEval` function in the browser console when Radian attempts to
-plot the empty data set before the data has arrived -- these warnings
-are harmless, and the plots are re-rendered when the data download is
-complete).
+When data is loaded from a URL using the `SRC` attribute, the
+semantics of the `<plot-data>` directive are identical to the case
+where the data is included directly in the directive body (except for
+possible rendering issues if the data download takes a long time: you
+may see warnings from the `radianEval` function in the browser console
+when Radian attempts to plot the empty data set before the data has
+arrived -- these warnings are harmless, and the plots are re-rendered
+when the data download is complete).  Replotting is triggered if the
+`SRC` attribute changes, so that an expression can be used to load
+data from different sources specified by an expression.
+
+Alternatively, the data for plotting can be bound directly to an
+Angular scope variable by using the `NG-MODEL` attribute.  This works
+as it does for other Angular directives.
 
 ### Examples
 
@@ -93,15 +100,16 @@ may appear within a `<plot-data>` directive, up to one per data field.
 
 ### Attributes
 
-|Name               |Description                                                                                                                        |
-|-------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-|`NAME`             |Refers to a data field name in the enclosing`<plot-data>` directive (mandatory)                                                    |
+|Name               |Description |
+|-------------------|------------|
+|`NAME`             |Refers to a data field name in the enclosing`<plot-data>` directive (mandatory)|
 |`FORMAT`           |Absent or `date` (specifies dates either using flexible parsing or in restricted format given by the `DATE-PARSE-FORMAT` attribute)|
-|`DATE-PARSE-FORMAT`|`strftime()`-like date parsing format (or `isodate` to specify dates in strict ISO 8601 format)                                    |
-|`DATE-FORMAT`      |Date output format for plot axes                                                                                                   |
-|`LABEL`            |Axis/legend label for the named data field                                                                                         |
-|`UNITS`            |Units for the named field                                                                                                          |
-|`ERROR-FOR`        |Names another data field for which this field is an uncertainty/error value                                                        |
+|`DATE-PARSE-FORMAT`|`strftime()`-like date parsing format (or `isodate` to specify dates in strict ISO 8601 format)|
+|`DATE-FORMAT`      |Date output format for plot axes|
+|`LABEL`            |Axis/legend label for the named data field|
+|`UNITS`            |Units for the named field|
+|`ERROR-FOR`        |Names another data field for which this field is an uncertainty/error value|
+|`CATEGORY-ORDER`   |Semicolon-separated list of categorical values, specifying an ordering to be used for plotting.|
 
 ### Body
 
@@ -225,7 +233,7 @@ The following names are in scope within data accessor expressions:
   in inner scopes).
 
 * The "Radian library" functions and constants defined
-  [here](#std-fns).
+  [here](06-radian-plotting-library.html).
 
 What this means is that it is possible to pass data values around
 using attributes with meaningful names.  We implicitly bring data set
@@ -257,105 +265,6 @@ for instance using `ng-model` may be used within Radian expressions.
 The Radian expression parsing infrastructure interacts correctly with
 Angular data binding so that plots are regenerated when Angular
 expressions within Radian expressions change.
-
-### <a name="std-fns">Standard functions</a>
-
-#### JavaScript standard functions
-
-The following constants and functions from the `Math.xxx` JavaScript
-scope are brought into scope within data accessor expressions
-(i.e. one can write "`sin(x)`" instead of "`Math.sin(x)`"): `E`,
-`LN10`, `LN2`, `LOG10E`, `LOG2E`, `PI`, `SQRT1_2`, `SQRT2`, `abs`,
-`acos`, `asin`, `atan`, `atan2`, `ceil`, `cos`, `exp`, `floor`, `log`,
-`pow`, `round`, `sin`, `sqrt`, `tan`.
-
-#### D3 functions
-
-The following functions from the `d3.xxx` JavaScript scope are brought
-into scope within data accessor expressions (i.e. one can write
-"`extent(x)`" instead of "`d3.extent(x)`"): `min`, `max`, `extent`,
-`sum`, `mean`, `median`, `quantile`, `zip`.  (In fact, `extent` in
-Radian expressions is a variadic function: passing multiple arrays to
-`extent` will find the union of their ranges.)
-
-#### Extra functions
-
-`seq`, `seqStep`: Generate evenly spaced sequences of values:
-`seq(start, end, n)` produces a sequence of `n` values ranging from
-`start` to `end`, while `seqStep(start, end, delta)` produces a
-sequence from `start` to `end` in steps of `delta`.
-
-`sdev`: Calculate the sample standard deviation of an array.
-
-`unique`: Return the unique entries in an array in the order that they
-first appear.
-
-`minBy`, `maxBy`, `sumBy`, `meanBy`, `sdevBy`: Calculate categorical
-sums, means and standard deviations of data sets: `sumBy(x, y)`
-calculates the sum of `x` values for each distinct value of `y`,
-returning an array of results in the order of occurrence of the
-distinct values in `y`.  For example, given a dataset `d` containing
-daily temperature data with associated dates, `meanBy(d#temp,
-d#date#mon)` calculates a monthy seasonal cycle of temperatures.
-
-`normal`: Normal distribution function: `normal(x, mu, sigma)` gives
-the value of the normal PDF with mean `mu` and standard deviation
-`sigma` at ordinate `x`.
-
-`lognormal`: Log-normal distribution function: `lognormal(x, mu,
-sigma)` gives the value of the log-normal PDF with mean `mu` and
-standard deviation `sigma` at ordinate `x`.
-
-`gamma`: Gamma distribution function: `gamma(x, k, theta)` gives the
-value of the gamma PDF with shape parameter `k` and scale parameter
-`theta` at ordinate `x`.
-
-`invgamma`: Inverse gamma distribution function: `invgamma(x, alpha,
-beta)` gives the value of the inverse gamma PDF with shape parameter
-`alpha` and scale parameter `beta` at ordinate `x`.
-
-#### Histogramming
-
-The Radian plotting library also contains a `histogram` function for
-histogram binning calculations.  This is called either as
-`histogram(xs, nbins)` with `nbins` an integer count of the number of
-bins to use, or as `histogram(xs, opts)` with `opts` an object with
-some of the following fields:
-
-* `transform`: either a string (one of `linear` or `log`) or a
-  two-element array of functions giving forward and inverse coordinate
-  transformations; if the `transform` argument is supplied, histogram
-  binning is done in transformed coordinates, with bin centres and
-  extents being transformed back to the original coordinate values
-  before return.
- 
- * `binrange`: data range over which bins are to be generated; if
-   omitted, the binning range is calculated from the data;
- 
- * `nbins`: number of histogram bins to use;
- 
- * `binwidth`: width of histogram bins to use (in transformed
-   coordinates); not used if `nbins` is supplied.
-
-The return value of the `histogram` function is an object with the
-following fields:
-
- * `centres`: histogram bin centres;
-
- * `bins`: array of two-element arrays giving the minimum and maximum
-   bounds for each histogram bin (this is useful when using the
-   `transform` argument to `histogram`, since, for nonlinear
-   coordinate transformations, the histogram bins are no longer
-   symmetric about their centres, and are no longer of a uniform
-   size);
- 
- * `counts`: integer counts of data items in each bin;
-
- * `freqs`: fraction of data items in each bin;
-
- * `probs`: probability of data items falling into each bin, defined
-   so that the integral of the bar chart constructed using the
-   coordinate ranges in `bins` and these values is unity.
 
 ### Handling of dates
 
@@ -405,3 +314,72 @@ The processing of this example goes as follows:
 |`sigma` |                  |`sdev`                             |
 |`mean`  |                  |AngularJS scope variable           |
 |`sdev`  |                  |AngularJS scope variable           |
+
+<hr>
+## Categorical data
+
+For point and bar plots, it is possible to use categorical data values
+for the `x` and `y` data coordinates.  A number of attributes are
+provided to support this, as well as a special data structure format
+to take advantage of hierarchical grouping using multiple categorical
+data fields.
+
+For point plots, using a categorical value as the `x` attribute for a
+plot results in a discrete set of point clouds being produced, one per
+category, evenly spaced along the `x`-axis (see
+[this example](/Radian/gallery/#/68)):
+
+~~~~ {.html}
+<plot height=400 aspect=1.5 order-x="I. virginica;I. versicolor;I. setosa"
+      axis-x-label="Species" axis-y-label="Petal length"
+      marker="circle" marker-size=10 stroke="none">
+  <points x="[[iris.species]]"
+          jitter-x y="[[iris.petal_length]]"
+          fill="[[irispal(iris.species)]]">
+  </points>
+</plot>
+
+<palette name="irispal" type="discrete">
+  "I. setosa" red
+  "I. versicolor" green
+  "I. virginica" blue
+</palette>
+
+<plot-data name="iris" format="csv"
+           cols="sepal_length,sepal_width,petal_length,petal_width,species">
+  <metadata name="species"
+            category-order="I. setosa;I. versicolor;I. virginica"></metadata>
+5.1,3.5,1.4,0.2,I. setosa
+4.9,3.0,1.4,0.2,I. setosa
+4.7,3.2,1.3,0.2,I. setosa
+4.6,3.1,1.5,0.2,I. setosa
+...
+</plot-data>
+~~~~~
+
+For bar plots, categorical data fields can be used for the `x`
+attribute, as for point plots, but an aggregation scheme is also
+needed to turn the set of data values corresponding to the category
+into a single bar height to be plotted.  For the `<bars>` directive,
+the `AGGREGATION` attribute (which can take on the values `mean`,
+`sum`, `min` or `max`) determines the aggregation scheme used.  A
+simple example plots the mean value for each category:
+
+~~~~ {.html}
+<plot axis-x-label="off" axis-y-label="Rate" stroke="none">
+  <bars x="[[d1#sex]]" y="[[d1#rate]]" fill="[[mfpal(x)]]"
+        aggregation="mean" bar-width=0.5></bars>
+</plot>
+~~~~
+
+
+### Supporting attributes
+
+ORDER-X
+GROUP-X
+JITTER-X
+JITTER-Y
+CATEGORY-ORDER
+AGGREGATION
+
+### The `boxes` directive

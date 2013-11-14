@@ -1,0 +1,30 @@
+<h3>Data access via URL with Angular binding</h3>
+
+<p>The <code>SRC</code> attribute in
+  the <code>&lt;plot-data&gt;</code> directive can be given an Angular
+  expression, allowing data sources to be selected dynamically.  Here,
+  we use Angular data binding to select a stock symbol, and build a
+  data source URL using this from an Angular expression.  As we select
+  a stock symbol, a HTTP request is triggered to download the new data
+  set.  When the data set is retrieved, a replot is triggered.</p>
+
+<div class="form-inline">
+  <label>Data set</label>
+  <select ng-model="dset" ng-init="dset='CSCO'">
+    <option>CSCO</option>
+    <option>DELL</option>
+    <option>FB</option>
+    <option>GOOG</option>
+    <option>MSFT</option>
+    <option>YHOO</option>
+  </select>
+</div>
+<br>
+
+<plot height=300 aspect=3>
+  <lines x="[[stock.Date]]" y="[[stock.Open]]" stroke="red"/>
+</plot>
+
+<plot-data name="stock" src="/Radian/data/stocks/{{dset}}.csv" format="csv">
+  <metadata name="Date" format="date" date-parse-format="%Y-%m-%d"></metadata>
+</plot-data>

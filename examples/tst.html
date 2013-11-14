@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" ng-app="myApp">
+<head>
+  <meta charset="utf-8">
+  <title>My AngularJS App</title>
+  <link rel="stylesheet" href="css/bootstrap.css"/>
+  <link rel="stylesheet" href="css/radian.css"/>
+  <link rel="stylesheet" href="css/app.css"/>
+  <link rel="stylesheet" href="css/hljs.css"/>
+</head>
+<body style="height:250px;">
+  <plot height="100%" width="100%" stroke-width=2 x="[[seq(0,4*PI,101)]]"
+        axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
+    <lines y="[[sin(x)]]" stroke="red"/>
+    <lines y="[[cos(x)]]" stroke="blue"/>
+  </plot>
+  <script src="lib/jquery.js"></script>
+  <script src="lib/jquery.csv.js"></script>
+  <script src="lib/hljs.js"></script>
+  <script src="lib/bootstrap.js"></script>
+  <script src="lib/escodegen.browser.js"></script>
+  <script src="lib/d3.v2.js"></script>
+  <script src="lib/angular/angular.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/radian.js"></script>
+</body>
+</html>

@@ -8,16 +8,16 @@ title: Reference manual - Appendix: reserved names
 <hr>
 ## Directives
 
-The following directive names are reserved and implemented by the
-plotting library: `<area>`, `<background>`, `<bars>`, `<lines>`,
-`<metadata>`, `<palette>`, `<plot>`, `<plot-col>`, `<plot-data>`,
-`<plot-grid>`, `<plot-options>`, `<plot-row>`, `<points>`.
+The following directive names are reserved and implemented within
+Radian: `<area>`, `<background>`, `<bars>`, `<lines>`, `<metadata>`,
+`<palette>`, `<plot>`, `<plot-col>`, `<plot-data>`, `<plot-grid>`,
+`<plot-options>`, `<plot-row>`, `<points>`.
 
 <hr>
 ## Attributes
 
-The following attributes names are reserved for use by plotting
-library directives: `axis-x`, `axis-x-label`, `axis-x2`, `axis-y`,
+The following attributes names are reserved for use by Radian
+directives: `axis-x`, `axis-x-label`, `axis-x2`, `axis-y`,
 `axis-y-label`, `axis-y2`, `banded`, `clip-x`, `clip-y`, `cols`,
 `error-for`, `fill`, `fill-opacity`, `format`, `id`, `interp`,
 `label`, `legend-switches`, `marker`, `marker-size`, `name`, `range`,

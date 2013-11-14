@@ -14,8 +14,6 @@
   height:100%;
 }
 
-.radian svg text { font: normal 12px Arial; }
-.radian svg .title { font: bold 14px Arial; }
 .radian svg .no-data text { font-size: 24px; font-weight: bold; }
 
 .radian .background {
@@ -26,8 +24,18 @@
   */
 }
 
-.radian div.radian-ui { margin: 5px; }
-.radian div.radian-ui .var-select { width: 50px; }
+div.radian { position: relative; }
+div.radian div.radian { position: absolute; }
+div.radian-ui {
+    background-color: transparent;
+    position: absolute;
+    top: 0px;
+    left: 0px; }
+div.radian-axis-switch { position: absolute; white-space: nowrap; }
+div.radian-stroke-switch { position: absolute; white-space: nowrap; }
+div.radian-histogram-switch { position: absolute; white-space: nowrap; }
+div.radian-legend { position: absolute; white-space: nowrap; }
+
 
 /* Axes */
 
@@ -61,7 +69,7 @@
 }
 
 
-
+.tab-content.radian-tabs { overflow: visible; }
 
 
 
