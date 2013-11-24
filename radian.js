@@ -84,20 +84,26 @@ radian.factory('processAttrs', ['radianEval', function(radianEval) {
 
 radian.factory('calcPlotDimensions', function() {
   return function(scope, elm, as) {
+    var relative = false;
     var h = 300, asp = 1.618, w = asp * h;
     var aw = as.width, ah = as.height, aasp = as.aspect;
     var pw = elm.parent().width(), ph = elm.parent().height();
+    scope.parentWidth = pw;  scope.parentHeight = ph;
     var cw = elm.width(), ch = elm.height();
     var casp = elm.css('aspect') ? parseFloat(elm.css('aspect')) : null;
     if (aw) {
       var aws = aw.toString();
-      if (aws.charAt(aws.length - 1) == '%')
+      if (aws.charAt(aws.length - 1) == '%') {
+        relative = true;
         aw = pw * Number(aws.slice(0, aws.length - 1)) / 100;
+      }
     }
     if (ah) {
       var ahs = ah.toString();
-      if (ahs.charAt(ahs.length - 1) == '%')
+      if (ahs.charAt(ahs.length - 1) == '%') {
+        relative = true;
         ah = ph * Number(ahs.slice(0, ahs.length - 1)) / 100;
+      }
     }
     if (aw && ah && aasp || ah && aw) { h = ah; w = aw; asp = w / h; }
     else if (ah && aasp) { h = ah; asp = aasp; w = h * asp; }
@@ -124,6 +130,7 @@ radian.factory('calcPlotDimensions', function() {
     else if (cw) { w = cw; h = w / asp; }
     else if (casp) { asp = casp; h = w / asp; }
     scope.pxwidth = Number(w); scope.pxheight = Number(h);
+    return relative;
   };
 });
 
@@ -143,17 +150,33 @@ radian.directive('plot',
   // We do setup work here so that we can organise things before the
   // transcluded plotting directives are linked.
   function preLink(scope, elm, as, transclude) {
+    // Oh dear.  Horrible hack.  Why can't Javascript be like a normal
+    // GUI library?
+    scope.watchParentSize = function(doit) {
+      function checkSize() {
+        var pw = elm.parent().width(), ph = elm.parent().height();
+        if (pw != scope.parentWidth || ph != scope.parentHeight)
+          scope.windowResize(scope, elm);
+        scope.parentWatchTimeout = $timeout(checkSize, 500);
+      };
+      if (!doit && scope.parentWatchTimeout) {
+        $timeout.cancel(scope.parentWatchTimeout);
+        scope.parentWatchTimeout = null;
+      } else if (doit)
+        scope.parentWatchTimeout = $timeout(checkSize, 500);
+    };
+
     // Process attributes, bringing all but a few special cases into
     // Angular scope as regular variables (to be use in data access
     // expressions).
     processAttrs(scope, as);
     scope.plotid = ++plotidgen;
-    scope.topelem = elm;
     scope.uielems = elm.children()[1];
     scope.sizeAttrs = { width: as.width, height: as.height, aspect: as.aspect };
     if (!scope.inLayout) {
       scope.layoutTop = true;
-      if (!scope.inStack) calcPlotDimensions(scope, elm, scope.sizeAttrs)
+      if (!scope.inStack)
+        scope.watchParentSize(calcPlotDimensions(scope, elm, scope.sizeAttrs));
       $(elm).css('width', scope.pxwidth).css('height', scope.pxheight);
       scope.topLevel = elm[0];
       scope.svg = elm.children()[0];
@@ -214,8 +237,9 @@ radian.directive('plot',
   // We do the actual plotting after the transcluded plot type
   // elements are linked.
   function postLink(scope, elm) {
+    scope.topelem = elm;
     if (scope.inLayout) $(elm.children()[0]).remove();
-    $(window).resize(function () { windowResize(scope, elm); });
+    $(window).resize(function () { scope.windowResize(scope, elm); });
     var viewgroups = [];
     var setupBrush = null;
     scope.rangeExtendPixels = function(x, y) {
@@ -275,14 +299,16 @@ radian.directive('plot',
     function yAxisSwitch(e, type) { handleAxisSwitch('y', type); }
     function xAxisSwitch(e, type) { handleAxisSwitch('x', type); }
 
-    function windowResize(scope, elm) {
-      calcPlotDimensions(scope, elm, scope.sizeAttrs);
+    scope.windowResize = function(scope, elm) {
+      scope.watchParentSize(calcPlotDimensions(scope, elm, scope.sizeAttrs));
       init(false);
       reset();
     };
 
     function init(first) {
       // Set up plot areas (including zoomers).
+      $(scope.topLevel).
+        css('width', scope.pxwidth).css('height', scope.pxheight);
       var svgelm = d3.select(scope.svg);
       svgelm.attr('width', scope.pxwidth).attr('height', scope.pxheight);
       var mainviewgroup;
@@ -327,12 +353,11 @@ radian.directive('plot',
             draw(scope.views[0], scope);
           });
           scope.views[1].post = function(svg) {
-            if (first)
-              scope.brushgroup = svg.append('g')
-                .attr('class', 'x brush')
-                .call(brush)
-                .selectAll('rect')
-                .attr('y', -6);
+            scope.brushgroup = svg.append('g')
+              .attr('class', 'x brush')
+              .call(brush)
+              .selectAll('rect')
+              .attr('y', -6);
             scope.brushgroup.attr('height', scope.views[1].realheight + 7);
           }
         };
