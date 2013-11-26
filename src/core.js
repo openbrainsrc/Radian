@@ -236,8 +236,10 @@ radian.directive('plot',
   // elements are linked.
   function postLink(scope, elm) {
     scope.topelem = elm;
-    if (scope.inLayout) $(elm.children()[0]).remove();
-    $(window).resize(function () { scope.windowResize(scope, elm); });
+    if (scope.inLayout)
+      $(elm.children()[0]).remove();
+    else
+      $(window).resize(function () { scope.windowResize(scope, elm); });
     var viewgroups = [];
     var setupBrush = null;
     scope.rangeExtendPixels = function(x, y) {
@@ -298,7 +300,8 @@ radian.directive('plot',
     function xAxisSwitch(e, type) { handleAxisSwitch('x', type); }
 
     scope.windowResize = function(scope, elm) {
-      scope.watchParentSize(calcPlotDimensions(scope, elm, scope.sizeAttrs));
+      if (!scope.inLayout || scope.layoutTop)
+        scope.watchParentSize(calcPlotDimensions(scope, elm, scope.sizeAttrs));
       init(false);
       reset();
     };

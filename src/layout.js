@@ -208,7 +208,7 @@ radian.factory('layoutDirective',
         sc.layoutTop = true;
         sc.inLayout = true;
         if (!sc.inStack) calcPlotDimensions(sc, elm, as);
-        $(elm).css('width', sc.width).css('height', sc.height);
+        $(elm).css('width', sc.pxwidth).css('height', sc.pxheight);
         sc.layoutsvg = elm.children()[0];
       }
       sc.layoutItems = [];
@@ -221,12 +221,12 @@ radian.factory('layoutDirective',
       var items = { type: container, items: sc.layoutItems };
       if (sc.hasOwnProperty('layoutTop')) {
         var spacing = sc.spacing || 0;
-        var layedout = layoutSizes(sc.width, sc.height, spacing, items);
-        var frames = extractFrames(0, sc.width, sc.height, layedout);
+        var layedout = layoutSizes(sc.pxwidth, sc.pxheight, spacing, items);
+        var frames = extractFrames(0, sc.pxwidth, sc.pxheight, layedout);
         if (sc.hasOwnProperty('title')) items.title = sc.title;
         frames.forEach(function(fr) {
-          fr.plot.width = fr.w;
-          fr.plot.height = fr.h;
+          fr.plot.pxwidth = fr.w;
+          fr.plot.pxheight = fr.h;
           $(fr.plot.topelem).css('width', fr.w).css('height', fr.h).
             css('top', fr.y).css('left', fr.x);
           fr.plot.svg = d3.select(sc.layoutsvg).append('g')
@@ -278,7 +278,7 @@ radian.directive('plotGrid',
       sc.layoutTop = true;
       sc.inLayout = true;
       if (!sc.inStack) calcPlotDimensions(sc, elm, as);
-      $(elm).css('width', sc.width).css('height', sc.height);
+      $(elm).css('width', sc.pxwidth).css('height', sc.pxheight);
       sc.layoutsvg = elm.children()[0];
     }
     sc.layoutItems = [];
@@ -305,12 +305,12 @@ radian.directive('plotGrid',
     var items = { type: 'vbox', items: rows };
     if (sc.hasOwnProperty('layoutTop')) {
       var spacing = sc.spacing || 0;
-      var layedout = layoutSizes(sc.width, sc.height, spacing, items);
-      var frames = extractFrames(0, sc.width, sc.height, layedout);
+      var layedout = layoutSizes(sc.pxwidth, sc.pxheight, spacing, items);
+      var frames = extractFrames(0, sc.pxwidth, sc.pxheight, layedout);
       if (sc.hasOwnProperty('title')) items.title = sc.title;
       frames.forEach(function(fr) {
-        fr.plot.width = fr.w;
-        fr.plot.height = fr.h;
+        fr.plot.pxwidth = fr.w;
+        fr.plot.pxheight = fr.h;
         $(fr.plot.topelem).css('width', fr.w).css('height', fr.h).
           css('top', fr.y).css('left', fr.x);
         fr.plot.svg = d3.select(sc.layoutsvg).append('g')
