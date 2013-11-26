@@ -160,8 +160,12 @@ radian.directive('plot',
       if (!doit && scope.parentWatchTimeout) {
         $timeout.cancel(scope.parentWatchTimeout);
         scope.parentWatchTimeout = null;
-      } else if (doit)
+      } else if (doit) {
         scope.parentWatchTimeout = $timeout(checkSize, 500);
+        scope.$on('$destroy', function() {
+          $timeout.cancel(scope.parentWatchTimeout);
+        });
+      }
     };
 
     // Process attributes, bringing all but a few special cases into
