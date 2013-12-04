@@ -36,6 +36,8 @@
 <p>The two things needed to implement this vision are a comprehensive user interface for plot manipulation and a means of communicating changes to plot styling back to the server. The first is just a matter of implementing the required GUI. The second we will do using Angular’s event management – an Angular application will be able to register for <code>radianStyleChange</code> events, which will come with information about the plot being modified (its <code>ID</code>) and the changes made by the user. The application can then do whatever it likes with that change data.</p>
 <p>All this is obviously not a trivial amount of work, and for the moment, the UI elements of Radian remain somewhat rudimentary. You can use Angular data binding to implement most of the styling controls that we’re likely to implement if you really need them right now.</p>
 <h2 id="current-implementation">Current implementation</h2>
+<h3 id="axis-type-switching">Axis type switching</h3>
+<h3 id="histogram-bin-control">Histogram bin control</h3>
 <h3 id="plot-visibility-switching">Plot visibility switching</h3>
 <p>Using the <code>LEGEND-SWITCHES</code> option on the <code>&lt;plot&gt;</code> directive enables a simple interface for switching the visibility of plot layers on or off. A basic legend is generated using the <code>LABEL</code> field of each plot directive to provide a plot name, and the legend entries can be clicked to view or hide each plot.</p>
 <h3 id="pan-and-zoom">Pan and zoom</h3>
@@ -64,6 +66,7 @@
   <script src="../js/radian.min.js"></script>
   <script src="../js/bootstrap.min.js"></script>
   <script src="../js/html5slider.js"></script>
+  <script src="../js/hljs.js"></script>
   <script src="../js/app.js"></script>
   <script>
   </script>

@@ -22,7 +22,7 @@ var EgCtrl = ['$http', '$scope', '$timeout', '$location',
   });
 }];
 
-var negs = 54;
+var negs = 74;
 
 var eggrps = [ { title: "Basic",
                  items: [["Basic line plot; CSV data access",   1],
@@ -46,8 +46,11 @@ var eggrps = [ { title: "Basic",
                { title: "Data access",
                  items: [["Date handling",                      9],
                          ["Expression vectorisation",          14],
+                         ["Categorical data (points)",         68],
+                         ["Categorical data (bars)",           69],
                          ["Data binding",                      15],
-                         ["Data via URL",                      34]] },
+                         ["Data via URL",                      34],
+                         ["Data via URL (dynamic)",            67]] },
 
                { title: "Layout & formatting",
                  items: [["Row layout",                        42],
@@ -68,11 +71,11 @@ var eggrps = [ { title: "Basic",
 
 
                { title: "UI examples",
-                 items: [["Interactive legend; stroke fading",  3],
-                         ["X-axis zoom",                        4],
-                         ["Stroke fade UI",                     5],
-                         ["Stroke colour UI",                   6],
-                         ["X/Y variable UI",                    7]] }];
+                 items: [["Axis types and histograms",          74],
+                         ["Interactive legend; stroke fading",   3],
+                         ["X-axis zoom",                         4],
+                         ["Stroke fade UI",                      5],
+                         ["Stroke colour UI",                    6]] }];
 
 
 var app = angular.module('radianDocs', ['radian']);
@@ -184,6 +187,6 @@ var MainCtrl = ['$scope', '$rootScope', 'plotLib',
                 { name: 'Adj Close', label: 'Adjusted closing price' } ];
   sc.stocks = ['CSCO', 'DELL', 'FB', 'GOOG', 'MSFT', 'YHOO'];
   sc.dataUrl = function(s) {
-    return '/Radian/data/tutorial-3/' + s + '.csv';
+    return '/data/tutorial-3/' + s + '.csv';
   };
 }];

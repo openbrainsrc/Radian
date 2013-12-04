@@ -1,0 +1,16 @@
+<h3>Histograms bin size and axis UI</h3>
+
+<p>Mouse over the plot to see the UI elements you can use to
+  manipulate the plot axis type and bin count.</p>
+
+<plot height="400" width="600" ui-histogram-bins="bins"
+      ng-init="bins=45" ui-axis-x-transform axis-x-transform="linear"
+      range-y="0" axis-y="off" ext="[[extent(dat.val)]]">
+  <plot-options fill="blue" fill-opacity="0.3" stroke="none" bar-width="-1px">
+    <bars hist="[[histogram(dat.val,{transform:axisXTransform,nbins:bins})]]"
+          x="[[hist.centres]]" y="[[hist.probs]]"></bars>
+  </plot-options>
+</plot>
+
+<plot-data name="dat" format="csv" cols="val" src="/data/histo.csv">
+</plot-data>

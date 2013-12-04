@@ -73,13 +73,19 @@
 <td align="left"></td>
 <td align="left">URL for data source</td>
 </tr>
+<tr class="odd">
+<td align="left"><code>NG-MODEL</code></td>
+<td align="left"></td>
+<td align="left">Angular data binding attribute</td>
+</tr>
 </tbody>
 </table>
 <h3 id="body">Body</h3>
 <p>Optionally, <code>metadata</code> directives describing the data values. If no <code>SRC</code> attribute is used to specify the data source, then the data values are included in the body of the directive in the given format.</p>
 <h3 id="interpretation">Interpretation</h3>
 <p>The <code>&lt;plot-data&gt;</code> directive forms an association between the name given as the <code>NAME</code> attribute of the directive and the given data set. The data set name can then be used to create data paths to access components of the data set in plotting directives (<a href="#data-accessors">see here</a>). The data set name is installed as an Angular variable in the Angular scope of the containing HTML element. If the <code>SUBNAME</code> attribute is supplied as well, then the data is installed as the <code>SUBNAME</code> field of an Angular scope variable whose name is <code>NAME</code> (this is useful for using <code>&lt;plot-data&gt;</code> in conjunction with <code>ng-repeat</code>). The <code>&lt;plot-data&gt;</code> element does not create a scope of its own. For CSV data, if no <code>COLS</code> attribute is given, the column names are taken from the first line of the data.</p>
-<p>When data is loaded from a URL, the semantics of the <code>&lt;plot-data&gt;</code> directive are identical to the case where the data is included directly in the directive body (except for possible rendering issues if the data download takes a long time: you may see warnings from the <code>radianEval</code> function in the browser console when Radian attempts to plot the empty data set before the data has arrived – these warnings are harmless, and the plots are re-rendered when the data download is complete).</p>
+<p>When data is loaded from a URL using the <code>SRC</code> attribute, the semantics of the <code>&lt;plot-data&gt;</code> directive are identical to the case where the data is included directly in the directive body (except for possible rendering issues if the data download takes a long time: you may see warnings from the <code>radianEval</code> function in the browser console when Radian attempts to plot the empty data set before the data has arrived – these warnings are harmless, and the plots are re-rendered when the data download is complete). Replotting is triggered if the <code>SRC</code> attribute changes, so that an expression can be used to load data from different sources specified by an expression.</p>
+<p>Alternatively, the data for plotting can be bound directly to an Angular scope variable by using the <code>NG-MODEL</code> attribute. This works as it does for other Angular directives.</p>
 <h3 id="examples">Examples</h3>
 <h4 id="temperature-data-by-date-with-error-information">Temperature data by date with error information</h4>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-data</span><span class="ot"> id=</span><span class="st">&quot;globaltemp&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;date,temp,error&quot;</span><span class="kw">&gt;</span>
@@ -138,6 +144,10 @@
 <td align="left"><code>ERROR-FOR</code></td>
 <td align="left">Names another data field for which this field is an uncertainty/error value</td>
 </tr>
+<tr class="even">
+<td align="left"><code>CATEGORY-ORDER</code></td>
+<td align="left">Semicolon-separated list of categorical values, specifying an ordering to be used for plotting.</td>
+</tr>
 </tbody>
 </table>
 <h3 id="body-1">Body</h3>
@@ -175,7 +185,7 @@
 <li><p>The names of all data sets defined in <code>&lt;plot-data&gt;</code> directives in Angular scopes that enclose the scope of the directive containing the Radian expression. Each data set is accessible by the name given in the <code>ID</code> attribute of its <code>&lt;plot-data&gt;</code> directive.</p></li>
 <li><p>All names passed as attributes to plotting directives that are not reserved names (see list in the <a href="#reserved">Appendix</a>).</p></li>
 <li><p>All Angular scope variables defined in the scope of the directive containing the expression (not that, via Angular’s prototype object inheritance chain for scopes, this includes values in outer surrounding scopes, as long as their names are not shadowed by names in inner scopes).</p></li>
-<li><p>The “Radian library” functions and constants defined <a href="#std-fns">here</a>.</p></li>
+<li><p>The “Radian library” functions and constants defined <a href="06-radian-plotting-library.html">here</a>.</p></li>
 </ul>
 <p>What this means is that it is possible to pass data values around using attributes with meaningful names. We implicitly bring data set names into scope as well as simplified standard function names to make writing plot directives quick and simple.</p>
 <p>Combined with Angular’s <code>ng-model</code> data binding attribute, we can do some very powerful things in very simple ways:</p>
@@ -191,36 +201,6 @@
   <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,10,200)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[normal(x,mu,sigma)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
 <span class="kw">&lt;/plot&gt;</span></code></pre>
 <p>In this example, updating the values in the input text fields triggers an immediate update of the plot, pulling in the new values from the UI elements. This means that plots can be attached to arbitrary UI elements with ease. Note how names of Angular scope variables defined for instance using <code>ng-model</code> may be used within Radian expressions. The Radian expression parsing infrastructure interacts correctly with Angular data binding so that plots are regenerated when Angular expressions within Radian expressions change.</p>
-<h3 id="standard-functions"><a name="std-fns">Standard functions</a></h3>
-<h4 id="javascript-standard-functions">JavaScript standard functions</h4>
-<p>The following constants and functions from the <code>Math.xxx</code> JavaScript scope are brought into scope within data accessor expressions (i.e. one can write “<code>sin(x)</code>” instead of “<code>Math.sin(x)</code>”): <code>E</code>, <code>LN10</code>, <code>LN2</code>, <code>LOG10E</code>, <code>LOG2E</code>, <code>PI</code>, <code>SQRT1_2</code>, <code>SQRT2</code>, <code>abs</code>, <code>acos</code>, <code>asin</code>, <code>atan</code>, <code>atan2</code>, <code>ceil</code>, <code>cos</code>, <code>exp</code>, <code>floor</code>, <code>log</code>, <code>pow</code>, <code>round</code>, <code>sin</code>, <code>sqrt</code>, <code>tan</code>.</p>
-<h4 id="d3-functions">D3 functions</h4>
-<p>The following functions from the <code>d3.xxx</code> JavaScript scope are brought into scope within data accessor expressions (i.e. one can write “<code>extent(x)</code>” instead of “<code>d3.extent(x)</code>”): <code>min</code>, <code>max</code>, <code>extent</code>, <code>sum</code>, <code>mean</code>, <code>median</code>, <code>quantile</code>, <code>zip</code>. (In fact, <code>extent</code> in Radian expressions is a variadic function: passing multiple arrays to <code>extent</code> will find the union of their ranges.)</p>
-<h4 id="extra-functions">Extra functions</h4>
-<p><code>seq</code>, <code>seqStep</code>: Generate evenly spaced sequences of values: <code>seq(start, end, n)</code> produces a sequence of <code>n</code> values ranging from <code>start</code> to <code>end</code>, while <code>seqStep(start, end, delta)</code> produces a sequence from <code>start</code> to <code>end</code> in steps of <code>delta</code>.</p>
-<p><code>sdev</code>: Calculate the sample standard deviation of an array.</p>
-<p><code>unique</code>: Return the unique entries in an array in the order that they first appear.</p>
-<p><code>minBy</code>, <code>maxBy</code>, <code>sumBy</code>, <code>meanBy</code>, <code>sdevBy</code>: Calculate categorical sums, means and standard deviations of data sets: <code>sumBy(x, y)</code> calculates the sum of <code>x</code> values for each distinct value of <code>y</code>, returning an array of results in the order of occurrence of the distinct values in <code>y</code>. For example, given a dataset <code>d</code> containing daily temperature data with associated dates, <code>meanBy(d#temp, d#date#mon)</code> calculates a monthy seasonal cycle of temperatures.</p>
-<p><code>normal</code>: Normal distribution function: <code>normal(x, mu, sigma)</code> gives the value of the normal PDF with mean <code>mu</code> and standard deviation <code>sigma</code> at ordinate <code>x</code>.</p>
-<p><code>lognormal</code>: Log-normal distribution function: <code>lognormal(x, mu, sigma)</code> gives the value of the log-normal PDF with mean <code>mu</code> and standard deviation <code>sigma</code> at ordinate <code>x</code>.</p>
-<p><code>gamma</code>: Gamma distribution function: <code>gamma(x, k, theta)</code> gives the value of the gamma PDF with shape parameter <code>k</code> and scale parameter <code>theta</code> at ordinate <code>x</code>.</p>
-<p><code>invgamma</code>: Inverse gamma distribution function: <code>invgamma(x, alpha, beta)</code> gives the value of the inverse gamma PDF with shape parameter <code>alpha</code> and scale parameter <code>beta</code> at ordinate <code>x</code>.</p>
-<h4 id="histogramming">Histogramming</h4>
-<p>The Radian plotting library also contains a <code>histogram</code> function for histogram binning calculations. This is called either as <code>histogram(xs, nbins)</code> with <code>nbins</code> an integer count of the number of bins to use, or as <code>histogram(xs, opts)</code> with <code>opts</code> an object with some of the following fields:</p>
-<ul>
-<li><p><code>transform</code>: either a string (one of <code>linear</code> or <code>log</code>) or a two-element array of functions giving forward and inverse coordinate transformations; if the <code>transform</code> argument is supplied, histogram binning is done in transformed coordinates, with bin centres and extents being transformed back to the original coordinate values before return.</p></li>
-<li><p><code>binrange</code>: data range over which bins are to be generated; if omitted, the binning range is calculated from the data;</p></li>
-<li><p><code>nbins</code>: number of histogram bins to use;</p></li>
-<li><p><code>binwidth</code>: width of histogram bins to use (in transformed coordinates); not used if <code>nbins</code> is supplied.</p></li>
-</ul>
-<p>The return value of the <code>histogram</code> function is an object with the following fields:</p>
-<ul>
-<li><p><code>centres</code>: histogram bin centres;</p></li>
-<li><p><code>bins</code>: array of two-element arrays giving the minimum and maximum bounds for each histogram bin (this is useful when using the <code>transform</code> argument to <code>histogram</code>, since, for nonlinear coordinate transformations, the histogram bins are no longer symmetric about their centres, and are no longer of a uniform size);</p></li>
-<li><p><code>counts</code>: integer counts of data items in each bin;</p></li>
-<li><p><code>freqs</code>: fraction of data items in each bin;</p></li>
-<li><p><code>probs</code>: probability of data items falling into each bin, defined so that the integral of the bar chart constructed using the coordinate ranges in <code>bins</code> and these values is unity.</p></li>
-</ul>
 <h3 id="handling-of-dates">Handling of dates</h3>
 <p>Time and date data can be read using a <code>&lt;metadata&gt;</code> directive with a <code>FORMAT=&quot;date&quot;</code> attribute. Individual fields of date values can then be plucked from date data using methods of the standard JavaScript <code>Date</code> class: for instance, <code>date#getMonth()</code> extracts the month field from a series of dates. In combination with aggregation functions and arbitrary mapping functions, this allows for various complex manipulations of date data. This example shows extraction of date fields, aggregation (using the <code>unique</code> and <code>meanBy</code> functions) and the use of a user-defined function (<code>midMonths</code>) injected into the <code>plotLib</code> plotting library in the Angular controller used to manage the page:</p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="kw">&gt;</span>
@@ -277,6 +257,138 @@
 </tr>
 </tbody>
 </table>
+<hr>
+<h2 id="categorical-data">Categorical data</h2>
+<p>For point and bar plots, it is possible to use categorical data values for the <code>x</code> and <code>y</code> data coordinates. A number of attributes are provided to support this, as well as a special data structure format to take advantage of hierarchical grouping using multiple categorical data fields.</p>
+<p>For point plots, using a categorical value as the <code>x</code> attribute for a plot results in a discrete set of point clouds being produced, one per category, evenly spaced along the <code>x</code>-axis (see <a href="../Radian/gallery/#/68">this example</a>):</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">400</span><span class="ot"> aspect=</span><span class="st">1.5</span><span class="ot"> order-x=</span><span class="st">&quot;I. virginica;I. versicolor;I. setosa&quot;</span>
+<span class="ot">      axis-x-label=</span><span class="st">&quot;Species&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Petal length&quot;</span>
+<span class="ot">      marker=</span><span class="st">&quot;circle&quot;</span><span class="ot"> marker-size=</span><span class="st">10</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[iris.species]]&quot;</span>
+<span class="ot">          jitter-x y=</span><span class="st">&quot;[[iris.petal_length]]&quot;</span>
+<span class="ot">          fill=</span><span class="st">&quot;[[irispal(iris.species)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;/points&gt;</span>
+<span class="kw">&lt;/plot&gt;</span>
+
+<span class="kw">&lt;palette</span><span class="ot"> name=</span><span class="st">&quot;irispal&quot;</span><span class="ot"> type=</span><span class="st">&quot;discrete&quot;</span><span class="kw">&gt;</span>
+  &quot;I. setosa&quot; red
+  &quot;I. versicolor&quot; green
+  &quot;I. virginica&quot; blue
+<span class="kw">&lt;/palette&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;iris&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span>
+<span class="ot">           cols=</span><span class="st">&quot;sepal_length,sepal_width,petal_length,petal_width,species&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;species&quot;</span>
+<span class="ot">            category-order=</span><span class="st">&quot;I. setosa;I. versicolor;I. virginica&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+5.1,3.5,1.4,0.2,I. setosa
+4.9,3.0,1.4,0.2,I. setosa
+4.7,3.2,1.3,0.2,I. setosa
+4.6,3.1,1.5,0.2,I. setosa
+...
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>For bar plots, categorical data fields can be used for the <code>x</code> attribute, as for point plots, but an aggregation scheme is also needed to turn the set of data values corresponding to the category into a single bar height to be plotted. For the <code>&lt;bars&gt;</code> directive, the <code>AGGREGATION</code> attribute (which can take on the values <code>mean</code>, <code>sum</code>, <code>min</code> or <code>max</code>) determines the aggregation scheme used. A simple example plots the mean value for each category:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> axis-x-label=</span><span class="st">&quot;off&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Rate&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[d1#sex]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[d1#rate]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;[[mfpal(x)]]&quot;</span>
+<span class="ot">        aggregation=</span><span class="st">&quot;mean&quot;</span><span class="ot"> bar-width=</span><span class="st">0.5</span><span class="kw">&gt;&lt;/bars&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<h3 id="supporting-attributes">Supporting attributes</h3>
+<p>The following attributes are defined to support plots involving categorical data – some of these should appear on the <code>&lt;plot&gt;</code> directive, some on <code>&lt;metadata&gt;</code> and some on <code>&lt;bars&gt;</code> as specified in the following table:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">   </th>
+<th align="left">Directive</th>
+<th align="left">   </th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>ORDER-X</code></td>
+<td align="left"></td>
+<td align="left"><code>&lt;plot&gt;</code></td>
+<td align="left">Override default ordering for categorical data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>GROUP-X</code></td>
+<td align="left"></td>
+<td align="left"><code>&lt;plot&gt;</code></td>
+<td align="left">Integer grouping level for hierarchical categorical data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>JITTER-X</code></td>
+<td align="left"></td>
+<td align="left"><code>&lt;plot&gt;</code></td>
+<td align="left">Jitter data points in <code>x</code>-direction (can specify a fraction of the distance between category values or take the default of 0.05)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>JITTER-Y</code></td>
+<td align="left"></td>
+<td align="left"><code>&lt;plot&gt;</code></td>
+<td align="left">As for <code>JITTER-X</code> but in the <code>y</code>-direction</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>CATEGORY-ORDER</code></td>
+<td align="left"></td>
+<td align="left"><code>&lt;metadata&gt;</code></td>
+<td align="left">Define default ordering for categorical data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AGGREGATION</code></td>
+<td align="left"></td>
+<td align="left"><code>&lt;bars&gt;</code></td>
+<td align="left">Aggregation scheme for generating bars from categorical data (one of <code>mean</code>, <code>sum</code>, <code>min</code>, <code>max</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Ordering of categorical values is controlled by the <code>CATEGORY-ORDER</code> attribute of the <code>&lt;metadata&gt;</code> directive and the <code>ORDER-X</code> attribute of the <code>&lt;plot&gt;</code> directive. In both cases, the ordering is defined by a semicolon-separated list of data values. The <code>&lt;plot&gt;</code> directive’s <code>ORDER-X</code> attribute overrides the default ordering defined by the <code>&lt;metadata&gt;</code> <code>CATEGORY-ORDER</code> attribute.</p>
+<p>When displaying categorical data as points, it’s sometimes useful to jitter the position of individual points so as to avoid overlapping points (which give a false sense of the number of points in the plot). The <code>JITTER-X</code> and <code>JITTER-Y</code> attributes on the <code>&lt;plot&gt;</code> directive enable these small random displacements of individual points. These two attributes can either be given without any value, in which case points are jittered by a random value within ±5% of the separation between adjacent categorical values, or a jitter value can be given as a fraction of the inter-category spacing.</p>
+<p>The <code>AGGREGATION</code> attribute is explained in the previous section.</p>
+<p>Finally, the <code>GROUP-X</code> attribute is used to control the grouping of points and bars when hierarchical categorical data is used. To explain how this works, let’s look at three plots based on the following data:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;d1&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;sex&quot;</span><span class="ot"> category-order=</span><span class="st">&quot;male;female&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;env&quot;</span><span class="ot"> category-order=</span><span class="st">&quot;urban;rural&quot;</span><span class="kw">&gt;&lt;/metadata&gt;</span>
+  <span class="kw">&lt;metadata</span><span class="ot"> name=</span><span class="st">&quot;age&quot;</span><span class="ot"> category-order=</span><span class="st">&quot;50-54;55-59;60-64;65-69;70-74&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;/metadata&gt;</span>
+  [ { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;50-54&quot;, &quot;rate&quot;: 15.5 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;55-59&quot;, &quot;rate&quot;: 20.2 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;60-64&quot;, &quot;rate&quot;: 32.1 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;65-69&quot;, &quot;rate&quot;: 48.0 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;rural&quot;, &quot;age&quot;: &quot;70-74&quot;, &quot;rate&quot;: 65.5 },
+    { &quot;sex&quot;: &quot;female&quot;, &quot;env&quot;: &quot;urban&quot;, &quot;age&quot;: &quot;50-54&quot;, &quot;rate&quot;: 15.5 },
+    ... ]
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>We could make plots that split the data by a single category (<code>sex</code> or <code>env</code>, for instance), but we can also split on multiple categories at once by zipping the data for the relevant categories together:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">600</span><span class="ot"> aspect=</span><span class="st">1.5</span><span class="ot"> axis-x-label=</span><span class="st">&quot;off&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Rate&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[zip(d1#sex,d1#env)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[d1#rate]]&quot;</span>
+<span class="ot">        aggregation=</span><span class="st">&quot;mean&quot;</span><span class="ot"> bar-width=</span><span class="st">0.5</span><span class="ot"> stroke-width=</span><span class="st">10</span>
+<span class="ot">        stroke=</span><span class="st">&quot;[[urpal(x#1)]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;[[mfpal(x#0)]]&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>In this case, there will be one bar for each distinct value of the pair <code>(sex, env)</code>, and the spacing between the bars will be constant. The bars are stroke and filled based on palettes where we pass the <code>env</code> value to <code>urpal</code> for the stroke and pass the <code>sex</code> value to <code>mfpal</code> for the fill. The bars appear in the order <code>(male,urban)</code>, <code>(male,rural)</code>, <code>(female,urban)</code>, <code>(female,rural)</code>, i.e. the first element in each zipped data item varies slowest.</p>
+<p>Grouping behaviour is enabled by setting the <code>GROUP-X</code> attribute to the count of data levels that should be grouped together. Here, <code>GROUP-X</code> is set to one:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">600</span><span class="ot"> aspect=</span><span class="st">1.5</span><span class="ot"> axis-x-label=</span><span class="st">&quot;off&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Rate&quot;</span>
+<span class="ot">      group-x=</span><span class="st">&quot;1&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[zip(d1#sex,d1#age)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[d1#rate]]&quot;</span>
+<span class="ot">        aggregation=</span><span class="st">&quot;mean&quot;</span><span class="ot"> bar-width=</span><span class="st">0.5</span><span class="ot"> stroke-width=</span><span class="st">2</span>
+<span class="ot">        fill=</span><span class="st">&quot;[[mfpal(x#0)]]&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>This results in bars that are position in two groups, one for the each value of the <code>sex</code> field. Each group contains one bar for each value of the <code>age</code> field. The grouping can be switched around by changing the order of appearance of the zipped fields in the <code>x</code> data. This plot:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">600</span><span class="ot"> aspect=</span><span class="st">1.5</span><span class="ot"> axis-x-label=</span><span class="st">&quot;off&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Rate&quot;</span>
+<span class="ot">      group-x=</span><span class="st">&quot;1&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[zip(d1#age,d1#sex)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[d1#rate]]&quot;</span>
+<span class="ot">        aggregation=</span><span class="st">&quot;mean&quot;</span><span class="ot"> bar-width=</span><span class="st">0.5</span><span class="ot"> stroke-width=</span><span class="st">2</span>
+<span class="ot">        fill=</span><span class="st">&quot;[[mfpal(x#1)]]&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>has one group for each value of the <code>age</code> field, each group having a bar for the different values of the <code>sex</code> field.</p>
+<p>This hierarchical composition of categorical data and grouping extends as you would expect for more than two variables (although this kind of plot generally looks better with two or, at most, three, levels of data).</p>
+<h3 id="the-boxes-directive">The <code>boxes</code> directive</h3>
+<p>The <code>boxes</code> directive provides rudimentary box-and-whisker plots. There will be more of this sort of thing in future releases of Radian. For the moment, you can write something like this:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">600</span><span class="ot"> aspect=</span><span class="st">1</span><span class="ot"> axis-x-label=</span><span class="st">&quot;Species&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Petal length&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;boxes</span><span class="ot"> x=</span><span class="st">&quot;[[iris.species]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[iris.petal_length]]&quot;</span>
+<span class="ot">        stroke=</span><span class="st">&quot;[[irispal(iris.species)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;/boxes&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>and you will get box-and-whisker plots that show the minimum and maximum values for each category as the whiskers, the 25% and 75% percentiles as the bottom and top edges of the box and the median value as a line across the box. The usual paint styling attributes can be used.</p>
 
     <footer>
       <div>
@@ -295,6 +407,7 @@
   <script src="../js/radian.min.js"></script>
   <script src="../js/bootstrap.min.js"></script>
   <script src="../js/html5slider.js"></script>
+  <script src="../js/hljs.js"></script>
   <script src="../js/app.js"></script>
   <script>
   </script>
