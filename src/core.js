@@ -881,8 +881,15 @@ radian.directive('plot',
     if (v.yaxis && v.y) {
       var tmp = v.y.copy();
       var fmt = scope.axisYFormat ? d3.format(scope.axisYFormat) : null;
-      var nticks =
-        scope.axisYTicks ? scope.axisYTicks : v.group.attr('height') / 36;
+      var nticks;
+      if (scope.axisYTicks) {
+        if (scope.axisYTicks instanceof Array)
+          nticks = scope.axisYTicks.length;
+        else
+          nticks = scope.axisYTicks;
+      }
+      else
+        nticks = v.group.attr('height') / 36;
       var fmtfn = fmt ? tmp.tickFormat(nticks, fmt) : tmp.tickFormat(nticks);
       var tst = '';
       tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
@@ -898,8 +905,15 @@ radian.directive('plot',
     if (v.y2axis && v.y2) {
       var tmp = v.y2.copy();
       var fmt = scope.axisY2Format ? d3.format(scope.axisY2Format) : null;
-      var nticks =
-        scope.axisY2Ticks ? scope.axisY2Ticks : v.group.attr('height') / 36;
+      var nticks;
+      if (scope.axisY2Ticks) {
+        if (scope.axisY2Ticks instanceof Array)
+          nticks = scope.axisY2Ticks.length;
+        else
+          nticks = scope.axisY2Ticks;
+      }
+      else
+        nticks = v.group.attr('height') / 36;
       var fmtfn = fmt ? tmp.tickFormat(nticks, fmt) : tmp.tickFormat(nticks);
       var tst = '';
       tmp.ticks(nticks).map(fmtfn).forEach(function(s) {
