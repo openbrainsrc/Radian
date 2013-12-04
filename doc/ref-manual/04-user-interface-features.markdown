@@ -46,9 +46,50 @@ that we're likely to implement if you really need them right now.
 
 ### Axis type switching
 
+The `UI-AXIS-X-TRANSFORM` and `UI-AXIS-Y-TRANSFORM` attributes for the
+`<plot>` directive generate a user interface for switching between
+linear and log axes (and also, optionally, linear-from-zero).  Giving
+one of these attributes without a value permits switching between
+linear and log axes only, while giving a comma-separated list of axis
+types (from `linear`, `log` and `linear-0`) allows for the
+construction of more complicated cases.
+
+In each case, when mousing over the plot, an axis change button will
+appear next to the relevant axis.
+
+One slight extra piece of work is needed to use this feature with
+histograms: the `transform` field of the options object passed to the
+`histogram` function must be set to follow the current axis transform,
+like this:
+
+~~~~ {.html}
+<plot height="400" width="600" ui-histogram-bins="bins"
+      ng-init="bins=45" ui-axis-x-transform axis-x-transform="linear"
+      range-y="0" axis-y="off" ext="[[extent(dat.val)]]">
+  <plot-options fill="blue" fill-opacity="0.3" stroke="none" bar-width="-1px">
+    <bars hist="[[histogram(dat.val,{transform:axisXTransform,nbins:bins})]]"
+          x="[[hist.centres]]" y="[[hist.probs]]"></bars>
+  </plot-options>
+</plot>
+
+<plot-data name="dat" format="csv" cols="val" src="/Radian/data/histo.csv">
+</plot-data>
+~~~~
+
+This will cause the histogram bins to be recalculated as required when
+the axis type changes.
 
 ### Histogram bin control
 
+The `UI-HISTOGRAM-BINS` attribute on the `<plot>` directive is used to
+activate a user interface for selecting the number of bins in a
+histogram.  The value of the attribute is the name of an Angular scope
+variable that is bound to the number of bins.  As shown in the
+previous example above, this can be initialised using the Angular
+`NG-INIT` attribute.  The value of the bin count variable should be
+passed to the Radian `histogram` function used to generate the
+histogram bin plotting data.  As for the axis switching UI, the
+histogram bin UI is only visible when the user mouses over the plot.
 
 ### Plot visibility switching
 
