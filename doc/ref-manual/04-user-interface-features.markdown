@@ -44,6 +44,12 @@ that we're likely to implement if you really need them right now.
 
 ## Current implementation
 
+### Axis type switching
+
+
+### Histogram bin control
+
+
 ### Plot visibility switching
 
 Using the `LEGEND-SWITCHES` option on the `<plot>` directive enables a

@@ -4,7 +4,7 @@ var EgCtrl = ['$http', '$scope', '$timeout', '$location',
               function($http, $scope, $timeout, $location)
 {
   $scope.$watch('$location.hash', function() {
-    var url = "http://" + location.host + "/gallery/eg/" +
+    var url = "http://" + location.host + "/Radian/gallery/eg/" +
       location.hash.slice(2) + ".html";
     $timeout(function() {
       $http.get(url).success(function(res) {
@@ -22,7 +22,7 @@ var EgCtrl = ['$http', '$scope', '$timeout', '$location',
   });
 }];
 
-var negs = 69;
+var negs = 74;
 
 var eggrps = [ { title: "Basic",
                  items: [["Basic line plot; CSV data access",   1],
@@ -71,11 +71,11 @@ var eggrps = [ { title: "Basic",
 
 
                { title: "UI examples",
-                 items: [["Interactive legend; stroke fading",  3],
-                         ["X-axis zoom",                        4],
-                         ["Stroke fade UI",                     5],
-                         ["Stroke colour UI",                   6]] }];
-//                         ["X/Y variable UI",                    7]] }];
+                 items: [["Axis types and histograms",          74],
+                         ["Interactive legend; stroke fading",   3],
+                         ["X-axis zoom",                         4],
+                         ["Stroke fade UI",                      5],
+                         ["Stroke colour UI",                    6]] }];
 
 
 var app = angular.module('radianDocs', ['radian']);
