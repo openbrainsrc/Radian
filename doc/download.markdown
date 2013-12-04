@@ -10,6 +10,7 @@ The current release version is 0.1.2, which was released on
 
 | TGZ |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|ZIP |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|Date |
 |-----|-|-----|-|-----|
+|[radian-0.1.3.tar.gz](/downloads/radian-0.1.3.tar.gz)| |[radian-0.1.3.zip](/downloads/radian-0.1.3.zip)| |2013-12-04|
 |[radian-0.1.2.tar.gz](/downloads/radian-0.1.2.tar.gz)| |[radian-0.1.2.zip](/downloads/radian-0.1.2.zip)| |2013-10-09|
 |[radian-0.1.1.tar.gz](/downloads/radian-0.1.1.tar.gz)| |[radian-0.1.1.zip](/downloads/radian-0.1.1.zip)| |2013-07-30|
 |[radian-0.1.tar.gz](/downloads/radian-0.1.tar.gz)| |[radian-0.1.zip](/downloads/radian-0.1.zip)| |2013-07-10|
@@ -23,6 +24,12 @@ releases, is always available in our
 
 <hr>
 ## Changelog
+
+##### Version 0.1.3 (2013-12-04)
+
+ - Axis type switching UI
+ - Histogram bin count UI
+ - Improved UI interactivity
 
 ##### Version 0.1.2 (2013-10-09)
 
