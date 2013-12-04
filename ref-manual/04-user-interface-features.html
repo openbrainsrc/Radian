@@ -37,7 +37,23 @@
 <p>All this is obviously not a trivial amount of work, and for the moment, the UI elements of Radian remain somewhat rudimentary. You can use Angular data binding to implement most of the styling controls that we’re likely to implement if you really need them right now.</p>
 <h2 id="current-implementation">Current implementation</h2>
 <h3 id="axis-type-switching">Axis type switching</h3>
+<p>The <code>UI-AXIS-X-TRANSFORM</code> and <code>UI-AXIS-Y-TRANSFORM</code> attributes for the <code>&lt;plot&gt;</code> directive generate a user interface for switching between linear and log axes (and also, optionally, linear-from-zero). Giving one of these attributes without a value permits switching between linear and log axes only, while giving a comma-separated list of axis types (from <code>linear</code>, <code>log</code> and <code>linear-0</code>) allows for the construction of more complicated cases.</p>
+<p>In each case, when mousing over the plot, an axis change button will appear next to the relevant axis.</p>
+<p>One slight extra piece of work is needed to use this feature with histograms: the <code>transform</code> field of the options object passed to the <code>histogram</code> function must be set to follow the current axis transform, like this:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">&quot;400&quot;</span><span class="ot"> width=</span><span class="st">&quot;600&quot;</span><span class="ot"> ui-histogram-bins=</span><span class="st">&quot;bins&quot;</span>
+<span class="ot">      ng-init=</span><span class="st">&quot;bins=45&quot;</span><span class="ot"> ui-axis-x-transform axis-x-transform=</span><span class="st">&quot;linear&quot;</span>
+<span class="ot">      range-y=</span><span class="st">&quot;0&quot;</span><span class="ot"> axis-y=</span><span class="st">&quot;off&quot;</span><span class="ot"> ext=</span><span class="st">&quot;[[extent(dat.val)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;plot-options</span><span class="ot"> fill=</span><span class="st">&quot;blue&quot;</span><span class="ot"> fill-opacity=</span><span class="st">&quot;0.3&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="ot"> bar-width=</span><span class="st">&quot;-1px&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;bars</span><span class="ot"> hist=</span><span class="st">&quot;[[histogram(dat.val,{transform:axisXTransform,nbins:bins})]]&quot;</span>
+<span class="ot">          x=</span><span class="st">&quot;[[hist.centres]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[hist.probs]]&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
+  <span class="kw">&lt;/plot-options&gt;</span>
+<span class="kw">&lt;/plot&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;dat&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;val&quot;</span><span class="ot"> src=</span><span class="st">&quot;/Radian/data/histo.csv&quot;</span><span class="kw">&gt;</span>
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>This will cause the histogram bins to be recalculated as required when the axis type changes.</p>
 <h3 id="histogram-bin-control">Histogram bin control</h3>
+<p>The <code>UI-HISTOGRAM-BINS</code> attribute on the <code>&lt;plot&gt;</code> directive is used to activate a user interface for selecting the number of bins in a histogram. The value of the attribute is the name of an Angular scope variable that is bound to the number of bins. As shown in the previous example above, this can be initialised using the Angular <code>NG-INIT</code> attribute. The value of the bin count variable should be passed to the Radian <code>histogram</code> function used to generate the histogram bin plotting data. As for the axis switching UI, the histogram bin UI is only visible when the user mouses over the plot.</p>
 <h3 id="plot-visibility-switching">Plot visibility switching</h3>
 <p>Using the <code>LEGEND-SWITCHES</code> option on the <code>&lt;plot&gt;</code> directive enables a simple interface for switching the visibility of plot layers on or off. A basic legend is generated using the <code>LABEL</code> field of each plot directive to provide a plot name, and the legend entries can be clicked to view or hide each plot.</p>
 <h3 id="pan-and-zoom">Pan and zoom</h3>
