@@ -219,7 +219,7 @@ radian.directive('plot',
     };
     scope.addPlot = function(s) {
       ++scope.nplots;
-      if (scope.hasOwnProperty('legendSwitches')) scope.switchable.push(s);
+      if (s.hasOwnProperty('legendSwitch')) scope.switchable.push(s);
       s.enabled = true;
       scope.$emit('dataChange');
       s.$on('$destroy', function(e) {
@@ -378,8 +378,6 @@ radian.directive('plot',
     }
     if (scope.hasOwnProperty('strokeSwitch'))
       scope.strokeSwitchEnabled = true;
-    if (scope.hasOwnProperty('legendSwitches'))
-      scope.legendEnabled = true;
 
     $timeout(function() {
       // Draw plots and legend.
@@ -1334,7 +1332,6 @@ radian.directive('plot',
          '<div ng-show="uivisible">',
            '<radian-histogram-switch ng-show="histogramSwitchEnabled">',
            '</radian-histogram-switch>',
-           '<radian-legend ng-show="legendEnabled"></radian-legend>',
            '<radian-axis-switch axis="y" ng-show="yAxisSwitchEnabled">',
            '</radian-axis-switch>',
            '<radian-axis-switch axis="x" ng-show="xAxisSwitchEnabled">',

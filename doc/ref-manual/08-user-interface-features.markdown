@@ -3,8 +3,9 @@ layout: default
 title: Reference manual - User interface features
 ---
 
-# 4. User interface features
+# 7. User interface features
 
+<hr>
 ## Vision
 
 The current user interface features in Radian are very much
@@ -42,6 +43,7 @@ moment, the UI elements of Radian remain somewhat rudimentary.  You
 can use Angular data binding to implement most of the styling controls
 that we're likely to implement if you really need them right now.
 
+<hr>
 ## Current implementation
 
 ### Axis type switching

@@ -3,7 +3,7 @@ layout: default
 title: Reference manual - Palettes and interpolators
 ---
 
-# 3. Palettes and interpolators
+# 6. Palettes and interpolators
 
 The subject of colour palettes and interpolators for properties like
 stroke width are closely related.  A palette is essentially just a

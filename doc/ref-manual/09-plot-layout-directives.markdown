@@ -3,13 +3,14 @@ layout: default
 title: Reference manual - Plot layout directives
 ---
 
-# 5. Plot layout directives
+# 8. Plot layout directives
 
 A number of directives are provided for laying out plots using a
 "VBox/HBox" approach (`<plot-row>` and `<plot-col>`) and in simple
 grids (`<plot-grid>`).  In addition, the `<plot-stack>` directive can
 be used to "stack" plots or plot layouts into a set of Bootstrap tabs.
 
+<hr>
 ## Flat layout
 
 All of the "flat" plot layout directives (i.e. `<plot-row>`,
@@ -98,7 +99,7 @@ of the height and width choices, all of the plots are square:
 </plot-row>
 ~~~~
 
-
+<hr>
 ## Tabbed layout
 
 The `<plot-stack>` directive allows for a set of plots to be displayed

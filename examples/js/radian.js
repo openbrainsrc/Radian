@@ -221,7 +221,7 @@ radian.directive('plot',
     };
     scope.addPlot = function(s) {
       ++scope.nplots;
-      if (scope.hasOwnProperty('legendSwitches')) scope.switchable.push(s);
+      if (s.hasOwnProperty('legendSwitch')) scope.switchable.push(s);
       s.enabled = true;
       scope.$emit('dataChange');
       s.$on('$destroy', function(e) {
@@ -380,8 +380,6 @@ radian.directive('plot',
     }
     if (scope.hasOwnProperty('strokeSwitch'))
       scope.strokeSwitchEnabled = true;
-    if (scope.hasOwnProperty('legendSwitches'))
-      scope.legendEnabled = true;
 
     $timeout(function() {
       // Draw plots and legend.
@@ -1336,7 +1334,6 @@ radian.directive('plot',
          '<div ng-show="uivisible">',
            '<radian-histogram-switch ng-show="histogramSwitchEnabled">',
            '</radian-histogram-switch>',
-           '<radian-legend ng-show="legendEnabled"></radian-legend>',
            '<radian-axis-switch axis="y" ng-show="yAxisSwitchEnabled">',
            '</radian-axis-switch>',
            '<radian-axis-switch axis="x" ng-show="xAxisSwitchEnabled">',
@@ -5700,104 +5697,97 @@ radian.factory('plotLib', function()
            rad$$pal: {}
          };
 });
-// radian.directive('radianUi', ['$timeout', function($timeout)
-// {
-//   'use strict';
-
-//   return {
-//     restrict: 'E',
-//     scope: true,
-//     template:
-//     ['<div class="radian-ui" ng-show="uivisible">',
-//        // '<span class="form-inline">',
-//        //   '<span ng-show="xvs">',
-//        //     '<span>{{xlab}}</span>',
-//        //     '<select ng-model="xidx" class="var-select" ',
-//        //             'ng-options="v[0] as v[1] for v in xvs">',
-//        //     '</select>',
-//        //   '</span>',
-//        //   '<span ng-show="xvs && yvs">',
-//        //     '&nbsp;&nbsp;vs&nbsp;&nbsp;',
-//        //   '</span>',
-//        //   '<span ng-show="yvs">',
-//        //     '<span>{{ylab}}</span>',
-//        //     '<select ng-model="yidx" class="var-select" ',
-//        //             'ng-options="v[0] as v[1] for v in yvs">',
-//        //     '</select>',
-//        //   '</span>',
-//        //   '<span ng-show="yvs && (swbut || swsel)">',
-//        //     '&nbsp;&nbsp;',
-//        //   '</span>',
-//        // '</span>',
-//      '</div>'].join(""),
-//     replace: true,
-//     link: function(scope, elm, as) {
-//       // // Deal with selection of X and Y variables.
-//       // if (scope.selectX !== undefined) {
-//       //   scope.uivisible = true;
-//       //   var xvars = scope.selectX.split(',');
-//       //   if (xvars.length > 1) {
-//       //     // Selector UI.
-//       //     scope.xidx = 0;
-//       //     scope.xvs = xvars.map(function(v, i) { return [i, v]; });
-//       //     scope.xlab = scope.selectXLabel;
-//       //     if (scope.selectX == scope.selectY)
-//       //       scope.$watch('xidx',
-//       //                    function(n, o) {
-//       //                      if (n == scope.yidx) scope.yidx = o;
-//       //                      scope.yvs = [].concat(scope.xvs);
-//       //                      scope.yvs.splice(n, 1);
-//       //                    });
-//       //   }
-//       // }
-//       // if (scope.selectY !== undefined) {
-//       //   scope.uivisible = true;
-//       //   var yvars = scope.selectY.split(',');
-//       //   if (yvars.length > 1) {
-//       //     // Selector UI.
-//       //     scope.yidx = 0;
-//       //     scope.yvs = yvars.map(function(v, i) { return [i, v]; });
-//       //     scope.ylab = scope.selectYLabel;
-//       //     if (scope.selectX == scope.selectY) {
-//       //       scope.yvs.splice(1);
-//       //       scope.yidx = 1;
-//       //     }
-//       //   }
-//       // }
-//     }
-//   };
-// }]);
-
-
-radian.directive('radianLegend', function()
+radian.directive('legend', ['processAttrs', function(processAttrs)
 {
+  function preLink(sc, elm, as) {
+    sc.explicitEntries = [ ];
+    console.log("legend preLink...");
+  };
+  function postLink(sc, elm, as) {
+    processAttrs(sc, as);
+    console.log("legend postLink...");
+    console.log("explicitEntries=" + JSON.stringify(sc.explicitEntries));
+    sc.colour = function(v) {
+      var c = (v.stroke instanceof Array ? v.stroke[0] : v.stroke) || '#000';
+      return { color: c };
+    };
+    sc.$on('setupExtraAfter', function() {
+      var m = sc.views[0].margin;
+      elm.css('top', (m.top+3)+'px').css('right', (m.right+3)+'px');
+    });
+  };
+
   return {
     restrict: 'E',
-    template:
-    ['<div class="radian-legend">',
-       '<span ng-style="colour(v)" ng-repeat="v in switchable">',
-         '{{v.label}}&nbsp;',
-         '<input type="checkbox" ng-model="v.enabled" ',
-                'ng-change="$emit(\'paintChange\')">',
-         '&nbsp;&nbsp;&nbsp;',
-       '</span>',
-     '</div>'].join(""),
-    replace: true,
+    // template:
+    // ['<div class="radian-legend">',
+    //    '<span ng-style="colour(v)" ng-repeat="v in switchable">',
+    //      '{{v.label}}&nbsp;',
+    //      '<input type="checkbox" ng-model="v.enabled" ',
+    //             'ng-change="$emit(\'paintChange\')">',
+    //      '&nbsp;&nbsp;&nbsp;',
+    //    '</span>',
+    //  '</div>'].join(""),
     scope: true,
-    link: function(scope, elm, as) {
-      scope.colour = function(v) {
-        var c = (v.stroke instanceof Array ? v.stroke[0] : v.stroke) || '#000';
-        return { color: c };
-      };
-      scope.$on('setupExtraAfter', function() {
-        var m = scope.views[0].margin;
-        elm.css('top', (m.top+3)+'px').css('right', (m.right+3)+'px');
+    compile: function(elm, as, trans) {
+      return { pre: preLink, post: postLink };
+    },
+  };
+}]);
+
+
+radian.directive('legendEntry', [function()
+{
+  'use strict';
+
+  return {
+    restrict: 'E',
+    scope: false,
+    link: function(sc, elm, as) {
+      console.log("legend-entry link...");
+      // Identify the legend element.
+      if (!elm[0].parentNode || elm[0].parentNode.tagName != 'LEGEND')
+        throw Error('<legend-entry> not properly nested inside <legend>');
+      var legend = $(elm[0].parentNode);
+
+      // Copy metadata attributes into a new object.
+      if (!as.label) throw Error('<legend-entry> without LABEL attribute');
+      if (!as.type) throw Error('<legend-entry> without TYPE attribute');
+      var attrs;
+      switch (as.type) {
+      case 'lines':
+        attrs = ['stroke', 'strokeWidth', 'strokeOpacity' ];
+        break;
+      case 'area':
+        attrs = ['fill', 'fillOpacity' ];
+        break;
+      case 'points':
+        attrs = ['stroke', 'strokeWidth', 'strokeOpacity',
+                 'fill', 'fillOpacity', 'marker' ];
+        break;
+      case 'bars':
+      case 'boxes':
+        attrs = ['stroke', 'strokeWidth', 'strokeOpacity',
+                 'fill', 'fillOpacity' ];
+        break;
+      default:
+        throw Error('invalid TYPE in <legend-entry>');
+      }
+      var entry = { label: as.label, type: as.type };
+      Object.keys(as).forEach(function(a) {
+        if (a.charAt(0) != '$') {
+          if (attrs.indexOf(a) != -1)
+            entry[a] = as[a];
+          else if (a != 'label' && a != 'type')
+            throw Error('invalid attribute "' + a + '" in <legend-entry>');
+        }
       });
+
+      // Set up explicit entry in parent legend.
+      sc.explicitEntries.push(entry);
     }
   };
-});
-
-
+}]);
 radian.directive('radianAxisSwitch', function()
 {
   return {

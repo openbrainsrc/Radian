@@ -27,12 +27,16 @@ framework with the data visualisation capabilities of the D3.js
 library.  <span class="nyi">A Haskell combinator library is provided
 for easy server-side rendering of plots.</span>
 
-### [1. JavaScript data access](01-javascript-data-access.html)
-### [2. Plot types](02-plot-types.html)
-### [3. Palettes and interpolators](03-palettes-and-interpolators.html)
-### [4. User interface features](04-user-interface-features.html)
-### [5. Plot layout directives](05-plot-layout-directives.html)
-### [6. The Radian plotting library](06-radian-plotting-library.html)
+### [1. Data sets](01-data-sets.html)
+### [2. Data accessor syntax](02-data-accessor-syntax.html)
+### [3. Categorical data](03-categorical-data.html)
+### [4. The main plotting directive](04-plot-directive.html)
+### [5. Plot types](05-plot-types.html)
+### [6. Palettes and interpolators](06-palettes-and-interpolators.html)
+### [7. Plot legends](07-legends.html)
+### [8. User interface features](08-user-interface-features.html)
+### [9. Plot layout directives](09-plot-layout-directives.html)
+### [10. The Radian plotting library](10-radian-plotting-library.html)
 ### [Appendix. Reserved names](A-reserved-names.html)
 
 <hr>

@@ -1,0 +1,14 @@
+<h3>Example 77 (legends)</h3>
+
+<p>Default: position at top left, no frame, background transparent;
+  explicit entries.</p>
+
+<plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
+      axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
+  <legend>
+    <legend-entry label="sin x" type="lines" stroke="red"></legend-entry>
+    <legend-entry label="cos x" type="lines" stroke="blue"></legend-entry>
+  </legend>
+  <lines y="[[sin(x)]]" stroke="red"></lines>
+  <lines y="[[cos(x)]]" stroke="blue"></lines>
+</plot>

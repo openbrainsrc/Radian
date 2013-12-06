@@ -3,7 +3,7 @@ layout: default
 title: Reference manual - Radian plotting library
 ---
 
-# 6. The Radian plotting library
+# 9. The Radian plotting library
 
 Within Radian expressions, a standard set of constants and functions
 are made available.  Some of these are standard JavaScript functions,

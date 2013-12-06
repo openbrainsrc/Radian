@@ -14,6 +14,7 @@ all: radian.js radian.min.js radian.css examples
 	src/plots.js \
 	src/interpolation.js \
 	src/lib.js \
+	src/legends.js \
 	src/ui.js \
 	src/utils.js \
 	src/debug.js \
