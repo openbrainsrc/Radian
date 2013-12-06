@@ -639,6 +639,14 @@ radian.directive('plot',
   };
 
   function setup(scope, viewgroup, idx, nviews, suppressProcessRanges) {
+    scope.getTextSize = function(t) {
+      var g = scope.sizeviewgroup.append('g').attr('visibility', 'hidden');
+      var tstel = g.append('text').attr('x', 0).attr('y', 0)
+        .style('font-size', scope.fontSize).text(tst);
+      var bbox = tstel[0][0].getBBox();
+      g.remove();
+      return bbox;
+    };
     var plotgroup = viewgroup.append('g').classed('radian-plot', true);
     var v = { group: viewgroup, plotgroup: plotgroup };
     if (viewgroup.hasOwnProperty('zoomer'))
@@ -894,11 +902,8 @@ radian.directive('plot',
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var g = scope.sizeviewgroup.append('g').attr('visibility', 'hidden');
-      var tstel = g.append('text').attr('x', 0).attr('y', 0)
-        .style('font-size', scope.fontSize).text(tst);
-      yoffset = Math.max(del3, axisspace + tstel[0][0].getBBox().width);
-      g.remove();
+      var tstsz = scope.getTextSize(tst);
+      yoffset = Math.max(del3, axisspace + tstsz.width);
     }
     if (v.y2axis && v.y2) {
       var tmp = v.y2.copy();
@@ -918,13 +923,8 @@ radian.directive('plot',
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var tstel = scope.sizeviewgroup.append('g').attr('visibility', 'hidden')
-        .append('text')
-        .attr('x', 0).attr('y', 0)
-        .style('font-size', scope.fontSize)
-        .text(tst);
-      y2offset = Math.max(del3, axisspace + tstel[0][0].getBBox().width);
-      tstel.remove();
+      var tstsz = scope.getTextSize(tst);
+      y2offset = Math.max(del3, axisspace + tstsz.width);
     }
     if (v.yaxis) v.margin.left += yoffset + (showYAxisLabel ? del2 : 0);
     if (v.y2axis) v.margin.right += y2offset + (showY2AxisLabel ? del2 : 0);

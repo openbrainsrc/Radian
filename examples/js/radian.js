@@ -641,6 +641,14 @@ radian.directive('plot',
   };
 
   function setup(scope, viewgroup, idx, nviews, suppressProcessRanges) {
+    scope.getTextSize = function(t) {
+      var g = scope.sizeviewgroup.append('g').attr('visibility', 'hidden');
+      var tstel = g.append('text').attr('x', 0).attr('y', 0)
+        .style('font-size', scope.fontSize).text(tst);
+      var bbox = tstel[0][0].getBBox();
+      g.remove();
+      return bbox;
+    };
     var plotgroup = viewgroup.append('g').classed('radian-plot', true);
     var v = { group: viewgroup, plotgroup: plotgroup };
     if (viewgroup.hasOwnProperty('zoomer'))
@@ -896,11 +904,8 @@ radian.directive('plot',
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var g = scope.sizeviewgroup.append('g').attr('visibility', 'hidden');
-      var tstel = g.append('text').attr('x', 0).attr('y', 0)
-        .style('font-size', scope.fontSize).text(tst);
-      yoffset = Math.max(del3, axisspace + tstel[0][0].getBBox().width);
-      g.remove();
+      var tstsz = scope.getTextSize(tst);
+      yoffset = Math.max(del3, axisspace + tstsz.width);
     }
     if (v.y2axis && v.y2) {
       var tmp = v.y2.copy();
@@ -920,13 +925,8 @@ radian.directive('plot',
         if (s.length > tst.length) tst = s;
       });
       tst = tst.replace(/[0-9]/g, '0');
-      var tstel = scope.sizeviewgroup.append('g').attr('visibility', 'hidden')
-        .append('text')
-        .attr('x', 0).attr('y', 0)
-        .style('font-size', scope.fontSize)
-        .text(tst);
-      y2offset = Math.max(del3, axisspace + tstel[0][0].getBBox().width);
-      tstel.remove();
+      var tstsz = scope.getTextSize(tst);
+      y2offset = Math.max(del3, axisspace + tstsz.width);
     }
     if (v.yaxis) v.margin.left += yoffset + (showYAxisLabel ? del2 : 0);
     if (v.y2axis) v.margin.right += y2offset + (showY2AxisLabel ? del2 : 0);
@@ -5718,6 +5718,66 @@ radian.directive('legend',
  ['processAttrs', 'dft', 'paintAttrsFromPlotType',
   function(processAttrs, dft, paintAttrsFromPlotType)
 {
+  function legendSizeAndPos(sc) {
+    // Get all size and position attributes.
+    var position = sc.position || 'left,top';
+    var posspl = position.split(/,/);
+    var posx = posspl[0], posy = posspl[1];
+    if (posx == 'left') posx = 10; else if (posx == 'right') posx = -10;
+    if (posy == 'top') posy = 10; else if (posy == 'bottom') posy = -10;
+    var orientation = sc.orientation || 'vertical';
+    var norientation = 1;
+    var orspl = orientation.split(/:/);
+    if (orspl.length > 1) {
+      orientation = orspl[0];
+      norientation = orspl[1];
+    }
+    var rowSpacing = sc.rowSpacing || 10;
+    var columnSpacing = sc.columnSpacing || 10;
+    var segmentLength = sc.segmentLength || 30;
+    var margin = sc.margin || 10;
+    var hmargin = sc.horizontalMargin || margin;
+    var vmargin = sc.verticalMargin || margin;
+    // console.log("posx=" + posx + " posy=" + posy);
+    // console.log("orientation=" + orientation + " n=" + norientation);
+    // console.log("rowSpacing=" + rowSpacing + " colSpacing=" + columnSpacing);
+    // console.log("segmentLength=" + segmentLength);
+    // console.log("hmargin=" + hmargin + " vmargin=" + vmargin);
+
+    // Determine label text sizes.
+    var lh = 0, lw = 0;
+    sc.explicitEntries.forEach(function(e) {
+      var sz = sc.plotScope.getTextSize(e.label);
+      e.width = sz.width;    lw = Math.max(sz.width, lw);
+      e.height = sz.height;  lh = Math.max(sz.height, lh);
+    });
+    sc.implicitEntries.forEach(function(e) {
+      var sz = sc.plotScope.getTextSize(e.label);
+      e.width = sz.width;    lw = Math.max(sz.width, lw);
+      e.height = sz.height;  lh = Math.max(sz.height, lh);
+    });
+    // console.log("lw=" + lw + " lh=" + lh);
+
+    // Order entries.
+    var order = [];
+    if (sc.order) order = sc.order.split(/;/);
+    var ex = {}, im = {};
+    sc.explicitEntries.forEach(function(e) { ex[e.label] = e; });
+    sc.implicitEntries.forEach(function(e) { im[e.label] = e; });
+    var entries = [];
+    order.forEach(function(l) {
+      if (ex[l])      { entries.push(ex[l]);  delete ex[l]; }
+      else if (im[l]) { entries.push(im[l]);  delete im[l]; }
+    });
+    sc.implicitEntries.forEach(function(e) {
+      if (im[e.label]) entries.push(e);
+    });
+    sc.explicitEntries.forEach(function(e) {
+      if (ex[e.label]) entries.push(e);
+    });
+    console.log("entries=" + JSON.stringify(entries));
+  };
+
   function preLink(sc, elm, as) {
     console.log("legend preLink...");
     sc.explicitEntries = [ ];
@@ -5735,6 +5795,7 @@ radian.directive('legend',
       var psc = sc;
       while (psc.hasOwnProperty('$parent') && !psc.hasOwnProperty('addPlot'))
         psc = psc.$parent;
+      sc.plotScope = psc;
       dft(psc, function(s) {
         if (s.hasOwnProperty('label') && s.hasOwnProperty('plotType')) {
           var attrs = paintAttrsFromPlotType(s.plotType);
@@ -5745,8 +5806,7 @@ radian.directive('legend',
           sc.implicitEntries.push(entry);
         }
       });
-      console.log("explicitEntries=" + JSON.stringify(sc.explicitEntries));
-      console.log("implicitEntries=" + JSON.stringify(sc.implicitEntries));
+      legendSizeAndPos(sc);
       var m = sc.views[0].margin;
       elm.css('top', (m.top+3)+'px').css('right', (m.right+3)+'px');
     });

@@ -16,7 +16,7 @@ title: Reference manual - Plot legends
 |`FRAME-THICKNESS`  | |Stroke thickness for frame surrounding legend|
 |`FRAME-COLOR`      | |Stroke colour for frame surrounding legend|
 |`BACKGROUND-COLOR` | |Background colour of box containing legend|
-|`ORDER`            | |Legend entry order based on entry labels|
+|`ORDER`            | |Legend entry order based on semicolon-separated list of entry labels|
 |`ORIENTATION`      | |Orientation of legend: either `horizontal` or `vertical` with possibly a row or column count|
 |`ROW-SPACING`      | |Pixel spacing between legend rows|
 |`COLUMN-SPACING`   | |Pixel spacing between legend columns|
