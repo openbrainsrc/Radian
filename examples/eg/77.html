@@ -12,3 +12,14 @@
   <lines y="[[sin(x)]]" stroke="red"></lines>
   <lines y="[[cos(x)]]" stroke="blue"></lines>
 </plot>
+
+
+<p>Implicit entries.</p>
+
+<plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
+      axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
+  <legend></legend>
+  <lines label="sin x" y="[[sin(x)]]" stroke="red"></lines>
+  <lines label="cos x" y="[[cos(x)]]" stroke="blue"></lines>
+  <lines label="Sum" y="[[sin(x)+cos(x)]]" stroke="green"></lines>
+</plot>

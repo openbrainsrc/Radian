@@ -1364,10 +1364,11 @@ radian.factory('plotTypeLink',
                   'marker', 'markerSize', 'stroke', 'strokeOpacity',
                   'strokeWidth' ];
 
-  return function(scope, elm, as, draw) {
+  return function(typ, scope, elm, as, draw) {
     processAttrs(scope, as);
     elm.hide();
     scope.draw = draw;
+    scope.plotType = typ;
     scope.$parent.addPlot(scope);
 
     scope.xchange = scope.ychange = false;

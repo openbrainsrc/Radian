@@ -77,7 +77,7 @@ radian.directive('lines',
           }) : (Number(scope.strokeWidth) || 1);
         scope.rangeExtendPixels([width/2, width/2], [width/2, width/2]);
       });
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('lines', scope, elm, as, draw);
     }
   };
 }]);
@@ -143,7 +143,7 @@ radian.directive('points',
         var delta = (width + Math.sqrt(size)) / 2;
         scope.rangeExtendPixels([delta, delta], [delta, delta]);
       });
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('points', scope, elm, as, draw);
     }
   };
 }]);
@@ -337,7 +337,7 @@ radian.directive('bars',
         if (s.y2range) s.y2range[0] = 0;
         else           s.y2range = [0, null];
       });
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('bars', scope, elm, as, draw);
     }
   };
 }]);
@@ -525,7 +525,7 @@ radian.directive('boxes',
           }) : (Number(scope.strokeWidth) || 1);
         scope.rangeExtendPixels([2*width, 2*width], [20, 20]);
       });
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('boxes', scope, elm, as, draw);
     }
   };
 }]);
@@ -569,7 +569,7 @@ radian.directive('area',
     restrict: 'E',
     scope: true,
     link: function(scope, elm, as) {
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('area', scope, elm, as, draw);
     }
   };
 }]);
@@ -618,7 +618,7 @@ radian.directive('rug',
     scope: true,
     link: function(scope, elm, as) {
       scope.checkPlottable = function(xvar, yvar) { return xvar || yvar; };
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('rug', scope, elm, as, draw);
     }
   };
 }]);

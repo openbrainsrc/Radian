@@ -1366,10 +1366,11 @@ radian.factory('plotTypeLink',
                   'marker', 'markerSize', 'stroke', 'strokeOpacity',
                   'strokeWidth' ];
 
-  return function(scope, elm, as, draw) {
+  return function(typ, scope, elm, as, draw) {
     processAttrs(scope, as);
     elm.hide();
     scope.draw = draw;
+    scope.plotType = typ;
     scope.$parent.addPlot(scope);
 
     scope.xchange = scope.ychange = false;
@@ -4535,7 +4536,7 @@ radian.directive('lines',
           }) : (Number(scope.strokeWidth) || 1);
         scope.rangeExtendPixels([width/2, width/2], [width/2, width/2]);
       });
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('lines', scope, elm, as, draw);
     }
   };
 }]);
@@ -4601,7 +4602,7 @@ radian.directive('points',
         var delta = (width + Math.sqrt(size)) / 2;
         scope.rangeExtendPixels([delta, delta], [delta, delta]);
       });
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('points', scope, elm, as, draw);
     }
   };
 }]);
@@ -4795,7 +4796,7 @@ radian.directive('bars',
         if (s.y2range) s.y2range[0] = 0;
         else           s.y2range = [0, null];
       });
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('bars', scope, elm, as, draw);
     }
   };
 }]);
@@ -4983,7 +4984,7 @@ radian.directive('boxes',
           }) : (Number(scope.strokeWidth) || 1);
         scope.rangeExtendPixels([2*width, 2*width], [20, 20]);
       });
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('boxes', scope, elm, as, draw);
     }
   };
 }]);
@@ -5027,7 +5028,7 @@ radian.directive('area',
     restrict: 'E',
     scope: true,
     link: function(scope, elm, as) {
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('area', scope, elm, as, draw);
     }
   };
 }]);
@@ -5076,7 +5077,7 @@ radian.directive('rug',
     scope: true,
     link: function(scope, elm, as) {
       scope.checkPlottable = function(xvar, yvar) { return xvar || yvar; };
-      plotTypeLink(scope, elm, as, draw);
+      plotTypeLink('rug', scope, elm, as, draw);
     }
   };
 }]);
@@ -5697,21 +5698,55 @@ radian.factory('plotLib', function()
            rad$$pal: {}
          };
 });
-radian.directive('legend', ['processAttrs', function(processAttrs)
+radian.factory('paintAttrsFromPlotType', [function() {
+  return function(t) {
+    switch (t) {
+    case 'lines':  return ['stroke', 'strokeWidth', 'strokeOpacity' ];
+    case 'area':   return ['fill', 'fillOpacity' ];
+    case 'points': return ['stroke', 'strokeWidth', 'strokeOpacity',
+                           'fill', 'fillOpacity', 'marker' ];
+    case 'bars':
+    case 'boxes':  return ['stroke', 'strokeWidth', 'strokeOpacity',
+                           'fill', 'fillOpacity' ];
+    default: throw Error('invalid TYPE in <legend-entry>');
+    }
+  };
+}]);
+
+
+radian.directive('legend',
+ ['processAttrs', 'dft', 'paintAttrsFromPlotType',
+  function(processAttrs, dft, paintAttrsFromPlotType)
 {
   function preLink(sc, elm, as) {
-    sc.explicitEntries = [ ];
     console.log("legend preLink...");
+    sc.explicitEntries = [ ];
+    sc.implicitEntries = [ ];
   };
   function postLink(sc, elm, as) {
-    processAttrs(sc, as);
     console.log("legend postLink...");
-    console.log("explicitEntries=" + JSON.stringify(sc.explicitEntries));
+    processAttrs(sc, as);
     sc.colour = function(v) {
       var c = (v.stroke instanceof Array ? v.stroke[0] : v.stroke) || '#000';
       return { color: c };
     };
     sc.$on('setupExtraAfter', function() {
+      console.log("legend setupExtraAfter");
+      var psc = sc;
+      while (psc.hasOwnProperty('$parent') && !psc.hasOwnProperty('addPlot'))
+        psc = psc.$parent;
+      dft(psc, function(s) {
+        if (s.hasOwnProperty('label') && s.hasOwnProperty('plotType')) {
+          var attrs = paintAttrsFromPlotType(s.plotType);
+          var entry = { label: s.label, type: s.plotType };
+          attrs.forEach(function(a) {
+            if (s.hasOwnProperty(a)) entry[a] = s[a];
+          });
+          sc.implicitEntries.push(entry);
+        }
+      });
+      console.log("explicitEntries=" + JSON.stringify(sc.explicitEntries));
+      console.log("implicitEntries=" + JSON.stringify(sc.implicitEntries));
       var m = sc.views[0].margin;
       elm.css('top', (m.top+3)+'px').css('right', (m.right+3)+'px');
     });
@@ -5736,7 +5771,9 @@ radian.directive('legend', ['processAttrs', function(processAttrs)
 }]);
 
 
-radian.directive('legendEntry', [function()
+radian.directive('legendEntry',
+ ['paintAttrsFromPlotType',
+  function(paintAttrsFromPlotType)
 {
   'use strict';
 
@@ -5753,26 +5790,7 @@ radian.directive('legendEntry', [function()
       // Copy metadata attributes into a new object.
       if (!as.label) throw Error('<legend-entry> without LABEL attribute');
       if (!as.type) throw Error('<legend-entry> without TYPE attribute');
-      var attrs;
-      switch (as.type) {
-      case 'lines':
-        attrs = ['stroke', 'strokeWidth', 'strokeOpacity' ];
-        break;
-      case 'area':
-        attrs = ['fill', 'fillOpacity' ];
-        break;
-      case 'points':
-        attrs = ['stroke', 'strokeWidth', 'strokeOpacity',
-                 'fill', 'fillOpacity', 'marker' ];
-        break;
-      case 'bars':
-      case 'boxes':
-        attrs = ['stroke', 'strokeWidth', 'strokeOpacity',
-                 'fill', 'fillOpacity' ];
-        break;
-      default:
-        throw Error('invalid TYPE in <legend-entry>');
-      }
+      var attrs = paintAttrsFromPlotType(as.type);
       var entry = { label: as.label, type: as.type };
       Object.keys(as).forEach(function(a) {
         if (a.charAt(0) != '$') {
