@@ -75,8 +75,7 @@ radian.directive('radianStrokeSwitch', function()
       if (!scope.strokeSwitch) return;
       scope.$on('setupExtraAfter', function() {
         var m = scope.views[0].margin;
-        var dt = scope.legendEnabled ? 25 : 0;
-        elm.css('top', (m.top+dt+3)+'px').css('right', (m.right+3)+'px');
+        elm.css('top', (m.top+3)+'px').css('right', (m.right+3)+'px');
       });
       scope.switches = scope.strokeSwitch.split(';');
       scope.stepStroke = function() {

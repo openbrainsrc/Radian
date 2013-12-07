@@ -63,6 +63,12 @@ radian.directive('legend',
     sc.labelx = sc.segmentLength + sc.segmentGap;
     sc.ew += sc.labelx;
 
+    // Add space for checkboxes if required.
+    var anyswitchable = sc.implicitEntries.some(function(e) {
+      return e.switchable;
+    });
+    if (anyswitchable) sc.ew += 15; // TODO: FIX SIZE!
+
     // Order entries.
     var order = [];
     if (sc.order) order = sc.order.split(/\|/);
@@ -199,6 +205,8 @@ radian.directive('legend',
         break;
       }
     });
+
+    sc.plotScope.$broadcast('legendLayoutComplete');
   };
 
   function preLink(sc, elm, as) {
@@ -215,32 +223,25 @@ radian.directive('legend',
       while (psc.hasOwnProperty('$parent') && !psc.hasOwnProperty('addPlot'))
         psc = psc.$parent;
       sc.plotScope = psc;
+      var psw = psc.legendSwitches;
       sc.implicitEntries = [ ];
       dft(psc, function(s) {
         if (s.hasOwnProperty('label') && s.hasOwnProperty('plotType')) {
           var attrs = paintAttrsFromPlotType(s.plotType);
-          var entry = { label: s.label, type: s.plotType };
+          var entry = { label: s.label, type: s.plotType,
+                        switchable: s.hasOwnProperty('legendSwitch') || psw };
           attrs.forEach(function(a) { if (s[a]) entry[a] = s[a]; });
+          s.legendEntry = entry;
+          s.legendScope = sc;
           sc.implicitEntries.push(entry);
         }
       });
       sc.plotScope.views[0].post = function(svg) { drawLegend(sc, svg); };
-      var m = sc.views[0].margin;
-      elm.css('top', (m.top+3)+'px').css('right', (m.right+3)+'px');
     });
   };
 
   return {
     restrict: 'E',
-    // template:
-    // ['<div class="radian-legend">',
-    //    '<span ng-style="colour(v)" ng-repeat="v in switchable">',
-    //      '{{v.label}}&nbsp;',
-    //      '<input type="checkbox" ng-model="v.enabled" ',
-    //             'ng-change="$emit(\'paintChange\')">',
-    //      '&nbsp;&nbsp;&nbsp;',
-    //    '</span>',
-    //  '</div>'].join(""),
     scope: true,
     compile: function(elm, as, trans) {
       return { pre: preLink, post: postLink };
@@ -268,7 +269,7 @@ radian.directive('legendEntry',
       if (!as.label) throw Error('<legend-entry> without LABEL attribute');
       if (!as.type) throw Error('<legend-entry> without TYPE attribute');
       var attrs = paintAttrsFromPlotType(as.type);
-      var entry = { label: as.label, type: as.type };
+      var entry = { label: as.label, type: as.type, switchable: false };
       attrs.forEach(function(a) {
         if (as.hasOwnProperty(a))
           entry[a] = as[a];
@@ -281,3 +282,29 @@ radian.directive('legendEntry',
     }
   };
 }]);
+
+
+radian.directive('radianLegendSwitch', function()
+{
+  return {
+    restrict: 'E',
+    template:
+    ['<div class="radian-legend-switch">',
+       '<input ng-repeat="v in switchable" type="checkbox" ',
+              'ng-model="v.enabled" ng-change="$emit(\'paintChange\')">',
+     '</div>'].join(""),
+    replace: true,
+    scope: true,
+    link: function(sc, elm, as) {
+      sc.$on('legendLayoutComplete', function() {
+        var chs = $(elm).find(':checkbox');
+        sc.switchable.forEach(function(sw, i) {
+          var e = sw.legendEntry, lsc = sw.legendScope;
+          var y = sc.views[0].margin.top + lsc.posy + e.iny;
+          var x = sc.views[0].margin.left + lsc.posx + e.inx + lsc.ew - 10;
+          $(chs[i]).css('left', x+'px').css('top', y+'px');
+        });
+      });
+    }
+  };
+});

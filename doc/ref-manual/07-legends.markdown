@@ -36,30 +36,58 @@ directives within the surrounding `<plot>` directive that have a
 
 ### Interpretation
 
-The `<legend>` directive...
+A `<legend>` directive within a `<plot>` directive causes a plot legend
+to be generated.  The position, frame and background of the legend can
+be controlled, as can the orientiation (entries in vertical columns or
+horizontal rows) and sizing and spacing of individual legend entries.
+
+Legend entries can be specified explicitly (using embedded
+`<legend-entry>` directives) or implicitly (by adding a `LABEL`
+attribute to plotting directives).
 
 #### Legend positioning and sizing
 
-`POSITION` attribute: `x,y` with `x` either &plusmn; a pixel count,
-`left` or `right` and `y` either &plusmn; a pixel count, `top` or
-`bottom`.  Positive pixel counts are for left/top edge from left/top
-of frame, negative pixel counts are for right/bottom edge from
-right/bottom of frame.  The `left`, `right`, `top` and `bottom`
-specifiers put the legend a reasonable distance from the edge of the
-plot.
+The position of the legend within the plot frame is controlled by the
+`POSITION` attribute, which is of the form `x,y` with `x` being either
+a pixel count (positive or negative), `left` or `right` and `y` either
+a pixel count (positive or negative), `top` or `bottom`.  Positive
+pixel counts position the left or top edge of the legend relative to
+the from left or top edge of the plot frame, while negative pixel
+counts position the right or bottom edge of the legend relative to the
+right or bottom edge of the plot frame.  The `left`, `right`, `top`
+and `bottom` values put the legend a reasonable distance from the edge
+of the plot frame.
 
-`ORIENTATION` attribute: `horizontal`, `horizontal:<nrows>`,
-`vertical` or `vertical:<ncols>`.
+The orientation of legend entries is controlled by the `ORIENTATION`
+attribute.  This can be `horizontal`, `horizontal:<nrows>`, `vertical`
+or `vertical:<ncols>` -- the `horizontal` options produce legends with
+entries laid out in rows, while the `vertical` options produce legends
+with entries laid out in columns.  In each case, the optional value
+controls the number of rows (for horizontal legends) or columns (for
+vertical legends) of legend entries.  For example, an `ORIENTATION`
+attribute value of `vertical:2` will result in a legend with two
+columns of entries.  The default is `vertical`, i.e. legend entries
+are laid out in a single column.
 
-`ROW-SPACING`, `COLUMN-SPACING`: given in pixels.
+The spacing between rows and columns within a legend can be controlled
+by the `ROW-SPACING` and `COLUMN-SPACING` attributes, both of which
+are given in pixels.
 
 #### Legend frame and background
 
-`FRAME-THICKNESS`, `FRAME-COLOR`: defaults to no frame; frame is drawn
-if either or both of thickness or colour are specified (thickness
-defaults to 1px, colour to black if only one is specified).
+A legend can have be surrounded by a frame, controlled by the
+`FRAME-THICKNESS` and `FRAME-COLOR` attributes.  The default is to
+display no frame.  A frame is drawn if either or both of the thickness
+or colour are specified (thickness defaults to 1 pixel, and frame
+colour defaults to black if only one is specified).
 
-`BACKGROUND-COLOR`: defaults to "none", i.e. transparent.
+By default, the background of the legend is solid white, to set the
+legend entries off against any plot graphics lying in the same area of
+the plot frame as the legend.  The colour of the background rectangle
+can be controlled using the `BACKGROUND-COLOR` attribute.  By setting
+`BACKGROUND-COLOR` to `none`, the background rectangle can be
+suppressed, making the legend transparent and allowing plot graphics
+behind the legend to show through.
 
 #### Legend entries
 
@@ -129,3 +157,14 @@ Each plotting directive (i.e. `<lines>`, `<points>`, etc.) within a
 in a legend defined by a `<legend>` directive within the `<plot>`
 directive.  Implicit legend entries are created for any plotting
 directive that has a `LABEL` attribute.
+
+
+<hr>
+## Legend interactivity
+
+For implicit legend entries defined by adding a `LABEL` attribute to a
+plotting directive, it is also possible to produce a user interface
+allowing the plot element to be switched on and off by adding a
+`LEGEND-SWITCH` attribute to the plot directive.  For each plotting
+directive with a `LEGEND-SWITCH` attribute, a checkbox appears in the
+legend allowing the visibility of the relevant plot to be controlled.

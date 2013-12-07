@@ -34,7 +34,12 @@ div.radian-ui {
 div.radian-axis-switch { position: absolute; white-space: nowrap; }
 div.radian-stroke-switch { position: absolute; white-space: nowrap; }
 div.radian-histogram-switch { position: absolute; white-space: nowrap; }
-div.radian-legend { position: absolute; white-space: nowrap; }
+div.radian-legend-switch { position: absolute; white-space: nowrap; }
+div.radian-legend-switch input {
+    position: absolute;
+    display: block;
+    margin: 0px;
+}
 
 
 /* Axes */
