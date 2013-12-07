@@ -1,6 +1,6 @@
 <h3>Example 77 (legends)</h3>
 
-<p>Default: position at top left, no frame, background transparent;
+<p>Default: position at top left, no frame, default white background;
   explicit entries.</p>
 
 <plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
@@ -13,7 +13,7 @@
   <lines y="[[cos(x)]]" stroke="blue"></lines>
 </plot>
 
-<p>Position at top left, frame, background transparent; explicit
+<p>Position at top left, frame, default white background; explicit
   entries.</p>
 
 <plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
@@ -26,24 +26,12 @@
   <lines y="[[cos(x)]]" stroke="blue"></lines>
 </plot>
 
-<p>Position at top left, frame and background; explicit entries.</p>
-
-<plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
-      axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
-  <legend background-color="white" frame-thickness=1>
-    <legend-entry label="sin x" type="lines" stroke="red"></legend-entry>
-    <legend-entry label="cos x" type="lines" stroke="blue"></legend-entry>
-  </legend>
-  <lines y="[[sin(x)]]" stroke="red"></lines>
-  <lines y="[[cos(x)]]" stroke="blue"></lines>
-</plot>
-
-<p>Position at bottom left, frame and background; explicit
+<p>Position at top left, frame and transparent background; explicit
 entries.</p>
 
 <plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
       axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
-  <legend position="left,bottom" background-color="white" frame-color="grey">
+  <legend background-color="none" frame-thickness=1>
     <legend-entry label="sin x" type="lines" stroke="red"></legend-entry>
     <legend-entry label="cos x" type="lines" stroke="blue"></legend-entry>
   </legend>
@@ -51,13 +39,25 @@ entries.</p>
   <lines y="[[cos(x)]]" stroke="blue"></lines>
 </plot>
 
-<p>Position at top right, frame and background; explicit
+<p>Position at bottom left, frame and default white background;
+explicit entries.</p>
+
+<plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
+      axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
+  <legend position="left,bottom" frame-color="grey">
+    <legend-entry label="sin x" type="lines" stroke="red"></legend-entry>
+    <legend-entry label="cos x" type="lines" stroke="blue"></legend-entry>
+  </legend>
+  <lines y="[[sin(x)]]" stroke="red"></lines>
+  <lines y="[[cos(x)]]" stroke="blue"></lines>
+</plot>
+
+<p>Position at top right, frame and default white background; explicit
 entries.</p>
 
 <plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
       axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
-  <legend position="right,top" background-color="white"
-          frame-thickness=1 frame-color="grey">
+  <legend position="right,top" frame-thickness=1 frame-color="grey">
     <legend-entry label="sin x" type="lines" stroke="red"></legend-entry>
     <legend-entry label="cos x" type="lines" stroke="blue"></legend-entry>
   </legend>
@@ -65,12 +65,12 @@ entries.</p>
   <lines y="[[cos(x)]]" stroke="blue"></lines>
 </plot>
 
-<p>Explicit position, frame and background; explicit entries.</p>
+<p>Explicit position, frame and default white background; explicit
+entries.</p>
 
 <plot height=300 aspect=3 stroke-width=2 x="[[seq(0,4*PI,101)]]"
       axis-x-label="Time" axis-y-label="sin(x) / cos(x)">
-  <legend position="25px,-25px" background-color="white"
-          frame-thickness=1 frame-color="grey">
+  <legend position="25,-25" frame-thickness=1 frame-color="grey">
     <legend-entry label="sin x" type="lines" stroke="red"></legend-entry>
     <legend-entry label="cos x" type="lines" stroke="blue"></legend-entry>
   </legend>

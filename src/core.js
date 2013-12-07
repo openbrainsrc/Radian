@@ -380,9 +380,11 @@ radian.directive('plot',
       scope.strokeSwitchEnabled = true;
 
     $timeout(function() {
-      // Draw plots and legend.
+      // Draw plots.
       init(true);
       reset();
+
+      // Set up interactivity.
       if (scope.hasOwnProperty('uiAxisYTransform'))
         scope.$on('yAxisChange', yAxisSwitch);
       if (scope.hasOwnProperty('uiAxisXTransform'))
@@ -409,11 +411,6 @@ radian.directive('plot',
         if (n != undefined && n != o) reset();
       });
     }, 0);
-
-    // Set up interactivity.
-    // ===> TODO: zoom and pan
-    // ===> TODO: "layer" visibility
-    // ===> TODO: styling changes
   };
 
   function processRanges(scope, rangea, rangexa, rangeya,

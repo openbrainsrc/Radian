@@ -382,9 +382,11 @@ radian.directive('plot',
       scope.strokeSwitchEnabled = true;
 
     $timeout(function() {
-      // Draw plots and legend.
+      // Draw plots.
       init(true);
       reset();
+
+      // Set up interactivity.
       if (scope.hasOwnProperty('uiAxisYTransform'))
         scope.$on('yAxisChange', yAxisSwitch);
       if (scope.hasOwnProperty('uiAxisXTransform'))
@@ -411,11 +413,6 @@ radian.directive('plot',
         if (n != undefined && n != o) reset();
       });
     }, 0);
-
-    // Set up interactivity.
-    // ===> TODO: zoom and pan
-    // ===> TODO: "layer" visibility
-    // ===> TODO: styling changes
   };
 
   function processRanges(scope, rangea, rangexa, rangeya,
@@ -5722,9 +5719,16 @@ radian.directive('legend',
     // Get all size and position attributes.
     var position = sc.position || 'left,top';
     var posspl = position.split(/,/);
-    var posx = posspl[0], posy = posspl[1];
-    if (posx == 'left') posx = 10; else if (posx == 'right') posx = -10;
-    if (posy == 'top') posy = 10; else if (posy == 'bottom') posy = -10;
+    sc.posx = posspl[0];
+    sc.posy = posspl[1];
+    if (sc.posx == 'left') sc.posx = 10;
+    else if (sc.posx == 'right') sc.posx = -10;
+    if (sc.posy == 'top') sc.posy = 10;
+    else if (sc.posy == 'bottom') sc.posy = -10;
+    sc.posx = Number(sc.posx);
+    sc.posy = Number(sc.posy);
+    if (isNaN(sc.posx) || isNaN(sc.posy))
+      throw Error("invalid position for legend");
     var orientation = sc.orientation || 'vertical';
     var norientation = 1;
     var orspl = orientation.split(/:/);
@@ -5732,31 +5736,32 @@ radian.directive('legend',
       orientation = orspl[0];
       norientation = orspl[1];
     }
-    var rowSpacing = sc.rowSpacing || 10;
-    var columnSpacing = sc.columnSpacing || 10;
-    var segmentLength = sc.segmentLength || 30;
-    var margin = sc.margin || 10;
-    var hmargin = sc.horizontalMargin || margin;
-    var vmargin = sc.verticalMargin || margin;
-    // console.log("posx=" + posx + " posy=" + posy);
-    // console.log("orientation=" + orientation + " n=" + norientation);
-    // console.log("rowSpacing=" + rowSpacing + " colSpacing=" + columnSpacing);
-    // console.log("segmentLength=" + segmentLength);
-    // console.log("hmargin=" + hmargin + " vmargin=" + vmargin);
+    sc.rowSpacing = sc.rowSpacing || 2;
+    sc.columnSpacing = sc.columnSpacing || 4;
+    sc.segmentLength = sc.segmentLength || 30;
+    sc.segmentGap = sc.segmentGap || 5;
+    sc.margin = sc.margin || 5;
+    sc.hmargin = sc.horizontalMargin || sc.margin;
+    sc.vmargin = sc.verticalMargin || sc.margin;
 
     // Determine label text sizes.
-    var lh = 0, lw = 0;
+    sc.eh = 0;
+    sc.ew = 0;
     sc.explicitEntries.forEach(function(e) {
-      var sz = sc.plotScope.getTextSize(e.label);
-      e.width = sz.width;    lw = Math.max(sz.width, lw);
-      e.height = sz.height;  lh = Math.max(sz.height, lh);
+      var sz = sc.getTextSize(e.label);
+      console.log(e.label + " -> " + JSON.stringify(sz));
+      e.width = sz.width;    sc.ew = Math.max(sz.width, sc.ew);
+      e.height = sz.height;  sc.eh = Math.max(sz.height, sc.eh);
     });
     sc.implicitEntries.forEach(function(e) {
-      var sz = sc.plotScope.getTextSize(e.label);
-      e.width = sz.width;    lw = Math.max(sz.width, lw);
-      e.height = sz.height;  lh = Math.max(sz.height, lh);
+      var sz = sc.getTextSize(e.label);
+      console.log(e.label + " -> " + JSON.stringify(sz));
+      e.width = sz.width;    sc.ew = Math.max(sz.width, sc.ew);
+      e.height = sz.height;  sc.eh = Math.max(sz.height, sc.eh);
     });
-    // console.log("lw=" + lw + " lh=" + lh);
+    sc.labelx = sc.segmentLength + sc.segmentGap;
+    sc.ew += sc.labelx;
+    console.log("sc.eh=" + sc.eh);
 
     // Order entries.
     var order = [];
@@ -5764,49 +5769,135 @@ radian.directive('legend',
     var ex = {}, im = {};
     sc.explicitEntries.forEach(function(e) { ex[e.label] = e; });
     sc.implicitEntries.forEach(function(e) { im[e.label] = e; });
-    var entries = [];
+    sc.entries = [];
     order.forEach(function(l) {
-      if (ex[l])      { entries.push(ex[l]);  delete ex[l]; }
-      else if (im[l]) { entries.push(im[l]);  delete im[l]; }
+      if (ex[l])      { sc.entries.push(ex[l]);  delete ex[l]; }
+      else if (im[l]) { sc.entries.push(im[l]);  delete im[l]; }
     });
     sc.implicitEntries.forEach(function(e) {
-      if (im[e.label]) entries.push(e);
+      if (im[e.label]) sc.entries.push(e);
     });
     sc.explicitEntries.forEach(function(e) {
-      if (ex[e.label]) entries.push(e);
+      if (ex[e.label]) sc.entries.push(e);
     });
-    console.log("entries=" + JSON.stringify(entries));
+
+    // Allocate entries to rows/columns.
+    var major = orientation == 'vertical' ? 'col' : 'row';
+    var minor = orientation == 'vertical' ? 'row' : 'col';
+    var nentries = sc.entries.length;
+    var minorpermajor = Math.ceil(nentries / norientation);
+    var ientry = 0;
+    for (var imaj = 0; imaj < norientation; ++imaj)
+      for (var imin = 0; imin < minorpermajor && ientry < nentries; ++imin) {
+        sc.entries[ientry][major] = imaj;
+        sc.entries[ientry][minor] = imin;
+        ++ientry;
+      }
+    var ncols = orientation == 'vertical' ? norientation : minorpermajor;
+    var nrows = orientation == 'vertical' ? minorpermajor : norientation;
+    sc.entries.forEach(function(e) {
+      e.inx = sc.hmargin + e.col * (sc.ew + sc.columnSpacing);
+      e.iny = sc.vmargin + e.row * (sc.eh + sc.rowSpacing);
+    });
+    sc.legw = ncols * sc.ew + (ncols - 1) * sc.columnSpacing + 2 * sc.hmargin;
+    sc.legh = nrows * sc.eh + (nrows - 1) * sc.rowSpacing + 2 * sc.vmargin;
+  };
+
+  function drawLegend(sc, plotgroup) {
+    // Remove any existing legend SVG group.
+    plotgroup.selectAll('.radian-legend').remove();
+
+    // Set up new legend group.
+    var lg = plotgroup.append('g').attr('class', 'radian-legend');
+
+    // Text size calculation function.
+    sc.getTextSize = function(t) {
+      var g = lg.append('g').attr('visibility', 'hidden');
+      var tstel = g.append('text').attr('x', 0).attr('y', 0)
+        .style('font-size', sc.fontSize).text(t);
+      var bbox = tstel[0][0].getBBox();
+      g.remove();
+      return bbox;
+    };
+
+    // Calculate legend size and position.
+    legendSizeAndPos(sc);
+    var lx = sc.posx >= 0 ? sc.posx :
+      sc.plotScope.views[0].realwidth + sc.posx - sc.legw;
+    var ly = sc.posy >= 0 ? sc.posy :
+      sc.plotScope.views[0].realheight + sc.posy - sc.legh;
+    lg.attr('transform', 'translate(' + lx + ',' + ly + ')');
+
+    // Draw background rectangle.
+    var bg = sc.backgroundColor || 'white';
+    if (bg != 'none')
+      lg.append('rect').
+        attr('height', sc.legh).attr('width', sc.legw).
+        attr('stroke', 'none').attr('fill', bg);
+
+    // Draw frame.
+    if (sc.hasOwnProperty('frameThickness') ||
+        sc.hasOwnProperty('frameColor')) {
+      var thickness = sc.frameThickness || 1;
+      var colour = sc.frameColor || 'black';
+      lg.append('rect').
+        attr('height', sc.legh).attr('width', sc.legw).
+        attr('stroke', colour).attr('stroke-thickness', thickness).
+        attr('fill', 'none');
+    }
+
+    sc.entries.forEach(function(e) {
+      // Make group for entry translated to appropriate position.
+      var eg = lg.append('g').attr('class', 'radian-legend-entry').
+        attr('transform', 'translate(' + e.inx + ',' + e.iny + ')');
+
+      // Draw entry label.
+      // eg.append('rect').attr('x', 0).attr('y', 0).
+      //   attr('width', sc.ew).attr('height', sc.eh).attr('fill', '#DDD');
+      eg.append('text').attr('x', sc.labelx).attr('y', sc.eh/2).
+        style('dominant-baseline', 'middle').
+        style('font-size', sc.plotScope.fontSize).text(e.label);
+
+      // Draw entry segment.
+      switch (e.type) {
+      case 'lines': {
+        var d = [[0, sc.eh/2], [sc.segmentLength, sc.eh/2]];
+        eg.append('path').datum(d).attr('d', d3.svg.line()).
+          style('stroke', e.stroke).style('stroke-width', e.strokeWidth);
+        break;
+      }
+      case 'points':
+      case 'area':
+      case 'bars':
+      case 'boxes':
+      }
+    });
   };
 
   function preLink(sc, elm, as) {
-    console.log("legend preLink...");
     sc.explicitEntries = [ ];
-    sc.implicitEntries = [ ];
   };
   function postLink(sc, elm, as) {
-    console.log("legend postLink...");
     processAttrs(sc, as);
     sc.colour = function(v) {
       var c = (v.stroke instanceof Array ? v.stroke[0] : v.stroke) || '#000';
       return { color: c };
     };
     sc.$on('setupExtraAfter', function() {
-      console.log("legend setupExtraAfter");
       var psc = sc;
       while (psc.hasOwnProperty('$parent') && !psc.hasOwnProperty('addPlot'))
         psc = psc.$parent;
       sc.plotScope = psc;
+      sc.implicitEntries = [ ];
       dft(psc, function(s) {
         if (s.hasOwnProperty('label') && s.hasOwnProperty('plotType')) {
           var attrs = paintAttrsFromPlotType(s.plotType);
           var entry = { label: s.label, type: s.plotType };
-          attrs.forEach(function(a) {
-            if (s.hasOwnProperty(a)) entry[a] = s[a];
-          });
+          attrs.forEach(function(a) { if (s[a]) entry[a] = s[a]; });
           sc.implicitEntries.push(entry);
         }
       });
-      legendSizeAndPos(sc);
+      sc.plotScope.views[0].post = function(svg) { drawLegend(sc, svg); };
       var m = sc.views[0].margin;
       elm.css('top', (m.top+3)+'px').css('right', (m.right+3)+'px');
     });
@@ -5841,7 +5932,6 @@ radian.directive('legendEntry',
     restrict: 'E',
     scope: false,
     link: function(sc, elm, as) {
-      console.log("legend-entry link...");
       // Identify the legend element.
       if (!elm[0].parentNode || elm[0].parentNode.tagName != 'LEGEND')
         throw Error('<legend-entry> not properly nested inside <legend>');
@@ -5852,13 +5942,11 @@ radian.directive('legendEntry',
       if (!as.type) throw Error('<legend-entry> without TYPE attribute');
       var attrs = paintAttrsFromPlotType(as.type);
       var entry = { label: as.label, type: as.type };
-      Object.keys(as).forEach(function(a) {
-        if (a.charAt(0) != '$') {
-          if (attrs.indexOf(a) != -1)
-            entry[a] = as[a];
-          else if (a != 'label' && a != 'type')
-            throw Error('invalid attribute "' + a + '" in <legend-entry>');
-        }
+      attrs.forEach(function(a) {
+        if (as.hasOwnProperty(a))
+          entry[a] = as[a];
+        else if (sc[a])
+          entry[a] = sc[a];
       });
 
       // Set up explicit entry in parent legend.

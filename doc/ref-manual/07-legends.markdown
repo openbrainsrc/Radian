@@ -21,6 +21,7 @@ title: Reference manual - Plot legends
 |`ROW-SPACING`      | |Pixel spacing between legend rows|
 |`COLUMN-SPACING`   | |Pixel spacing between legend columns|
 |`SEGMENT-LENGTH`   | |Pixel size of legend line segments|
+|`SEGMENT-GAP`      | |Pixel gap between legend line segments and labels|
 |`HORIZONTAL-MARGIN`| |Pixel margin to left and right of legend entries|
 |`VERTICAL-MARGIN`  | |Pixel margin above and below legend entries|
 |`MARGIN`           | |Default pixel margin around legend entries|
