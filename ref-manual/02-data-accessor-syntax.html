@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Reference manual - Data accessor syntax</title>
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../documentation.html">Documentation</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../community.html">Community</a></li>
+          <li><a href="../gallery">Gallery</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../faq.html">FAQ</a></li>
+          <li><a href="../roadmap.html">Roadmap</a></li>
+          <li><a href="../contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="data-accessor-syntax">2. <a name="data-accessors">Data accessor syntax</a></h1>
+<p>The HTML side of the plotting API uses a slight extension of the JavaScript expression syntax to express values to be plotted. Within plotting directives, data values to be plotted, as well as other plot attributes (e.g. marker size, colours, and so on) are specified using an extended JavaScript expression syntax. There are three aspects to this syntax: permitted operators, name scoping and attribute data binding, and standard functions.</p>
+<p>In order to distinguish between Radian expressions and raw string values, all Radian expressions are enclosed in double square brackets, e.g. <code>[[x+y]]</code>. This is the same sort of approach as taken in Angular, where Angular expressions are enclosed in double braces. The Radian expression syntax is a superset of full JavaScript expression syntax, so is rather more flexible than the more restricted grammar supported for Angular expressions.</p>
+<hr>
+<h2 id="data-accessor-operators">Data accessor operators</h2>
+<p>Data accessor syntax allows three extensions to standard JavaScript syntax. These are intended to make it more convenient to write the kinds of expressions needed in common plot types.</p>
+<p><strong>Exponentiation operator</strong> Instead of writing <code>Math.pow(x,y)</code>, one may write <code>x**y</code>. The <code>**</code> operator has a higher precedence than any other binary operator.</p>
+<p><strong>Pluck operator</strong> If <code>y</code> is an identifier, the expression <code>x#y</code> is equivalent to</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="ot">x</span>.<span class="fu">map</span>(<span class="kw">function</span>(e) { <span class="kw">return</span> <span class="ot">e</span>.<span class="fu">y</span>; )}</code></pre>
+<p>while if <code>y</code> is an integer literal, <code>x#y</code> is equivalent to</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="ot">x</span>.<span class="fu">map</span>(<span class="kw">function</span>(e) { <span class="kw">return</span> e[y]; )}</code></pre>
+<p>and if <code>expr</code> is a general JavaScript expression, <code>x#(expr)</code> (note parentheses!) is equivalent to</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="ot">x</span>.<span class="fu">map</span>(<span class="kw">function</span>(e) { <span class="kw">return</span> e[expr]; )}</code></pre>
+<p>This allows fields from arrays of objects or arrays of arrays to be plucked out into flat arrays in a simple way (method “plucking” of the form <code>x#f(z)</code> is also supported). This syntax is particularly useful for JSON arrays of objects or for compound object fields within other data. For instance, if we have a data set <code>d</code> with a field <code>date</code> containing an array of date fields, we can extract the day of year of each date as a single array using the expression <code>d.date#dayOfYear()</code>. Note that the <em>only</em> possibilities for the right hand side of the <code>#</code> operator are an identifier, a literal integer or a parenthesised expression (the parentheses are necessary for disambiguation of the <code>x#y</code> and <code>x#(y)</code> cases – in the first case <code>y</code> is an identifier, in the second an expression).</p>
+<p><strong>Expression vectorisation</strong> Standard functions and arithmentic operators are automatically vectorised, so that, for example, <code>sin(x)</code> calculates either the sine of a single value or an array and <code>x + y</code> adds two arrays, two scalars or a scalar and an array in the natural way. This means that we can express functional plots in a very simple way:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">1</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(-1,1,100)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[-x**3+x+sin(x)]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<hr>
+<h2 id="name-scoping-and-data-binding-in-data-accessors">Name scoping and data binding in data accessors</h2>
+<p>The following names are in scope within data accessor expressions:</p>
+<ul>
+<li><p>The names of all data sets defined in <code>&lt;plot-data&gt;</code> directives in Angular scopes that enclose the scope of the directive containing the Radian expression. Each data set is accessible by the name given in the <code>ID</code> attribute of its <code>&lt;plot-data&gt;</code> directive.</p></li>
+<li><p>All names passed as attributes to plotting directives that are not reserved names (see list in the <a href="#reserved">Appendix</a>).</p></li>
+<li><p>All Angular scope variables defined in the scope of the directive containing the expression (not that, via Angular’s prototype object inheritance chain for scopes, this includes values in outer surrounding scopes, as long as their names are not shadowed by names in inner scopes).</p></li>
+<li><p>The “Radian library” functions and constants defined <a href="06-radian-plotting-library.html">here</a>.</p></li>
+</ul>
+<p>What this means is that it is possible to pass data values around using attributes with meaningful names. We implicitly bring data set names into scope as well as simplified standard function names to make writing plot directives quick and simple.</p>
+<p>Combined with Angular’s <code>ng-model</code> data binding attribute, we can do some very powerful things in very simple ways:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;div</span><span class="ot"> class=</span><span class="st">&quot;form-inline&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;label&gt;</span>Mean<span class="kw">&lt;/label&gt;</span>
+  <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;text&quot;</span><span class="ot"> ng-model=</span><span class="st">&quot;mu&quot;</span><span class="ot"> ng-init=</span><span class="st">&quot;mu=5&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;label&gt;</span><span class="dv">&amp;nbsp;&amp;nbsp;</span>Standard deviation<span class="kw">&lt;/label&gt;</span>
+  <span class="kw">&lt;input</span><span class="ot"> type=</span><span class="st">&quot;text&quot;</span><span class="ot"> ng-model=</span><span class="st">&quot;sigma&quot;</span><span class="ot"> ng-init=</span><span class="st">&quot;sigma=1&quot;</span><span class="kw">&gt;</span>
+<span class="kw">&lt;/div&gt;</span>
+<span class="kw">&lt;br&gt;</span>
+
+<span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[seq(0,10,200)]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[normal(x,mu,sigma)]]&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>In this example, updating the values in the input text fields triggers an immediate update of the plot, pulling in the new values from the UI elements. This means that plots can be attached to arbitrary UI elements with ease. Note how names of Angular scope variables defined for instance using <code>ng-model</code> may be used within Radian expressions. The Radian expression parsing infrastructure interacts correctly with Angular data binding so that plots are regenerated when Angular expressions within Radian expressions change.</p>
+<hr>
+<h2 id="handling-of-dates">Handling of dates</h2>
+<p>Time and date data can be read using a <code>&lt;metadata&gt;</code> directive with a <code>FORMAT=&quot;date&quot;</code> attribute. Individual fields of date values can then be plucked from date data using methods of the standard JavaScript <code>Date</code> class: for instance, <code>date#getMonth()</code> extracts the month field from a series of dates. In combination with aggregation functions and arbitrary mapping functions, this allows for various complex manipulations of date data. This example shows extraction of date fields, aggregation (using the <code>unique</code> and <code>meanBy</code> functions) and the use of a user-defined function (<code>midMonths</code>) injected into the <code>plotLib</code> plotting library in the Angular controller used to manage the page:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;vic2012ooa.date&quot;</span><span class="ot"> y=</span><span class="st">&quot;vic2012ooa.tmp&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[midMonths(unique(vic2012ooa.date#getMonth()), 2012)]]&quot;</span>
+<span class="ot">         y=</span><span class="st">&quot;[[meanBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]&quot;</span>
+<span class="ot">         stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">&gt;&lt;/lines&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<hr>
+<h2 id="examples">Examples</h2>
+<p>In this simple example, we use Angular data binding to set the <code>mu</code> and <code>sigma</code> attributes from scope variables called <code>mean</code> and <code>sdev</code>. These “attribute variables” are then in scope for the calculation of <code>x</code> and <code>y</code> attributes for the plot:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;lines</span><span class="ot"> mu=</span><span class="st">&quot;[[mean]]&quot;</span><span class="ot"> sigma=</span><span class="st">&quot;[[sdev]]&quot;</span>
+<span class="ot">       x=</span><span class="st">&quot;[[seq(mu-3*sigma,mu+3*sigma,100)]]&quot;</span>
+<span class="ot">       y=</span><span class="st">&quot;[[normal(x,mu,sigma)]]&quot;</span><span class="kw">&gt;</span>
+<span class="kw">&lt;/lines&gt;</span></code></pre>
+<p>The processing of this example goes as follows:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Evaluate</th>
+<th align="left">   </th>
+<th align="left">Requires</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>x</code></td>
+<td align="left"></td>
+<td align="left"><code>mu</code>, <code>sigma</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>y</code></td>
+<td align="left"></td>
+<td align="left"><code>x</code>, <code>mu</code>, <code>sigma</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>mu</code></td>
+<td align="left"></td>
+<td align="left"><code>mean</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>sigma</code></td>
+<td align="left"></td>
+<td align="left"><code>sdev</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>mean</code></td>
+<td align="left"></td>
+<td align="left">AngularJS scope variable</td>
+</tr>
+<tr class="even">
+<td align="left"><code>sdev</code></td>
+<td align="left"></td>
+<td align="left">AngularJS scope variable</td>
+</tr>
+</tbody>
+</table>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../js/jquery.js"></script>
+  <script src="../js/jquery.csv.js"></script>
+  <script src="../js/escodegen.browser.js"></script>
+  <script src="../js/estraverse.js"></script>
+  <script src="../js/d3.v2.js"></script>
+  <script src="../js/angular.min.js"></script>
+  <script src="../js/radian.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/html5slider.js"></script>
+  <script src="../js/hljs.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Reference manual - User interface features</title>
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../documentation.html">Documentation</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../community.html">Community</a></li>
+          <li><a href="../gallery">Gallery</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../faq.html">FAQ</a></li>
+          <li><a href="../roadmap.html">Roadmap</a></li>
+          <li><a href="../contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="user-interface-features">7. User interface features</h1>
+<hr>
+<h2 id="vision">Vision</h2>
+<p>The current user interface features in Radian are very much experimental. Our eventual goal is to have a comprehensive set of interactive tools for manipulating plots, both in terms of simple control over data display (switching between linear and log axes, selecting <em>x</em> and <em>y</em> variables from a drop-down list, control of visibility of plot layers, and so on) and in terms of control over plot styling (interactive modification of line and marker colours, sizes, axis formatting, plot titles, annotations, and so on).</p>
+<p>Our primary application for Radian is a statistical document authoring system called <a href="www.bayeshive.com">BayesHive</a>, for which we take documents written by users in a literate statistical programming language, do some Bayesian analysis on the statistical models in the documents and render the results (including Radian plots) into HTML for display to the user. What we would like to do is to have a direct manipulation interface for rendered plots (provided by Radian) where the changes made by the user can be communicated back to our server and persisted as changes to the original literate programming document.</p>
+<p>The two things needed to implement this vision are a comprehensive user interface for plot manipulation and a means of communicating changes to plot styling back to the server. The first is just a matter of implementing the required GUI. The second we will do using Angular’s event management – an Angular application will be able to register for <code>radianStyleChange</code> events, which will come with information about the plot being modified (its <code>ID</code>) and the changes made by the user. The application can then do whatever it likes with that change data.</p>
+<p>All this is obviously not a trivial amount of work, and for the moment, the UI elements of Radian remain somewhat rudimentary. You can use Angular data binding to implement most of the styling controls that we’re likely to implement if you really need them right now.</p>
+<hr>
+<h2 id="current-implementation">Current implementation</h2>
+<h3 id="axis-type-switching">Axis type switching</h3>
+<p>The <code>UI-AXIS-X-TRANSFORM</code> and <code>UI-AXIS-Y-TRANSFORM</code> attributes for the <code>&lt;plot&gt;</code> directive generate a user interface for switching between linear and log axes (and also, optionally, linear-from-zero). Giving one of these attributes without a value permits switching between linear and log axes only, while giving a comma-separated list of axis types (from <code>linear</code>, <code>log</code> and <code>linear-0</code>) allows for the construction of more complicated cases.</p>
+<p>In each case, when mousing over the plot, an axis change button will appear next to the relevant axis.</p>
+<p>One slight extra piece of work is needed to use this feature with histograms: the <code>transform</code> field of the options object passed to the <code>histogram</code> function must be set to follow the current axis transform, like this:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">&quot;400&quot;</span><span class="ot"> width=</span><span class="st">&quot;600&quot;</span><span class="ot"> ui-histogram-bins=</span><span class="st">&quot;bins&quot;</span>
+<span class="ot">      ng-init=</span><span class="st">&quot;bins=45&quot;</span><span class="ot"> ui-axis-x-transform axis-x-transform=</span><span class="st">&quot;linear&quot;</span>
+<span class="ot">      range-y=</span><span class="st">&quot;0&quot;</span><span class="ot"> axis-y=</span><span class="st">&quot;off&quot;</span><span class="ot"> ext=</span><span class="st">&quot;[[extent(dat.val)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;plot-options</span><span class="ot"> fill=</span><span class="st">&quot;blue&quot;</span><span class="ot"> fill-opacity=</span><span class="st">&quot;0.3&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="ot"> bar-width=</span><span class="st">&quot;-1px&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;bars</span><span class="ot"> hist=</span><span class="st">&quot;[[histogram(dat.val,{transform:axisXTransform,nbins:bins})]]&quot;</span>
+<span class="ot">          x=</span><span class="st">&quot;[[hist.centres]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[hist.probs]]&quot;</span><span class="kw">&gt;&lt;/bars&gt;</span>
+  <span class="kw">&lt;/plot-options&gt;</span>
+<span class="kw">&lt;/plot&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;dat&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;val&quot;</span><span class="ot"> src=</span><span class="st">&quot;/Radian/data/histo.csv&quot;</span><span class="kw">&gt;</span>
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<p>This will cause the histogram bins to be recalculated as required when the axis type changes.</p>
+<h3 id="histogram-bin-control">Histogram bin control</h3>
+<p>The <code>UI-HISTOGRAM-BINS</code> attribute on the <code>&lt;plot&gt;</code> directive is used to activate a user interface for selecting the number of bins in a histogram. The value of the attribute is the name of an Angular scope variable that is bound to the number of bins. As shown in the previous example above, this can be initialised using the Angular <code>NG-INIT</code> attribute. The value of the bin count variable should be passed to the Radian <code>histogram</code> function used to generate the histogram bin plotting data. As for the axis switching UI, the histogram bin UI is only visible when the user mouses over the plot.</p>
+<h3 id="plot-visibility-switching">Plot visibility switching</h3>
+<p>Using the <code>LEGEND-SWITCHES</code> option on the <code>&lt;plot&gt;</code> directive enables a simple interface for switching the visibility of plot layers on or off. A basic legend is generated using the <code>LABEL</code> field of each plot directive to provide a plot name, and the legend entries can be clicked to view or hide each plot.</p>
+<h3 id="pan-and-zoom">Pan and zoom</h3>
+<p>The <code>ZOOM-X</code> attribute on the <code>&lt;plot&gt;</code> directive enables a focus/context plot setup, where a draggable region of a context plot is displayed in a focus panel, subsetting either in the <em>x</em>-direction (<code>ZOOM-X</code>). The user interface interaction and management is entirely self-contained within the rendering of the <code>&lt;plot&gt;</code> directive and any embedded plotting directives.</p>
+<p><span class="nyi">Eventually, zooming in the y-direction and 2D pan and zoom will also be implemented.</span></p>
+<h3 id="stroke-selection"><a name="ui-stroke-sel">Stroke selection</a></h3>
+<p>It is possible to specify multiple stroke palettes for plot elements using a JavaScript array of options for the <code>STROKE</code> attribute. Switching between these options is controlled by the UI enabled by the <code>STROKE-SWITCH</code> attribute on the <code>&lt;plot&gt;</code> or plot layout directives. This allows for switching between two stroke choices (by giving a single UI element label for <code>STROKE-SWITCH</code>, which is used to label a toggle button), or for switching between multiple choices (by giving multiple semicolon-separated UI labels for <code>STROKE-SWITCH</code>, which are used as labels for a selection UI element).</p>
+<p>The actual switching of stroke palettes is controlled by the Angular custom <code>strokeSelChange</code> event: this is emitted by the standard plotting UI which is included as an element in the Angular template for the <code>&lt;plot&gt;</code> and plot layout directives and is responded to by the logic in the <code>&lt;plot&gt;</code> directive. It is thus possible to disable the standard UI and emit the appropriate events oneself.</p>
+<h3 id="data-selection">Data selection</h3>
+<p>The <code>SELECT-X</code> and <code>SELECT-Y</code> attributes on the <code>&lt;plot&gt;</code> and plot layout directives make it possible to switch between different choices for the <em>x</em>- and <em>y</em>-coordinate data of plot elements. The standard UI for this uses normal select UI elements, linked together to ensure that only reasonable combinations of variables can be selected. As for the stroke selection though, the change in data items is managed using custom Angular events (<code>xDataSelChange</code> and <code>yDataSelChange</code>), so the standard UI can easily be overridden.</p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../js/jquery.js"></script>
+  <script src="../js/jquery.csv.js"></script>
+  <script src="../js/escodegen.browser.js"></script>
+  <script src="../js/estraverse.js"></script>
+  <script src="../js/d3.v2.js"></script>
+  <script src="../js/angular.min.js"></script>
+  <script src="../js/radian.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/html5slider.js"></script>
+  <script src="../js/hljs.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

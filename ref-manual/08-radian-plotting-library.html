@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Reference manual - Radian plotting library</title>
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../documentation.html">Documentation</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../community.html">Community</a></li>
+          <li><a href="../gallery">Gallery</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../faq.html">FAQ</a></li>
+          <li><a href="../roadmap.html">Roadmap</a></li>
+          <li><a href="../contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="the-radian-plotting-library">6. The Radian plotting library</h1>
+<p>Within Radian expressions, a standard set of constants and functions are made available. Some of these are standard JavaScript functions, some are adapted from the D3 plotting library, and some are unique to Radian.</p>
+<hr>
+<h2 id="javascript-standard-functions">JavaScript standard functions</h2>
+<p>The following constants and functions from the <code>Math.xxx</code> JavaScript scope are brought into scope within data accessor expressions (i.e. one can write “<code>sin(x)</code>” instead of “<code>Math.sin(x)</code>”): <code>E</code>, <code>LN10</code>, <code>LN2</code>, <code>LOG10E</code>, <code>LOG2E</code>, <code>PI</code>, <code>SQRT1_2</code>, <code>SQRT2</code>, <code>abs</code>, <code>acos</code>, <code>asin</code>, <code>atan</code>, <code>atan2</code>, <code>ceil</code>, <code>cos</code>, <code>exp</code>, <code>floor</code>, <code>log</code>, <code>pow</code>, <code>round</code>, <code>sin</code>, <code>sqrt</code>, <code>tan</code>.</p>
+<hr>
+<h2 id="d3-functions">D3 functions</h2>
+<p>The following functions from the <code>d3.xxx</code> JavaScript scope are brought into scope within data accessor expressions (i.e. one can write “<code>extent(x)</code>” instead of “<code>d3.extent(x)</code>”): <code>min</code>, <code>max</code>, <code>extent</code>, <code>sum</code>, <code>mean</code>, <code>median</code>, <code>quantile</code>, <code>zip</code>. (In fact, <code>extent</code> in Radian expressions is a variadic function: passing multiple arrays to <code>extent</code> will find the union of their ranges.)</p>
+<hr>
+<h2 id="extra-functions">Extra functions</h2>
+<p><code>seq</code>, <code>seqStep</code>: Generate evenly spaced sequences of values: <code>seq(start, end, n)</code> produces a sequence of <code>n</code> values ranging from <code>start</code> to <code>end</code>, while <code>seqStep(start, end, delta)</code> produces a sequence from <code>start</code> to <code>end</code> in steps of <code>delta</code>.</p>
+<p><code>sdev</code>: Calculate the sample standard deviation of an array.</p>
+<p><code>unique</code>: Return the unique entries in an array in the order that they first appear.</p>
+<p><code>flatten</code>: Flatten a multi-dimensional array into a one-dimensional array.</p>
+<p><code>minBy</code>, <code>maxBy</code>, <code>sumBy</code>, <code>meanBy</code>, <code>sdevBy</code>, <code>quantileBy</code>, <code>firstBy</code>: Calculate categorical sums, means, standard deviations and quantiles of data sets (or extract first element with matching category): <code>sumBy(x, y)</code> calculates the sum of <code>x</code> values for each distinct value of <code>y</code>, returning an array of results in the order of occurrence of the distinct values in <code>y</code>. For example, given a dataset <code>d</code> containing daily temperature data with associated dates, <code>meanBy(d#temp, d#date#mon)</code> calculates a monthy seasonal cycle of temperatures. The <code>quantileBy</code> function is called as <code>quantileBy(x, y, p)</code> and calculates the <code>p</code>th quantile of the vector <code>x</code> segregated by distinct values of the parameter <code>y</code>.</p>
+<p><code>normal</code>: Normal distribution function: <code>normal(x, mu, sigma)</code> gives the value of the normal PDF with mean <code>mu</code> and standard deviation <code>sigma</code> at ordinate <code>x</code>.</p>
+<p><code>lognormal</code>: Log-normal distribution function: <code>lognormal(x, mu, sigma)</code> gives the value of the log-normal PDF with mean <code>mu</code> and standard deviation <code>sigma</code> at ordinate <code>x</code>.</p>
+<p><code>gamma</code>: Gamma distribution function: <code>gamma(x, k, theta)</code> gives the value of the gamma PDF with shape parameter <code>k</code> and scale parameter <code>theta</code> at ordinate <code>x</code>.</p>
+<p><code>invgamma</code>: Inverse gamma distribution function: <code>invgamma(x, alpha, beta)</code> gives the value of the inverse gamma PDF with shape parameter <code>alpha</code> and scale parameter <code>beta</code> at ordinate <code>x</code>.</p>
+<hr>
+<h2 id="histogramming">Histogramming</h2>
+<p>The Radian plotting library also contains a <code>histogram</code> function for histogram binning calculations. This is called either as <code>histogram(xs, nbins)</code> with <code>nbins</code> an integer count of the number of bins to use, or as <code>histogram(xs, opts)</code> with <code>opts</code> an object with some of the following fields:</p>
+<ul>
+<li><p><code>transform</code>: either a string (one of <code>linear</code> or <code>log</code>) or a two-element array of functions giving forward and inverse coordinate transformations; if the <code>transform</code> argument is supplied, histogram binning is done in transformed coordinates, with bin centres and extents being transformed back to the original coordinate values before return.</p></li>
+<li><p><code>binrange</code>: data range over which bins are to be generated; if omitted, the binning range is calculated from the data;</p></li>
+<li><p><code>nbins</code>: number of histogram bins to use;</p></li>
+<li><p><code>binwidth</code>: width of histogram bins to use (in transformed coordinates); not used if <code>nbins</code> is supplied.</p></li>
+</ul>
+<p>The return value of the <code>histogram</code> function is an object with the following fields:</p>
+<ul>
+<li><p><code>centres</code>: histogram bin centres;</p></li>
+<li><p><code>bins</code>: array of two-element arrays giving the minimum and maximum bounds for each histogram bin (this is useful when using the <code>transform</code> argument to <code>histogram</code>, since, for nonlinear coordinate transformations, the histogram bins are no longer symmetric about their centres, and are no longer of a uniform size);</p></li>
+<li><p><code>counts</code>: integer counts of data items in each bin;</p></li>
+<li><p><code>freqs</code>: fraction of data items in each bin;</p></li>
+<li><p><code>probs</code>: probability of data items falling into each bin, defined so that the integral of the bar chart constructed using the coordinate ranges in <code>bins</code> and these values is unity.</p></li>
+</ul>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../js/jquery.js"></script>
+  <script src="../js/jquery.csv.js"></script>
+  <script src="../js/escodegen.browser.js"></script>
+  <script src="../js/estraverse.js"></script>
+  <script src="../js/d3.v2.js"></script>
+  <script src="../js/angular.min.js"></script>
+  <script src="../js/radian.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/html5slider.js"></script>
+  <script src="../js/hljs.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

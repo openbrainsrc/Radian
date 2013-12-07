@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Reference manual - Plot types</title>
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../documentation.html">Documentation</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../community.html">Community</a></li>
+          <li><a href="../gallery">Gallery</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../faq.html">FAQ</a></li>
+          <li><a href="../roadmap.html">Roadmap</a></li>
+          <li><a href="../contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="plot-types">2. Plot types</h1>
+<p>Radian supports a number of common plot types (lines, points, bars, areas, etc.), and these plots can be composed in a number of ways. Multiple plots can be superimposed on a single plot frame, or multiple plot frames can be laid out using a VBox/HBox layout scheme (ADD LINK).</p>
+<p>Each plot frame is defined by a <code>&lt;plot&gt;</code> directive, which contains a number of plot type directives (e.g. <code>&lt;lines&gt;</code>, <code>&lt;points&gt;</code>, etc.). The attributes of the <code>&lt;plot&gt;</code> directive provide information about the overall structure of the plot such as its size, axis labelling, title, and so on. As with all Radian directives, extra variables for use in Radian expressions within the plot can also be specified as attributes.</p>
+<hr>
+<h2 id="the-plot-directive"><a name="plot-directive">The <code>&lt;plot&gt;</code> directive</a></h2>
+<p>The <code>&lt;plot&gt;</code> directive has a large number of attributes. The most important are those for specifying plot size (<code>WIDTH</code>, <code>HEIGHT</code> and <code>ASPECT</code>) and for specifying axis characteristics. There are four axes: <code>X</code> and <code>Y</code> (bottom and left) and <code>X2</code> and <code>Y2</code> (top and right), each associated with a corresponding “data path” attribute of the same name, and each having a set of formatting attributes. In the table below, the symbol “◊” stands for one of <code>X</code>, <code>Y</code>, <code>X2</code> or <code>Y2</code>.</p>
+<h3 id="attributes">Attributes</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">   </th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>RANGE-</code>◊</td>
+<td align="left"></td>
+<td align="left">Specify coordinate range for plot</td>
+</tr>
+<tr class="even">
+<td align="left"><code>RANGE</code></td>
+<td align="left"></td>
+<td align="left">Specify both <span class="math"><em>x</em></span>- and <span class="math"><em>y</em></span>-coordinate ranges for plot together</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-</code>◊</td>
+<td align="left"></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis display, or a tick specification</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-</code>◊<code>-TRANSFORM</code></td>
+<td align="left"></td>
+<td align="left">If present, one of <code>linear</code> (default) or <code>log</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-</code>◊<code>-LABEL</code></td>
+<td align="left"></td>
+<td align="left">Either <code>on</code>/<code>off</code> to allow (default) or suppress axis labelling, or a label string (when <code>on</code> is used, the axis label is taken from metadata where possible)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-</code>◊<code>-TICK-FORMAT</code></td>
+<td align="left"></td>
+<td align="left">Format string for axis tick display (see below)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-</code>◊<code>-TICK-SIZES</code></td>
+<td align="left"></td>
+<td align="left">Tick sizes for axis ticks (see below)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-</code>◊<code>-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Tick size for major axis ticks</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-</code>◊<code>-MINOR-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Tick size for minor axis ticks</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-</code>◊<code>-END-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Tick size for axis end ticks</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-</code>◊<code>-TICKS</code></td>
+<td align="left"></td>
+<td align="left">Number of major ticks or explicit tick values (see below)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>AXIS-</code>◊<code>-MINOR-TICKS</code></td>
+<td align="left"></td>
+<td align="left">Number of minor ticks per major axis tick</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>AXIS-</code>◊<code>-TICK-PADDING</code></td>
+<td align="left"></td>
+<td align="left">Padding between axis ticks and tick labels</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TICK-SIZES</code></td>
+<td align="left"></td>
+<td align="left">Default tick sizes for all axes (see below)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Default tick size for major axis ticks for all axes (see below)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MINOR-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Default tick size for minor axis ticks for all axes (see below)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>END-TICK-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Default tick size for axis end ticks for all axes (see below)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MINOR-TICKS</code></td>
+<td align="left"></td>
+<td align="left">Default number of minor ticks per major axis tick for all axes</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>TICK-PADDING</code></td>
+<td align="left"></td>
+<td align="left">Default padding between axis ticks and tick labels for all axes</td>
+</tr>
+<tr class="even">
+<td align="left"><code>NO-DATA</code></td>
+<td align="left"></td>
+<td align="left">Message to display when no data is available</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>X</code></td>
+<td align="left"></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y</code></td>
+<td align="left"></td>
+<td align="left">Data path defining y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>X2</code></td>
+<td align="left"></td>
+<td align="left">Data path defining x2-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y2</code></td>
+<td align="left"></td>
+<td align="left">Data path defining y2-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>TITLE</code></td>
+<td align="left"></td>
+<td align="left">Plot title</td>
+</tr>
+<tr class="even">
+<td align="left"><code>WIDTH</code></td>
+<td align="left"></td>
+<td align="left">Plot width in pixels</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>HEIGHT</code></td>
+<td align="left"></td>
+<td align="left">Plot height in pixels</td>
+</tr>
+<tr class="even">
+<td align="left"><code>ASPECT</code></td>
+<td align="left"></td>
+<td align="left">Plot aspect ratio</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>ZOOM-X</code></td>
+<td align="left"></td>
+<td align="left">Presence/absence or fraction: enable X-zooming</td>
+</tr>
+<tr class="even">
+<td align="left"><span class="nyi"><code>ZOOM-Y</code></span></td>
+<td align="left"></td>
+<td align="left"><span class="nyi">Presence/absence or fraction: enable Y-zooming</span></td>
+</tr>
+<tr class="odd">
+<td align="left"><span class="nyi"><code>ZOOM-2D</code></span></td>
+<td align="left"></td>
+<td align="left"><span class="nyi">Presence/absence: enable 2-D pan and zoom</span></td>
+</tr>
+<tr class="even">
+<td align="left"><code>LEGEND-SWITCHES</code></td>
+<td align="left"></td>
+<td align="left">Enable interactive on/off switching of traces via the plot legend</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-SWITCH</code></td>
+<td align="left"></td>
+<td align="left">Labels for stroke switching UI</td>
+</tr>
+<tr class="even">
+<td align="left"><code>SELECT-X</code></td>
+<td align="left"></td>
+<td align="left">Provide UI for selecting between x-variables of plot</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>SELECT-Y</code></td>
+<td align="left"></td>
+<td align="left">Provide UI for selecting between y-variables of plot</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FONT-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FONT-FAMILY</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FONT-STYLE</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FONT-WEIGHT</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FONT-VARIANT</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (axes and annotations)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>TITLE-FONT-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TITLE-FONT-FAMILY</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>TITLE-FONT-STYLE</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TITLE-FONT-WEIGHT</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>TITLE-FONT-VARIANT</code></td>
+<td align="left"></td>
+<td align="left">Standard font attribute (plot title)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MARKER-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-WIDTH</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<ul>
+<li><p>The coordinate ranges for the plot are controlled by the <code>RANGE-X</code>, <code>RANGE-Y</code> and <code>RANGE</code> attributes. These can be specified either explicitly (e.g. <code>range-x=&quot;0,20&quot;</code> or <code>range=&quot;0,20;0,50&quot;</code>), via a data path (in which case the range is taken from the extent of the data values, excluding infinite and NaN values) <span class="nyi">or via a URL (in which case the range is taken from the coordinate range of the SVG image the URL points to)</span>.</p></li>
+<li><p>The actual plot dimensions are determined from a combination of the <code>WIDTH</code>, <code>HEIGHT</code> and <code>ASPECT</code> attributes and CSS dimension styles for the <code>&lt;plot&gt;</code> element.</p></li>
+<li><p>Only one of <code>ZOOM-X</code>, <code>ZOOM-Y</code> or <code>ZOOM-2D</code> may be specified on a plot. The <code>ZOOM-X</code> and <code>ZOOM-Y</code> attributes can specify a fraction of the plot viewport to be used for the zoom component.</p></li>
+<li><p>The <code>STROKE-SWITCH</code> attribute gives a semicolon separated list of labels used to refer to the possible stroke values in subsidiary plots. If a single string is given (i.e. no semicolons), a simple switch between “on” and “off” is provided as a UI element and selection is performed between the first and second stroke possibilities for each subsidiary plot. If more than one label is provided, a selection UI is used, and as many stroke possibilities can be selected as labels are given.</p></li>
+<li><p>The <code>SELECT-X</code> and <code>SELECT-Y</code> UI elements interact in such a way as to provide a reasonable interface for managing the variables shown in an x-vs.-y plot: it is never possible to select the same variable for the x and y variable, and switching between plot variables is handled sensibly.</p></li>
+<li><p>Axis tick display and formatting is controlled by global options (<code>TICK-SIZES</code>, <code>MINOR-TICKS</code>, etc.) and per-axis options (<code>AXIS-X-TICK-SIZES</code>, <code>AXIS-Y-MINOR-TICKS</code> and so on). In all cases, the axis-specific options override the global options.</p></li>
+<li><p>The number and location of ticks are controlled by the <code>AXIS-</code>◊<code>-TICKS</code> and <code>AXIS-</code>◊<code>-MINOR-TICKS</code> attributes. The latter, if specified, just gives the number of minor ticks between each pair of major ticks. The <code>AXIS-</code>◊<code>-TICKS</code> attributes, however, allow for either the specification of a requested number of major ticks or, if a Radian expression evaluating to an array is given, explicit tick values. Each entry in the tick array can either be a single number or a two element array, the first element of which is a number giving the tick position and the second a string giving the tick label.</p></li>
+<li><p>Tick label formatting is controlled by the <code>AXIS-</code>◊<code>-TICK-FORMAT</code> options. The value of one of these options should be a format string following the formatting language used by the <code>d3.format</code> function, as specified <a href="https://github.com/mbostock/d3/wiki/Formatting#wiki-d3_format">here</a>.</p></li>
+<li><p>Tick sizing is controlled by the <code>TICK-SIZES</code>, <code>TICK-SIZE</code>, <code>MINOR-TICK-SIZE</code> and <code>END-TICK-SIZE</code> attributes and their axis-specific equivalents. <code>TICK-SIZE</code> refers to major ticks, <code>MINOR-TICK-SIZE</code> to minor ticks and <code>END-TICK-SIZE</code> to the ticks at the end of the axis. These sizes can either be set individually, or by setting the <code>TICK-SIZES</code> attribute: giving a single value for this will set all tick sizes to that value, giving two values separated by a comma will set the major and minor tick sizes to the first value and the end tick size to the second value, and giving three comma-separated values will set the major, minor and end tick sizes to the given values. The individual sizing attributes override the values set by <code>TICK-SIZES</code> and, as for the other tick formatting attributes, axis-specific attributes override the default attributes.</p></li>
+</ul>
+<p><em>The user interface elements of Radian will be getting a complete overhaul at some point soon, so the behaviour of the zoom and stroke and variable selection attributes of <code>&lt;plot&gt;</code> are likely to change.</em></p>
+<h3 id="body">Body</h3>
+<p>The body of a <code>&lt;plot&gt;</code> directive should contain directives specifying the data to be drawn into the plot (using <code>&lt;lines&gt;</code>, <code>&lt;points&gt;</code>, etc.). There may also be <code>&lt;plot-options&gt;</code> directives specifying paint and calculational attributes common to all plot directives.</p>
+<p>The <code>&lt;plot-options&gt;</code> directive can be used to wrap inner plotting directives that share plotting options. For instance, the following example plots two line graphs that share a stroke width value. Note how attribute variables defined in the main <code>&lt;plot&gt;</code> directive propagate down to the inner plotting directives, and also how attributes set in <code>&lt;plot-options&gt;</code> can be overridden by the inner plotting directives:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> xs=</span><span class="st">&quot;[[seq(-1,1,100)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;plot-options</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[xs]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[-x**3+x+1]]&quot;</span><span class="kw">/&gt;</span>
+    <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[xs]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[x**2]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;/plot-options&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<hr>
+<h2 id="paint-attributes">Paint attributes</h2>
+<p>There are a number of attributes shared among several plotting directives, used to specify line stroke, area fill, or plot marker styles. The names of most of these attributes correspond directly to attributes from the definition of the SVG image format.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">   </th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>MARKER</code></td>
+<td align="left"></td>
+<td align="left">Marker name to use for point plots: one of <code>circle</code>, <code>cross</code>, <code>diamond</code>, <code>square</code>, <code>triangle-down</code>, <code>triangle-up</code> <span class="nyi">or a URL referencing an image file to use as a marker</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Marker size to use for point plots (as an area in square pixels: i.e. <code>MARKER=&quot;square&quot; MARKER-SIZE=100</code> would give squares 10 pixels by 10 pixels in size</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL</code></td>
+<td align="left"></td>
+<td align="left">Fill colour for markers and area plots (usual CSS syntax for colours, i.e. names, <code>#XXX</code>, <code>#XXXXXX</code>, <code>rgb(r, g, b)</code> or <code>rgba(r, g, b, a)</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Opacity for fill colours for markers and area plots (from 0 to 1)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left"></td>
+<td align="left">Stroke colour for line plots and marker outlines (usual CSS syntax for colours, i.e. names, <code>#XXX</code>, <code>#XXXXXX</code>, <code>rgb(r, g, b)</code> or <code>rgba(r, g, b, a)</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-WIDTH</code></td>
+<td align="left"></td>
+<td align="left">Line width for line plots</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Opacity for stroke colours for line plots and marker outlines (from 0 to 1)</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>All of these attributes can be supplied as single values, e.g. <code>FILL=&quot;red&quot;</code>, or as functions of data expressed as Radian expressions, e.g. using a palette expression (ADD LINK):</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">600</span><span class="ot"> aspect=</span><span class="st">1</span>
+<span class="ot">      axis-x-label=</span><span class="st">&quot;Age&quot;</span><span class="ot"> axis-y-label=</span><span class="st">&quot;Height&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span>
+<span class="ot">      marker=</span><span class="st">&quot;circle&quot;</span><span class="ot"> marker-size=</span><span class="st">75</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[fam.age]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[fam.height]]&quot;</span>
+<span class="ot">          fill=</span><span class="st">&quot;[[@P{D female #FF7F7F; male #7F7FFF}(fam.sex)]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;/points&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>Many more examples of the use of paint attributes can be seen in the <a href="../gallery">example gallery</a>.</p>
+<hr>
+<h2 id="line-plots-and-the-lines-directive">Line plots and the <code>&lt;lines&gt;</code> directive</h2>
+<p>The <code>&lt;lines&gt;</code> directive draws a line plot based on given <em>x</em>- and <em>y</em>-coordinate values. Line width and stroke colour can be specified, and palettes (ADD LINK) can be used to specify colour gradients along curves.</p>
+<h3 id="attributes-1">Attributes</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">   </th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>X</code></td>
+<td align="left"></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y</code></td>
+<td align="left"></td>
+<td align="left">Data path defining y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>X2</code></td>
+<td align="left"></td>
+<td align="left">Data path defining x2-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y2</code></td>
+<td align="left"></td>
+<td align="left">Data path defining y2-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-WIDTH</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>LABEL</code></td>
+<td align="left"></td>
+<td align="left">Label for line in plot legend</td>
+</tr>
+</tbody>
+</table>
+<h3 id="body-1">Body</h3>
+<p>None</p>
+<h3 id="interpretation">Interpretation</h3>
+<p>Produces a line plot from the given x and y coordinate data.</p>
+<h3 id="examples">Examples</h3>
+<p>Simple plot with two line graphs – note the inheritance of the <code>STROKE-WIDTH</code> standard paint attribute from the containing <code>&lt;plot&gt;</code> directive:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[vic2012ooa.day]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[vic2012ooa.tmp]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[vic2012ooa.day]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[vic2012ooa.prc]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<hr>
+<h2 id="area-plots-and-the-area-directive">Area plots and the <code>&lt;area&gt;</code> directive</h2>
+<p>Area plots produce “fat lines” where the area between given minimum and maximum <em>y</em>-coordinates is area filled, as a function of given <span class="math"><em>x</em></span>-coordinates.</p>
+<h3 id="attributes-2">Attributes</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">   </th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>X</code></td>
+<td align="left"></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y</code></td>
+<td align="left"></td>
+<td align="left">Data path defining upper y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>YMIN</code></td>
+<td align="left"></td>
+<td align="left">Data path or constant value defining lower y-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>X2</code></td>
+<td align="left"></td>
+<td align="left">Data path defining x2-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>Y2</code></td>
+<td align="left"></td>
+<td align="left">Data path defining upper y2-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y2MIN</code></td>
+<td align="left"></td>
+<td align="left">Data path or constant value defining lower y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>LABEL</code></td>
+<td align="left"></td>
+<td align="left">Label for area plot in plot legend</td>
+</tr>
+</tbody>
+</table>
+<h3 id="body-2">Body</h3>
+<p>None</p>
+<h3 id="interpretation-1">Interpretation</h3>
+<p>Produces an area line plot from the given x and y coordinate data. It is possible to specify both upper (<code>Y</code> or <code>Y2</code>) and lower (<code>YMIN</code> or <code>Y2MIN</code>) bounds for the area display, either as a data path or as a constant value (default 0).</p>
+<h3 id="examples-1">Examples</h3>
+<p>Area plot used to show monthly precipitation range along with line graph of monthly means and temperature data:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> range-y2=</span><span class="st">&quot;-10&quot;</span>
+<span class="ot">      axis-y-label=</span><span class="st">&quot;Precipitation (mm/month)&quot;</span>
+<span class="ot">      mmonths=</span><span class="st">&quot;[[midMonths(unique(vic2012ooa.date#getMonth()),2012)]]&quot;</span>
+<span class="ot">      mprecip=</span><span class="st">&quot;[[sumBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]&quot;</span>
+<span class="ot">      msd=</span><span class="st">&quot;[[sdevBy(vic2012ooa.prc,vic2012ooa.date#getMonth())]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;area</span><span class="ot"> x=</span><span class="st">&quot;[[mmonths]]&quot;</span><span class="ot"> y2min=</span><span class="st">&quot;[[mprecip-msd]]&quot;</span><span class="ot"> y2=</span><span class="st">&quot;[[mprecip+msd]]&quot;</span>
+<span class="ot">        fill=</span><span class="st">&quot;lightblue&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[mmonths]]&quot;</span><span class="ot"> y2=</span><span class="st">&quot;[[mprecip]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;blue&quot;</span><span class="kw">/&gt;</span>
+  <span class="kw">&lt;lines</span><span class="ot"> x=</span><span class="st">&quot;[[vic2012ooa.date]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[vic2012ooa.tmp]]&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;red&quot;</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<hr>
+<h2 id="marker-plots-and-the-points-directive">Marker plots and the <code>&lt;points&gt;</code> directive</h2>
+<p>The <code>&lt;points&gt;</code> directive is used to produce scatter plots, bubble plots and any other plots where discrete markers are positioned at given <em>x</em>- and <em>y</em>-coordinates. Bubble plots can be created by making marker shape, size and colour functions of data as well as the marker positions.</p>
+<h3 id="attributes-3">Attributes</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">   </th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>X</code></td>
+<td align="left"></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y</code></td>
+<td align="left"></td>
+<td align="left">Data path defining y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MARKER</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-WIDTH</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><span class="nyi"><code>ORIENTATION</code></span></td>
+<td align="left"></td>
+<td align="left"><span class="nyi">Standard paint attribute</span></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>LABEL</code></td>
+<td align="left"></td>
+<td align="left">Label for points in plot legend</td>
+</tr>
+</tbody>
+</table>
+<h3 id="body-3">Body</h3>
+<p>None</p>
+<h3 id="interpretation-2">Interpretation</h3>
+<p>Produces a scatter/bubble plot from the given <em>x</em>- and <em>y</em>-coordinate data. Points are placed at the positions given by the <code>X</code> and <code>Y</code> attributes, using markers of the type specified by the <code>MARKER</code> attribute <span class="nyi">oriented according to the <code>ORIENTATION</code> attribute</span>, coloured according to the <code>STROKE</code> and <code>FILL</code> attributes (which are not necessarily appropriate for all marker types) and sized according to the <code>MARKER-SIZE</code> attribute (which is an area-based size measure whose exact interpretation depends on the marker used). All of the paint attributes can either be fixed or be functions of arbitrary variables that are in scope in Radian expressions defining the attributes.</p>
+<h3 id="examples-2">Examples</h3>
+<h4 id="simple-scatter-plot-with-fixed-styling">Simple scatter plot with fixed styling</h4>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> marker-size=</span><span class="st">1.5</span><span class="ot"> marker=</span><span class="st">&quot;circle&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[ctrl.pred1]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[ctrl.resp]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;black&quot;</span><span class="kw">&gt;&lt;/points&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[treat.pred1]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[treat.resp]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;red&quot;</span><span class="kw">&gt;&lt;/points&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<h4 id="more-complex-plot-with-calculation-of-attributes-from-data">More complex plot with calculation of attributes from data</h4>
+<p>Note the inheritance of the <code>STROKE</code> and <code>STROKE-WIDTH</code> standard paint attributes from the containing <code>&lt;plot&gt;</code> directive, the extraction of timeslices of data for the x- and y-coordinate values, the allocation of fill colours from a standard palette based on a categorical variable in the country data, and the generation of markers whose areas are linearly related to country population for the current year, normalised by the population across the whole dataset (this example uses an additional custom <code>fillIn</code> function for data pre-processing):</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">500</span><span class="ot"> stroke=</span><span class="st">&quot;black&quot;</span><span class="ot"> stroke-width=</span><span class="st">1</span>
+<span class="ot">      gdp=</span><span class="st">&quot;[[nat#income.map(function(d){return fillIn(d,1800,2009);}))]]&quot;</span>
+<span class="ot">      life=</span><span class="st">&quot;[[nat#lifeExpectancy.map(function(d){return fillIn(d,1800,2009);}))]]&quot;</span>
+<span class="ot">      pop=</span><span class="st">&quot;[[nat#population.map(function(d){return fillIn(d,1800,2009);}))]]&quot;</span>
+<span class="ot">      region=</span><span class="st">&quot;[[nat#region]]&quot;</span><span class="ot"> yidx=</span><span class="st">&quot;[[year-1800]]&quot;</span>
+<span class="ot">      range-x=</span><span class="st">&quot;300,100000&quot;</span><span class="ot"> range-y=</span><span class="st">&quot;10,90&quot;</span>
+<span class="ot">      popint=</span><span class="st">&quot;[[interpolate(pop,[1,1000])]]&quot;</span>
+<span class="ot">      axis-x-label=</span><span class="st">&quot;Per capita GDP&quot;</span><span class="ot"> axis-x-transform=</span><span class="st">&quot;log&quot;</span>
+<span class="ot">      axis-y-label=</span><span class="st">&quot;Life expectancy&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;points</span><span class="ot"> x=</span><span class="st">&quot;[[gdp.map(function(d) { return d[yidx]; })]]&quot;</span>
+<span class="ot">          y=</span><span class="st">&quot;[[life.map(function(d) { return d[yidx]; })]]&quot;</span>
+<span class="ot">          fill=</span><span class="st">&quot;[[category10(region)]]&quot;</span>
+<span class="ot">          marker-size=</span><span class="st">&quot;[[popint(pop.map(function(d) { return d[yidx]; }))]])&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;/points&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<hr>
+<h2 id="bar-charts-and-the-bars-directive"><a name="bars-directive">Bar charts and the <code>&lt;bars&gt;</code> directive</a></h2>
+<h3 id="attributes-4">Attributes</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">   </th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>X</code></td>
+<td align="left"></td>
+<td align="left">Data path defining x-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y</code></td>
+<td align="left"></td>
+<td align="left">Data path defining y-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>X2</code></td>
+<td align="left"></td>
+<td align="left">Data path defining x2-coordinate for plot data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Y2</code></td>
+<td align="left"></td>
+<td align="left">Data path defining y2-coordinate for plot data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>BAR-MIN</code></td>
+<td align="left"></td>
+<td align="left">Minimum x-coordinate for bars (specified instead of <code>X</code>)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>BAR-MAX</code></td>
+<td align="left"></td>
+<td align="left">Maximum x-coordinate for bars (specified instead of <code>X</code>)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>BAR-WIDTH</code></td>
+<td align="left"></td>
+<td align="left">Width for bars (single pixel value or fractions)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>BAR-OFFSET</code></td>
+<td align="left"></td>
+<td align="left">Offsets for bars (single pixel value or fractions)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-WIDTH</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Standard paint attribute</td>
+</tr>
+<tr class="even">
+<td align="left"><code>LABEL</code></td>
+<td align="left"></td>
+<td align="left">Label for bars in plot legend</td>
+</tr>
+</tbody>
+</table>
+<h3 id="body-4">Body</h3>
+<p>None</p>
+<h3 id="interpretation-3">Interpretation</h3>
+<p>Produces a bar chart from the given <em>x</em>- and <em>y</em>-coordinate data. The <em>x</em>-coordinates give the bar centres and the <em>y</em> coordinates the bar heights. (Alternatively, it is possible to explicitly specify the <em>x</em>-coordinate edges of the bars using <code>BAR-MIN</code> and <code>BAR-MAX</code>, which useful for variable width bars.)</p>
+<h3 id="examples-3">Examples</h3>
+<h4 id="simple-bar-chart-with-fixed-bar-widths">Simple bar chart with fixed bar widths</h4>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="ot"> range-y=</span><span class="st">&quot;0&quot;</span>
+<span class="ot">      stroke=</span><span class="st">&quot;blue&quot;</span><span class="ot"> fill=</span><span class="st">&quot;skyblue&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[test.x]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[test.y]]&quot;</span><span class="ot"> bar-width=</span><span class="st">&quot;50px&quot;</span><span class="kw">/&gt;</span>
+<span class="kw">&lt;/plot&gt;</span>
+
+<span class="kw">&lt;plot-data</span><span class="ot"> name=</span><span class="st">&quot;test&quot;</span><span class="ot"> format=</span><span class="st">&quot;csv&quot;</span><span class="ot"> cols=</span><span class="st">&quot;x,y&quot;</span><span class="kw">&gt;</span>
+  1, 2
+  2, 4
+  3, 8
+  4, 16
+  5, 32
+  6, 48
+  7, 24
+  8, 12
+  9, 6
+ 10, 3
+<span class="kw">&lt;/plot-data&gt;</span></code></pre>
+<h4 id="histograms">Histograms</h4>
+<p>The <code>histogram</code> function in the Radian standard library can be used to pre-process data for plotting bar chart histograms. This example shows how to use the <code>binrange</code> option to the histogram function to use the same bins for calculating histogram frequencies for multiple data sets, so as to be able to plot multiple histograms on the same axes in a coherent way.</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">2</span><span class="ot"> range-y=</span><span class="st">&quot;0&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;black&quot;</span>
+<span class="ot">      ext=</span><span class="st">&quot;[[extent(dat1.x,dat2.x)]]&quot;</span>
+<span class="ot">      h1=</span><span class="st">&quot;[[histogram(dat1.x,{binrange:ext,nbins:20})]]&quot;</span>
+<span class="ot">      h2=</span><span class="st">&quot;[[histogram(dat2.x,{binrange:ext,nbins:20})]]&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[h1.centres]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[h1.freqs]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;red&quot;</span>
+<span class="ot">        bar-width=</span><span class="st">0.4</span><span class="ot"> bar-offset=</span><span class="st">-0.2</span><span class="kw">&gt;&lt;/bars&gt;</span>
+  <span class="kw">&lt;bars</span><span class="ot"> x=</span><span class="st">&quot;[[h2.centres]]&quot;</span><span class="ot"> y=</span><span class="st">&quot;[[h2.freqs]]&quot;</span><span class="ot"> fill=</span><span class="st">&quot;blue&quot;</span>
+<span class="ot">        bar-width=</span><span class="st">0.4</span><span class="ot"> bar-offset=</span><span class="st">0.2</span><span class="kw">&gt;&lt;/bars&gt;</span>
+<span class="kw">&lt;/plot&gt;</span></code></pre>
+<p>The <code>histogram</code> function can either be called as <code>histogram(xs, nbins)</code>, where <code>xs</code> is a one-dimensional data array and <code>nbins</code> is an integer count of histogram bins, or as <code>histogram(xs, opts)</code>, where <code>opts</code> is an object with fields taken from the following list:</p>
+<ul>
+<li><p><code>transform</code>: either “<code>linear</code>”, “<code>log</code>”, or a two-element array of functions giving a function <em>f</em> and its inverse <em>f</em><sup> -1</sup> for transforming from linear to histogram space and back again (for “<code>linear</code>”, this is just (id, id), while for “<code>log</code>” it’s (<code>log</code>, <code>exp</code>)).</p></li>
+<li><p><code>nbins</code>, <code>binwidth</code>, <code>binrange</code>: parameters for specifying bins (in histogram space) – if you have multiple histograms on the same axes, the best way to go is to specify <code>binrange</code> and one of <code>nbins</code> or <code>binwidth</code>; <code>binrange</code> (a two-element array) fixes the minimum and maximum bin centres, and then one bin-size parameter fixes the number and location of the bins independent of the input data; if you don’t specify a range, <code>histogram</code> does a best effort to allocate sensible bins, but you can’t guarantee that bins from two independent histograms will match up.</p></li>
+</ul>
+<p>The output of <code>histogram</code> is a record with the following fields:</p>
+<ul>
+<li><p><code>centres</code>: bin centres in “input” space;</p></li>
+<li><p><code>bins</code>: an array of two-element arrays, giving bin boundaries in “input” space (this is useful for non-linear transformations, since the bins are no longer symmetric about their “centres”);</p></li>
+<li><p><code>counts</code>: the number of data values falling in each bin;</p></li>
+<li><p><code>freqs</code>: the number of data values in each bin divided by total number of data items;</p></li>
+<li><p><code>probs</code>: probability values defined so that <code>sum(probs[i] *   (bins[i].max - bins[i].min), i=0, nbins-1) = 1</code> and so that <code>probs[i] * (bins[i].max - bins[i].min)</code> is proportional to <code>freqs[i]</code>.</p></li>
+</ul>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../js/jquery.js"></script>
+  <script src="../js/jquery.csv.js"></script>
+  <script src="../js/escodegen.browser.js"></script>
+  <script src="../js/estraverse.js"></script>
+  <script src="../js/d3.v2.js"></script>
+  <script src="../js/angular.min.js"></script>
+  <script src="../js/radian.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/html5slider.js"></script>
+  <script src="../js/hljs.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>

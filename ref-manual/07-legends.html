@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en" ng-app="radianDocs">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Radian - Reference manual - Plot legends</title>
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="../css/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../css/hljs.css" type="text/css" />
+  <link rel="stylesheet" href="../css/radian.css" type="text/css" />
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="navbar navbar-main">
+      <div class="navbar-inner">
+        <a class="brand" href="../index.html">Radian</a>
+        <ul class="nav">
+          <li><a href="../documentation.html">Documentation</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../community.html">Community</a></li>
+          <li><a href="../gallery">Gallery</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../faq.html">FAQ</a></li>
+          <li><a href="../roadmap.html">Roadmap</a></li>
+          <li><a href="../contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <h1 id="plot-legends">7. Plot legends</h1>
+<hr>
+<h2 id="the-legend-directive">The <code>&lt;legend&gt;</code> directive</h2>
+<h3 id="attributes">Attributes</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">   </th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>POSITION</code></td>
+<td align="left"></td>
+<td align="left">Legend position (see below)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FRAME-THICKNESS</code></td>
+<td align="left"></td>
+<td align="left">Stroke thickness for frame surrounding legend</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FRAME-COLOR</code></td>
+<td align="left"></td>
+<td align="left">Stroke colour for frame surrounding legend</td>
+</tr>
+<tr class="even">
+<td align="left"><code>BACKGROUND-COLOR</code></td>
+<td align="left"></td>
+<td align="left">Background colour of box containing legend</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>ORDER</code></td>
+<td align="left"></td>
+<td align="left">Legend entry order based on semicolon-separated list of entry labels</td>
+</tr>
+<tr class="even">
+<td align="left"><code>ORIENTATION</code></td>
+<td align="left"></td>
+<td align="left">Orientation of legend: either <code>horizontal</code> or <code>vertical</code> with possibly a row or column count</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>ROW-SPACING</code></td>
+<td align="left"></td>
+<td align="left">Pixel spacing between legend rows</td>
+</tr>
+<tr class="even">
+<td align="left"><code>COLUMN-SPACING</code></td>
+<td align="left"></td>
+<td align="left">Pixel spacing between legend columns</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>SEGMENT-LENGTH</code></td>
+<td align="left"></td>
+<td align="left">Pixel size of legend line segments</td>
+</tr>
+<tr class="even">
+<td align="left"><code>SEGMENT-GAP</code></td>
+<td align="left"></td>
+<td align="left">Pixel gap between legend line segments and labels</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>HORIZONTAL-MARGIN</code></td>
+<td align="left"></td>
+<td align="left">Pixel margin to left and right of legend entries</td>
+</tr>
+<tr class="even">
+<td align="left"><code>VERTICAL-MARGIN</code></td>
+<td align="left"></td>
+<td align="left">Pixel margin above and below legend entries</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MARGIN</code></td>
+<td align="left"></td>
+<td align="left">Default pixel margin around legend entries</td>
+</tr>
+<tr class="even">
+<td align="left"><code>LABEL-POSITION</code></td>
+<td align="left"></td>
+<td align="left">Do labels appear <code>before</code> or <code>after</code> the corresponding legend samples?</td>
+</tr>
+</tbody>
+</table>
+<h3 id="body">Body</h3>
+<p>Optionally, <code>&lt;legend-entry&gt;</code> directives describing explicit legend entries. Implicit legend entries are picked up from plotting directives within the surrounding <code>&lt;plot&gt;</code> directive that have a <code>LABEL</code> attribute.</p>
+<h3 id="interpretation">Interpretation</h3>
+<p>A <code>&lt;legend&gt;</code> directive within a <code>&lt;plot&gt;</code> directive causes a plot legend to be generated. The position, frame and background of the legend can be controlled, as can the orientiation (entries in vertical columns or horizontal rows) and sizing and spacing of individual legend entries.</p>
+<p>Legend entries can be specified explicitly (using embedded <code>&lt;legend-entry&gt;</code> directives) or implicitly (by adding a <code>LABEL</code> attribute to plotting directives).</p>
+<h4 id="legend-positioning-and-sizing">Legend positioning and sizing</h4>
+<p>The position of the legend within the plot frame is controlled by the <code>POSITION</code> attribute, which is of the form <code>x,y</code> with <code>x</code> being either a pixel count (positive or negative), <code>left</code> or <code>right</code> and <code>y</code> either a pixel count (positive or negative), <code>top</code> or <code>bottom</code>. Positive pixel counts position the left or top edge of the legend relative to the from left or top edge of the plot frame, while negative pixel counts position the right or bottom edge of the legend relative to the right or bottom edge of the plot frame. The <code>left</code>, <code>right</code>, <code>top</code> and <code>bottom</code> values put the legend a reasonable distance from the edge of the plot frame.</p>
+<p>The orientation of legend entries is controlled by the <code>ORIENTATION</code> attribute. This can be <code>horizontal</code>, <code>horizontal:&lt;nrows&gt;</code>, <code>vertical</code> or <code>vertical:&lt;ncols&gt;</code> – the <code>horizontal</code> options produce legends with entries laid out in rows, while the <code>vertical</code> options produce legends with entries laid out in columns. In each case, the optional value controls the number of rows (for horizontal legends) or columns (for vertical legends) of legend entries. For example, an <code>ORIENTATION</code> attribute value of <code>vertical:2</code> will result in a legend with two columns of entries. The default is <code>vertical</code>, i.e. legend entries are laid out in a single column.</p>
+<p>The spacing between rows and columns within a legend can be controlled by the <code>ROW-SPACING</code> and <code>COLUMN-SPACING</code> attributes, both of which are given in pixels.</p>
+<h4 id="legend-frame-and-background">Legend frame and background</h4>
+<p>A legend can have be surrounded by a frame, controlled by the <code>FRAME-THICKNESS</code> and <code>FRAME-COLOR</code> attributes. The default is to display no frame. A frame is drawn if either or both of the thickness or colour are specified (thickness defaults to 1 pixel, and frame colour defaults to black if only one is specified).</p>
+<p>By default, the background of the legend is solid white, to set the legend entries off against any plot graphics lying in the same area of the plot frame as the legend. The colour of the background rectangle can be controlled using the <code>BACKGROUND-COLOR</code> attribute. By setting <code>BACKGROUND-COLOR</code> to <code>none</code>, the background rectangle can be suppressed, making the legend transparent and allowing plot graphics behind the legend to show through.</p>
+<h4 id="legend-entries">Legend entries</h4>
+<p>Legend entries can be specified both explicitly using the <code>&lt;legend-entry&gt;</code> directive, and implicitly, by adding a <code>LABEL</code> attribute to a plotting directive (e.g. <code>&lt;lines&gt;</code>, <code>&lt;points&gt;</code>, <code>&lt;bars&gt;</code>, etc.).</p>
+<hr>
+<h2 id="explicit-legend-entries-the-legend-entry-directive">Explicit legend entries: the <code>&lt;legend-entry&gt;</code> directive</h2>
+<h3 id="attributes-1">Attributes</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">   </th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>LABEL</code></td>
+<td align="left"></td>
+<td align="left">Legend label for entry (mandatory)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>TYPE</code></td>
+<td align="left"></td>
+<td align="left">Legend type for entry (mandatory: one of <code>lines</code>, <code>points</code>, <code>area</code>, <code>bars</code>, <code>boxes</code>)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left"></td>
+<td align="left">Legend stroke colour</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-THICKNESS</code></td>
+<td align="left"></td>
+<td align="left">Legend stroke thickness</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Legend stroke opacity</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL</code></td>
+<td align="left"></td>
+<td align="left">Legend fill colour</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Legend fill opacity</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER</code></td>
+<td align="left"></td>
+<td align="left">Legend marker type</td>
+</tr>
+</tbody>
+</table>
+<p><br> The subset of the paint attributes that are appropriate for a given instance of <code>&lt;legend-entry&gt;</code> depend on the value of the <code>TYPE</code> attribute:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">   </th>
+<th align="center"><code>lines</code></th>
+<th align="left"> </th>
+<th align="center"><code>points</code></th>
+<th align="left"> </th>
+<th align="center"><code>area</code></th>
+<th align="left"> </th>
+<th align="center"><code>bars</code></th>
+<th align="left"> </th>
+<th align="center"><code>boxes</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>STROKE</code></td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+</tr>
+<tr class="even">
+<td align="left"><code>STROKE-THICKNESS</code></td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>STROKE-OPACITY</code></td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+</tr>
+<tr class="even">
+<td align="left"><code>FILL</code></td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>FILL-OPACITY</code></td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center">OK</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER</code></td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
+<td align="center">OK</td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="body-1">Body</h3>
+<p>None.</p>
+<h3 id="interpretation-1">Interpretation</h3>
+<p>Each <code>&lt;legend-entry&gt;</code> directive explicitly specifies an entry that will appear in the legend defined by a surrounding <code>&lt;legend&gt;</code> directive. The mandatory <code>LABEL</code> attribute is used to provide a string label for the legend entry, and the mandatory <code>TYPE</code> attribute is used to control the type of legend entry that appears, based on a selected plot type.</p>
+<p>Unless the sort order of the legend entries is otherwise modified using the <code>ORDER</code> attribute of the <code>&lt;legend&gt;</code> directive, all explicit legend entries appear after all implicit entries in the order that they are defined by <code>&lt;legend-entry&gt;</code> directives.</p>
+<p>In all other respects than ordering, explicit legend entries are treated entirely equivalently to implicitly defined legend entries.</p>
+<hr>
+<h2 id="implicit-legend-entries">Implicit legend entries</h2>
+<p>Each plotting directive (i.e. <code>&lt;lines&gt;</code>, <code>&lt;points&gt;</code>, etc.) within a <code>&lt;plot&gt;</code> directive can define have an associated implicit legend entry in a legend defined by a <code>&lt;legend&gt;</code> directive within the <code>&lt;plot&gt;</code> directive. Implicit legend entries are created for any plotting directive that has a <code>LABEL</code> attribute.</p>
+<hr>
+<h2 id="legend-interactivity">Legend interactivity</h2>
+<p>For implicit legend entries defined by adding a <code>LABEL</code> attribute to a plotting directive, it is also possible to produce a user interface allowing the plot element to be switched on and off by adding a <code>LEGEND-SWITCH</code> attribute to the plot directive. For each plotting directive with a <code>LEGEND-SWITCH</code> attribute, a checkbox appears in the legend allowing the visibility of the relevant plot to be controlled.</p>
+<p>Alternatively, a <code>LEGEND-SWITCHES</code> attribute on the enclosing <code>&lt;plot&gt;</code> directive will cause a visibility checkbox to be displayed for all implicit legend entries.</p>
+
+    <footer>
+      <div>
+         
+        <span class="pull-right">Copyright © (2013) OpenBrain
+        Ltd.  </span>
+      </div>
+    </footer>
+  </div>
+  <script src="../js/jquery.js"></script>
+  <script src="../js/jquery.csv.js"></script>
+  <script src="../js/escodegen.browser.js"></script>
+  <script src="../js/estraverse.js"></script>
+  <script src="../js/d3.v2.js"></script>
+  <script src="../js/angular.min.js"></script>
+  <script src="../js/radian.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/html5slider.js"></script>
+  <script src="../js/hljs.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+  </script>
+</body>
+</html>
