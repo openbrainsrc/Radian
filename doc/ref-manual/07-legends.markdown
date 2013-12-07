@@ -168,3 +168,7 @@ allowing the plot element to be switched on and off by adding a
 `LEGEND-SWITCH` attribute to the plot directive.  For each plotting
 directive with a `LEGEND-SWITCH` attribute, a checkbox appears in the
 legend allowing the visibility of the relevant plot to be controlled.
+
+Alternatively, a `LEGEND-SWITCHES` attribute on the enclosing `<plot>`
+directive will cause a visibility checkbox to be displayed for all
+implicit legend entries.
