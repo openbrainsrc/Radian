@@ -65,7 +65,7 @@ radian.directive('legend',
 
     // Order entries.
     var order = [];
-    if (sc.order) order = sc.order.split(/;/);
+    if (sc.order) order = sc.order.split(/\|/);
     var ex = {}, im = {};
     sc.explicitEntries.forEach(function(e) { ex[e.label] = e; });
     sc.implicitEntries.forEach(function(e) { im[e.label] = e; });
