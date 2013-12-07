@@ -5749,19 +5749,16 @@ radian.directive('legend',
     sc.ew = 0;
     sc.explicitEntries.forEach(function(e) {
       var sz = sc.getTextSize(e.label);
-      console.log(e.label + " -> " + JSON.stringify(sz));
       e.width = sz.width;    sc.ew = Math.max(sz.width, sc.ew);
       e.height = sz.height;  sc.eh = Math.max(sz.height, sc.eh);
     });
     sc.implicitEntries.forEach(function(e) {
       var sz = sc.getTextSize(e.label);
-      console.log(e.label + " -> " + JSON.stringify(sz));
       e.width = sz.width;    sc.ew = Math.max(sz.width, sc.ew);
       e.height = sz.height;  sc.eh = Math.max(sz.height, sc.eh);
     });
     sc.labelx = sc.segmentLength + sc.segmentGap;
     sc.ew += sc.labelx;
-    console.log("sc.eh=" + sc.eh);
 
     // Order entries.
     var order = [];
@@ -5860,16 +5857,43 @@ radian.directive('legend',
 
       // Draw entry segment.
       switch (e.type) {
-      case 'lines': {
-        var d = [[0, sc.eh/2], [sc.segmentLength, sc.eh/2]];
-        eg.append('path').datum(d).attr('d', d3.svg.line()).
-          style('stroke', e.stroke).style('stroke-width', e.strokeWidth);
+      case 'lines':
+        eg.append('path').
+          datum([[0, sc.eh/2], [sc.segmentLength, sc.eh/2]]).
+          attr('d', d3.svg.line()).
+          style('stroke', e.stroke).
+          style('stroke-width', e.strokeWidth).
+          style('stroke-opacity', e.strokeOpacity || 1);
         break;
-      }
       case 'points':
+        eg.append('path').
+          attr('transform',
+               'translate(' + sc.segmentLength / 2 + ',' + sc.eh / 2 + ')').
+          attr('d', d3.svg.symbol().type(e.marker).size(0.75 * sc.eh * sc.eh)).
+          style('fill', e.fill || 'none').
+          style('fill-opacity', e.fillOpacity || 1).
+          style('stroke-width', e.strokeWidth || 1).
+          style('stroke-opacity', e.strokeOpacity || 1).
+          style('stroke', e.stroke || 'none');
+        break;
       case 'area':
+        eg.append('rect').
+          attr('x', 0).attr('y', 0).
+          attr('width', sc.segmentLength).attr('height', sc.eh).
+          style('fill', e.fill).
+          style('fill-opacity', e.fillOpacity || 1);
+        break;
       case 'bars':
       case 'boxes':
+        eg.append('rect').
+          attr('x', sc.segmentLength / 2 - sc.eh / 2).attr('y', 0).
+          attr('width', sc.eh).attr('height', sc.eh).
+          style('stroke', e.stroke || 'none').
+          style('stroke-opacity', e.strokeOpacity || 1).
+          style('stroke-width', e.strokeWidth || 1).
+          style('fill', e.fill || 'none').
+          style('fill-opacity', e.fillOpacity || 1);
+        break;
       }
     });
   };
