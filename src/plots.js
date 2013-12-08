@@ -1,5 +1,181 @@
 // Line plots.
 
+radian.directive('vlines',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s) {
+    function sty(v) {
+      return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
+    };
+    var width   = s.strokeWidth || 1;
+    var opacity = s.strokeOpacity || 1.0;
+    var stroke = s.stroke || '#000';
+    var ssel = s.$eval('strokesel');
+    if (stroke instanceof Array && s.$eval('strokesel') !== undefined)
+      stroke = ssel ? stroke[ssel % stroke.length] : stroke[0];
+
+    // Deal with along-stroke interpolation.
+    if (stroke instanceof Function) {
+      var tmp = new Array(x.length);
+      for (var i = 0; i < x.length; ++i) tmp[i] = i / x.length;
+      stroke = stroke(tmp);
+    }
+
+    // Switch on type of stroke...
+    var plotx = [], ploty = [];
+    x.forEach(function(v) {
+      plotx.push(v);  ploty.push(-1000);
+      plotx.push(v);  ploty.push(1000);
+    });
+    if (!(width instanceof Array || opacity instanceof Array ||
+          stroke instanceof Array)) {
+      // Normal lines; single path.
+      var line = d3.svg.line()
+        .x(function (d, i) { return xs(d[0], i); })
+        .y(function (d, i) { return ys(d[1], i); });
+      svg.append('path').datum(d3.zip(plotx, ploty))
+        .attr('class', 'line').attr('d', line)
+        .style('fill', 'none')
+        .style('stroke-width', width)
+        .style('stroke-opacity', opacity)
+        .style('stroke', stroke);
+    } else {
+      // Multiple paths to deal with varying characteristics along
+      // line.
+      var maxsegments = 200;
+      var ptsperseg = Math.max(1, Math.floor(x.length / maxsegments));
+      var based = d3.zip(x, y), lined = [];
+      var widths = [], opacities = [], strokes = [];
+      var i0 = 0, i1 = ptsperseg;
+      while (i0 < x.length) {
+        lined.push(based.slice(i0, i1+1));
+        var imid = Math.floor((i0 + i1) / 2);
+        widths.push(width instanceof Array ? width[imid] : width);
+        opacities.push(opacity instanceof Array ? opacity[imid] : opacity);
+        strokes.push(stroke instanceof Array ? stroke[imid] : stroke);
+        i0 = i1;
+        i1 = i0 + ptsperseg;
+      }
+      svg.selectAll('path').data(lined).enter().append('path')
+        .attr('class', 'line')
+        .style('stroke-width', function(d, i) { return widths[i]; })
+        .style('stroke-opacity', function(d, i) { return opacities[i]; })
+        .style('stroke', function(d, i) { return strokes[i]; })
+        .style('fill', 'none')
+        .attr('d', d3.svg.line()
+              .x(function (d, i) { return xs(d[0], i); })
+              .y(function (d, i) { return ys(d[1], i); }));
+    }
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      scope.$on('setupExtra', function() {
+        var width = scope.strokeWidth instanceof Array &&
+                    scope.strokeWidth.length > 0 ?
+          scope.strokeWidth.reduce(function(x,y) {
+            return Math.max(Number(x), Number(y));
+          }) : (Number(scope.strokeWidth) || 1);
+        scope.rangeExtendPixels([width/2, width/2], [width/2, width/2]);
+      });
+      scope.checkPlottable = function(xvar, yvar) { return xvar; };
+      plotTypeLink('vlines', scope, elm, as, draw);
+    }
+  };
+}]);
+
+radian.directive('hlines',
+ ['plotTypeLink', function(plotTypeLink)
+{
+  'use strict';
+
+  function draw(svg, x, xs, y, ys, s) {
+    function sty(v) {
+      return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
+    };
+    var width   = s.strokeWidth || 1;
+    var opacity = s.strokeOpacity || 1.0;
+    var stroke = s.stroke || '#000';
+    var ssel = s.$eval('strokesel');
+    if (stroke instanceof Array && s.$eval('strokesel') !== undefined)
+      stroke = ssel ? stroke[ssel % stroke.length] : stroke[0];
+
+    // Deal with along-stroke interpolation.
+    if (stroke instanceof Function) {
+      var tmp = new Array(x.length);
+      for (var i = 0; i < x.length; ++i) tmp[i] = i / x.length;
+      stroke = stroke(tmp);
+    }
+
+    // Switch on type of stroke...
+    var plotx = [], ploty = [];
+    y.forEach(function(v) {
+      ploty.push(v);  plotx.push(-1000);
+      ploty.push(v);  plotx.push(1000);
+    });
+    if (!(width instanceof Array || opacity instanceof Array ||
+          stroke instanceof Array)) {
+      // Normal lines; single path.
+      var line = d3.svg.line()
+        .x(function (d, i) { return xs(d[0], i); })
+        .y(function (d, i) { return ys(d[1], i); });
+      svg.append('path').datum(d3.zip(plotx, ploty))
+        .attr('class', 'line').attr('d', line)
+        .style('fill', 'none')
+        .style('stroke-width', width)
+        .style('stroke-opacity', opacity)
+        .style('stroke', stroke);
+    } else {
+      // Multiple paths to deal with varying characteristics along
+      // line.
+      var maxsegments = 200;
+      var ptsperseg = Math.max(1, Math.floor(x.length / maxsegments));
+      var based = d3.zip(x, y), lined = [];
+      var widths = [], opacities = [], strokes = [];
+      var i0 = 0, i1 = ptsperseg;
+      while (i0 < x.length) {
+        lined.push(based.slice(i0, i1+1));
+        var imid = Math.floor((i0 + i1) / 2);
+        widths.push(width instanceof Array ? width[imid] : width);
+        opacities.push(opacity instanceof Array ? opacity[imid] : opacity);
+        strokes.push(stroke instanceof Array ? stroke[imid] : stroke);
+        i0 = i1;
+        i1 = i0 + ptsperseg;
+      }
+      svg.selectAll('path').data(lined).enter().append('path')
+        .attr('class', 'line')
+        .style('stroke-width', function(d, i) { return widths[i]; })
+        .style('stroke-opacity', function(d, i) { return opacities[i]; })
+        .style('stroke', function(d, i) { return strokes[i]; })
+        .style('fill', 'none')
+        .attr('d', d3.svg.line()
+              .x(function (d, i) { return xs(d[0], i); })
+              .y(function (d, i) { return ys(d[1], i); }));
+    }
+  };
+
+  return {
+    restrict: 'E',
+    scope: true,
+    link: function(scope, elm, as) {
+      scope.$on('setupExtra', function() {
+        var width = scope.strokeWidth instanceof Array &&
+                    scope.strokeWidth.length > 0 ?
+          scope.strokeWidth.reduce(function(x,y) {
+            return Math.max(Number(x), Number(y));
+          }) : (Number(scope.strokeWidth) || 1);
+        scope.rangeExtendPixels([width/2, width/2], [width/2, width/2]);
+      });
+      scope.checkPlottable = function(xvar, yvar) { return yvar; };
+      plotTypeLink('hlines', scope, elm, as, draw);
+    }
+  };
+}]);
+
 radian.directive('lines',
  ['plotTypeLink', function(plotTypeLink)
 {
