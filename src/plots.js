@@ -125,29 +125,49 @@ radian.factory('drawLinesGeneric', function()
     } else {
       // Multiple paths to deal with varying characteristics along
       // line.
-      var maxsegments = 200;
-      var ptsperseg = Math.max(1, Math.floor(x.length / maxsegments));
-      var based = d3.zip(plotx, ploty), lined = [];
-      var widths = [], opacities = [], strokes = [];
-      var i0 = 0, i1 = ptsperseg;
-      while (i0 < plotx.length) {
-        lined.push(based.slice(i0, i1+1));
-        var imid = Math.floor((i0 + i1) / 2);
-        widths.push(width instanceof Array ? plotwid[imid] : width);
-        opacities.push(opacity instanceof Array ? plotopa[imid] : opacity);
-        strokes.push(stroke instanceof Array ? plotstr[imid] : stroke);
-        i0 = i1;
-        i1 = i0 + ptsperseg;
+      var points =
+        d3.svg.symbol().type(sty0(gapMarker)).size(sty0(gapMarkerSize));
+      for (var seg = 0; seg < plotx.length; ++seg) {
+        var segx = plotx[seg], segy = ploty[seg];
+        var segwid = plotwid[seg], segopa = plotopa[seg], segstr = plotstr[seg];
+        if (segx.length > 1) {
+          var maxsegments = 200;
+          var ptsperseg = Math.max(1, Math.floor(x.length / maxsegments));
+          var based = d3.zip(segx, segy), lined = [];
+          var widths = [], opacities = [], strokes = [];
+          var i0 = 0, i1 = ptsperseg;
+          while (i0 < segx.length) {
+            lined.push(based.slice(i0, i1+1));
+            var imid = Math.floor((i0 + i1) / 2);
+            widths.push(width instanceof Array ? segwid[imid] : width);
+            opacities.push(opacity instanceof Array ? segopa[imid] : opacity);
+            strokes.push(stroke instanceof Array ? segstr[imid] : stroke);
+            i0 = i1;
+            i1 = i0 + ptsperseg;
+          }
+          svg.selectAll('path').data(lined).enter().append('path')
+            .attr('class', 'line')
+            .style('stroke-width', function(d, i) { return widths[i]; })
+            .style('stroke-opacity', function(d, i) { return opacities[i]; })
+            .style('stroke', function(d, i) { return strokes[i]; })
+            .style('fill', 'none')
+            .attr('d', d3.svg.line()
+                  .x(function (d, i) { return xs(d[0], i); })
+                  .y(function (d, i) { return ys(d[1], i); }));
+        } else {
+          svg.append('g').selectAll('path').data(d3.zip(segx, segy))
+            .enter().append('path')
+            .attr('transform', function(d, i) {
+              return 'translate(' + xs(d[0], i) + ',' + ys(d[1], i) + ')';
+            })
+            .attr('d', points)
+            .style('fill', sty0(gapMarkerFill))
+            .style('fill-opacity', sty0(gapMarkerFillOpacity))
+            .style('stroke-width', sty0(gapMarkerStrokeWidth))
+            .style('stroke-opacity', sty0(gapMarkerStrokeOpacity))
+            .style('stroke', sty0(gapMarkerStroke));
+        }
       }
-      svg.selectAll('path').data(lined).enter().append('path')
-        .attr('class', 'line')
-        .style('stroke-width', function(d, i) { return widths[i]; })
-        .style('stroke-opacity', function(d, i) { return opacities[i]; })
-        .style('stroke', function(d, i) { return strokes[i]; })
-        .style('fill', 'none')
-        .attr('d', d3.svg.line()
-              .x(function (d, i) { return xs(d[0], i); })
-              .y(function (d, i) { return ys(d[1], i); }));
     }
   };
 });
@@ -279,18 +299,39 @@ radian.directive('points',
       if (sc.oton) dtmp = sc.oton(d);
       return sc(dtmp, i);
     };
-    var points = d3.svg.symbol().type(sty(marker)).size(sty(markerSize));
-    svg.selectAll('path').data(d3.zip(x, y))
+    var plotx = [], ploty = [];
+    var plotmark = marker instanceof Array ? [] : marker;
+    var plotsize = markerSize instanceof Array ? [] : markerSize;
+    var plotstr = stroke instanceof Array ? [] : stroke;
+    var plotfill = fill instanceof Array ? [] : fill;
+    var plotwid = strokeWidth instanceof Array ? [] : strokeWidth;
+    var plotsopa = strokeOpacity instanceof Array ? [] : strokeOpacity;
+    var plotfopa = fillOpacity instanceof Array ? [] : fillOpacity;
+    for (var i = 0; i < x.length; ++i) {
+      if (y[i] !== null && !isNaN(y[i])) {
+        plotx.push(x[i]);
+        ploty.push(y[i]);
+        if (marker instanceof Array) plotmark.push(marker[i]);
+        if (markerSize instanceof Array) plotsize.push(markerSize[i]);
+        if (fill instanceof Array) plotfill.push(fill[i]);
+        if (fillOpacity instanceof Array) plotfopa.push(fillOpacity[i]);
+        if (stroke instanceof Array) plotstr.push(stroke[i]);
+        if (strokeWidth instanceof Array) plotwid.push(strokeWidth[i]);
+        if (strokeOpacity instanceof Array) plotsopa.push(strokeOpacity[i]);
+      }
+    }
+    var points = d3.svg.symbol().type(sty(plotmark)).size(sty(plotsize));
+    svg.selectAll('path').data(d3.zip(plotx, ploty))
       .enter().append('path')
       .attr('transform', function(d, i) {
         return 'translate(' + apSc(xs, d[0], i) + ',' + apSc(ys, d[1], i) + ')';
       })
       .attr('d', points)
-      .style('fill', sty(fill))
-      .style('fill-opacity', sty(fillOpacity))
-      .style('stroke-width', sty(strokeWidth))
-      .style('stroke-opacity', sty(strokeOpacity))
-      .style('stroke', sty(stroke));
+      .style('fill', sty(plotfill))
+      .style('fill-opacity', sty(plotfopa))
+      .style('stroke-width', sty(plotwid))
+      .style('stroke-opacity', sty(plotsopa))
+      .style('stroke', sty(plotstr));
   };
 
   return {
