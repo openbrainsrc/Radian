@@ -3865,7 +3865,6 @@ radian.directive('plotData',
                 tmp[cols[c]].push(d[i][c]);
             }
           d = tmp;
-          console.log(JSON.stringify(d));
         }
       } catch (e) { throw Error('invalid CSV data in <plot-data>'); }
     }
@@ -4477,6 +4476,11 @@ radian.factory('drawLinesGeneric', function()
     var ssel = s.$eval('strokesel');
     if (stroke instanceof Array && s.$eval('strokesel') !== undefined)
       stroke = ssel ? stroke[ssel % stroke.length] : stroke[0];
+    var missing = s.missing || 'interpolate';
+    var gapMarker = s.gapMarker || 'circle';
+    var gapMarkerSize = s.gapMarkerSize || Math.pow(width * 2, 2);
+    var gapMarkerStroke = s.gapMarkerStroke || stroke;
+    var gapMarkerFill = s.gapMarkerFill || stroke;
 
     // Deal with along-stroke interpolation.
     if (stroke instanceof Function) {
@@ -4485,21 +4489,48 @@ radian.factory('drawLinesGeneric', function()
       stroke = stroke(tmp);
     }
 
+    // Plot-type dependent data setup.
+    var tmpx = [], tmpy = [];
+    setupPlotXY(x, tmpx, y, tmpy);
+
+    // Deal with missing values.
+    var plotx = [], ploty = [], plotstr = [], plotwid = [], plotopa = [];
+    switch (missing) {
+    case 'interpolate':
+      // If we're interpolating over missing values, just elide any
+      // missing data points and build a single segment.
+      for (var i = 0; i < tmpx.length; ++i) {
+        if (tmpx[i] !== null && !isNaN(tmpx[i]) &&
+            tmpy[i] !== null && !isNaN(tmpy[i])) {
+          plotx.push(tmpx[i]);
+          ploty.push(tmpy[i]);
+          if (width instanceof Array) plotwid.push(width[i]);
+          if (opacity instanceof Array) plotopa.push(opacity[i]);
+          if (stroke instanceof Array) plotstr.push(stroke[i]);
+        }
+      }
+      break;
+
+    case 'gap':
+      // If we're gapping missing values, elide missing data points
+      // and build segments for each run of contiguous non-missing
+      // points.
+      throw Error("NOT YET IMPLEMENTED: missing=gap");
+    }
+
     // Switch on type of stroke...
-    var plotx = [], ploty = [];
-    setupPlotXY(x, plotx, y, ploty);
     if (!(width instanceof Array || opacity instanceof Array ||
           stroke instanceof Array)) {
-      // Normal lines; single path.
+      // Normal lines; one path per segment, potentially with gaps.
       var line = d3.svg.line()
         .x(function (d, i) { return xs(d[0], i); })
         .y(function (d, i) { return ys(d[1], i); });
       svg.append('path').datum(d3.zip(plotx, ploty))
         .attr('class', 'line').attr('d', line)
         .style('fill', 'none')
-        .style('stroke-width', width)
-        .style('stroke-opacity', opacity)
-        .style('stroke', stroke);
+        .style('stroke-width', width instanceof Array ? plotwid : width)
+        .style('stroke-opacity', opacity instanceof Array ? plotopa : opacity)
+        .style('stroke', stroke instanceof Array ? plotstr : stroke);
     } else {
       // Multiple paths to deal with varying characteristics along
       // line.
@@ -4511,9 +4542,9 @@ radian.factory('drawLinesGeneric', function()
       while (i0 < plotx.length) {
         lined.push(based.slice(i0, i1+1));
         var imid = Math.floor((i0 + i1) / 2);
-        widths.push(width instanceof Array ? width[imid] : width);
-        opacities.push(opacity instanceof Array ? opacity[imid] : opacity);
-        strokes.push(stroke instanceof Array ? stroke[imid] : stroke);
+        widths.push(width instanceof Array ? plotwid[imid] : width);
+        opacities.push(opacity instanceof Array ? plotopa[imid] : opacity);
+        strokes.push(stroke instanceof Array ? plotstr[imid] : stroke);
         i0 = i1;
         i1 = i0 + ptsperseg;
       }

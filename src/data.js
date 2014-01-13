@@ -80,7 +80,6 @@ radian.directive('plotData',
                 tmp[cols[c]].push(d[i][c]);
             }
           d = tmp;
-          console.log(JSON.stringify(d));
         }
       } catch (e) { throw Error('invalid CSV data in <plot-data>'); }
     }
