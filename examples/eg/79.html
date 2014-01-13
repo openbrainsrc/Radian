@@ -1,0 +1,37 @@
+<h3>Example 79 (missing data)</h3>
+
+<plot width="620" height="300" axis-y-label="Score">
+  <legend></legend>
+  <lines x="[[dailyMood.time]]" y="[[dailyMood.mood]]"
+         stroke="blue" label="Mood"></lines>
+  <lines x="[[dailyMood.time]]" y="[[dailyMood.sleep]]"
+         stroke="red" label="Sleep"></lines>
+</plot>
+
+<plot width="620" height="300" axis-y-label="Score">
+  <legend></legend>
+  <lines x="[[dailyMood.time]]" y="[[dailyMood.mood]]"
+         stroke="blue" label="Mood"></lines>
+  <lines x="[[dailyMood.time]]" y="[[dailyMood.sleep]]"
+         stroke="red" label="Sleep" missing="interpolate"></lines>
+</plot>
+
+<plot width="620" height="300" axis-y-label="Score">
+  <legend></legend>
+  <lines x="[[dailyMood.time]]" y="[[dailyMood.mood]]"
+         stroke="blue" label="Mood"></lines>
+  <lines x="[[dailyMood.time]]" y="[[dailyMood.sleep]]"
+         stroke="red" label="Sleep" missing="gap"></lines>
+</plot>
+
+<plot-data id="dailyMood" name="dailyMood"
+           format="csv" cols="time,mood,sleep">
+  <metadata name="time" label="Time" format="date"
+            date-parse-format="isodate"></metadata>
+  <metadata name="mood" label="Mood"></metadata>
+  <metadata name="sleep" label="Sleep"></metadata>
+"2014-01-02T21:40:51.293Z", 5,8
+"2014-01-03T14:53:41.744Z", 2,
+"2014-01-03T22:27:52.161Z", 5,9
+"2014-01-03T22:34:26.221Z", 6,4
+</plot-data>
