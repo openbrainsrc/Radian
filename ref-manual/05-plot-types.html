@@ -83,12 +83,53 @@
 <td align="left"></td>
 <td align="left">Label for line in plot legend</td>
 </tr>
+<tr class="odd">
+<td align="left"><code>MISSING</code></td>
+<td align="left"></td>
+<td align="left">Treatment of missing values: one of <code>interpolate</code> (default) or <code>gap</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>GAP-MARKER</code></td>
+<td align="left"></td>
+<td align="left">Marker to use for isolated points due to missing data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>GAP-MARKER-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Marker size to use for isolated points due to missing data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>GAP-MARKER-STROKE</code></td>
+<td align="left"></td>
+<td align="left">Marker stroke to use for isolated points due to missing data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>GAP-MARKER-STROKE-WIDTH</code></td>
+<td align="left"></td>
+<td align="left">Marker stroke width to use for isolated points due to missing data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>GAP-MARKER-FILL</code></td>
+<td align="left"></td>
+<td align="left">Marker fill to use for isolated points due to missing data</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>GAP-MARKER-STROKE-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Marker stroke opacity to use for isolated points due to missing data</td>
+</tr>
+<tr class="even">
+<td align="left"><code>GAP-MARKER-FILL-OPACITY</code></td>
+<td align="left"></td>
+<td align="left">Marker fill opacity to use for isolated points due to missing data</td>
+</tr>
 </tbody>
 </table>
 <h3 id="body">Body</h3>
 <p>None</p>
 <h3 id="interpretation">Interpretation</h3>
 <p>Produces a line plot from the given x and y coordinate data.</p>
+<p>Missing <code>Y</code> values are treated either by interpolation (the default) or by leaving gaps. In the latter case, isolated data points (i.e. those with a missing value to either side of them) are rendered as points, with styling controlled by the <code>GAP-MARKER-...</code> attributes.</p>
 <h3 id="examples">Examples</h3>
 <p>Simple plot with two line graphs – note the inheritance of the <code>STROKE-WIDTH</code> standard paint attribute from the containing <code>&lt;plot&gt;</code> directive:</p>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> aspect=</span><span class="st">3</span><span class="ot"> stroke-width=</span><span class="st">2</span><span class="kw">&gt;</span>
