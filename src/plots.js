@@ -8,6 +8,9 @@ radian.factory('drawLinesGeneric', function()
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
+    function sty0(v) {
+      return (v instanceof Array) ? function(d, i) { return v[0]; } : v;
+    };
     var width   = s.strokeWidth || 1;
     var opacity = s.strokeOpacity || 1.0;
     var stroke = s.stroke || '#000';
@@ -18,7 +21,10 @@ radian.factory('drawLinesGeneric', function()
     var gapMarker = s.gapMarker || 'circle';
     var gapMarkerSize = s.gapMarkerSize || Math.pow(width * 2, 2);
     var gapMarkerStroke = s.gapMarkerStroke || stroke;
+    var gapMarkerStrokeWidth = s.gapMarkerStrokeWidth || width;
     var gapMarkerFill = s.gapMarkerFill || stroke;
+    var gapMarkerStrokeOpacity = s.gapMarkerStrokeOpacity || opacity;
+    var gapMarkerFillOpacity = s.gapMarkerFillOpacity || opacity;
 
     // Deal with along-stroke interpolation.
     if (stroke instanceof Function) {
@@ -34,26 +40,52 @@ radian.factory('drawLinesGeneric', function()
     // Deal with missing values.
     var plotx = [], ploty = [], plotstr = [], plotwid = [], plotopa = [];
     switch (missing) {
-    case 'interpolate':
+    case 'interpolate': {
       // If we're interpolating over missing values, just elide any
       // missing data points and build a single segment.
+      var curx = [], cury = [], curstr = [], curwid = [], curopa = [];
       for (var i = 0; i < tmpx.length; ++i) {
-        if (tmpx[i] !== null && !isNaN(tmpx[i]) &&
-            tmpy[i] !== null && !isNaN(tmpy[i])) {
-          plotx.push(tmpx[i]);
-          ploty.push(tmpy[i]);
-          if (width instanceof Array) plotwid.push(width[i]);
-          if (opacity instanceof Array) plotopa.push(opacity[i]);
-          if (stroke instanceof Array) plotstr.push(stroke[i]);
+        if (tmpy[i] !== null && !isNaN(tmpy[i])) {
+          curx.push(tmpx[i]);
+          cury.push(tmpy[i]);
+          if (width instanceof Array) curwid.push(width[i]);
+          if (opacity instanceof Array) curopa.push(opacity[i]);
+          if (stroke instanceof Array) curstr.push(stroke[i]);
         }
       }
+      plotx.push(curx); ploty.push(cury);
+      plotstr.push(curstr); plotwid.push(curwid); plotopa.push(curopa);
       break;
+    }
 
-    case 'gap':
+    case 'gap': {
       // If we're gapping missing values, elide missing data points
       // and build segments for each run of contiguous non-missing
       // points.
-      throw Error("NOT YET IMPLEMENTED: missing=gap");
+      var curx = [], cury = [], curstr = [], curwid = [], curopa = [];
+      for (var i = 0; i < tmpx.length; ++i) {
+        if (tmpy[i] === null || isNaN(tmpy[i])) {
+          // End of segment.
+          if (curx.length > 0) {
+            plotx.push(curx); ploty.push(cury);
+            plotstr.push(curstr); plotwid.push(curwid); plotopa.push(curopa);
+            curx = []; cury = []; curstr = []; curwid = []; curopa = [];
+          }
+        } else {
+          curx.push(tmpx[i]);
+          cury.push(tmpy[i]);
+          if (width instanceof Array) curwid.push(width[i]);
+          if (opacity instanceof Array) curopa.push(opacity[i]);
+          if (stroke instanceof Array) curstr.push(stroke[i]);
+        }
+      }
+      // Last segment.
+      if (curx.length > 0) {
+        plotx.push(curx); ploty.push(cury);
+        plotstr.push(curstr); plotwid.push(curwid); plotopa.push(curopa);
+      }
+      break;
+    }
     }
 
     // Switch on type of stroke...
@@ -63,12 +95,33 @@ radian.factory('drawLinesGeneric', function()
       var line = d3.svg.line()
         .x(function (d, i) { return xs(d[0], i); })
         .y(function (d, i) { return ys(d[1], i); });
-      svg.append('path').datum(d3.zip(plotx, ploty))
-        .attr('class', 'line').attr('d', line)
-        .style('fill', 'none')
-        .style('stroke-width', width instanceof Array ? plotwid : width)
-        .style('stroke-opacity', opacity instanceof Array ? plotopa : opacity)
-        .style('stroke', stroke instanceof Array ? plotstr : stroke);
+      var points =
+        d3.svg.symbol().type(sty0(gapMarker)).size(sty0(gapMarkerSize));
+      for (var seg = 0; seg < plotx.length; ++seg) {
+        var segx = plotx[seg], segy = ploty[seg];
+        var segwid = plotwid[seg], segopa = plotopa[seg], segstr = plotstr[seg];
+        if (segx.length > 1) {
+          svg.append('path').datum(d3.zip(segx, segy))
+            .attr('class', 'line').attr('d', line)
+            .style('fill', 'none')
+            .style('stroke-width', width instanceof Array ? segwid : width)
+            .style('stroke-opacity',
+                   opacity instanceof Array ? segopa : opacity)
+            .style('stroke', stroke instanceof Array ? segstr : stroke);
+        } else {
+          svg.append('g').selectAll('path').data(d3.zip(segx, segy))
+            .enter().append('path')
+            .attr('transform', function(d, i) {
+              return 'translate(' + xs(d[0], i) + ',' + ys(d[1], i) + ')';
+            })
+            .attr('d', points)
+            .style('fill', sty0(gapMarkerFill))
+            .style('fill-opacity', sty0(gapMarkerFillOpacity))
+            .style('stroke-width', sty0(gapMarkerStrokeWidth))
+            .style('stroke-opacity', sty0(gapMarkerStrokeOpacity))
+            .style('stroke', sty0(gapMarkerStroke));
+        }
+      }
     } else {
       // Multiple paths to deal with varying characteristics along
       // line.

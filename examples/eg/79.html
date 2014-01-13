@@ -1,6 +1,6 @@
 <h3>Example 79 (missing data)</h3>
 
-<plot width="620" height="300" axis-y-label="Score">
+<plot width="620" height="300" axis-y-label="Score" range-y="0,12">
   <legend></legend>
   <lines x="[[dailyMood.time]]" y="[[dailyMood.mood]]"
          stroke="blue" label="Mood"></lines>
@@ -8,7 +8,7 @@
          stroke="red" label="Sleep"></lines>
 </plot>
 
-<plot width="620" height="300" axis-y-label="Score">
+<plot width="620" height="300" axis-y-label="Score" range-y="0,12">
   <legend></legend>
   <lines x="[[dailyMood.time]]" y="[[dailyMood.mood]]"
          stroke="blue" label="Mood"></lines>
@@ -16,12 +16,23 @@
          stroke="red" label="Sleep" missing="interpolate"></lines>
 </plot>
 
-<plot width="620" height="300" axis-y-label="Score">
+<plot width="620" height="300" axis-y-label="Score" range-y="0,12">
   <legend></legend>
   <lines x="[[dailyMood.time]]" y="[[dailyMood.mood]]"
          stroke="blue" label="Mood"></lines>
   <lines x="[[dailyMood.time]]" y="[[dailyMood.sleep]]"
          stroke="red" label="Sleep" missing="gap"></lines>
+</plot>
+
+<plot width="620" height="300" axis-y-label="Score" range-y="0,12">
+  <legend></legend>
+  <lines x="[[dailyMood.time]]" y="[[dailyMood.mood]]"
+         stroke="blue" label="Mood"></lines>
+  <lines x="[[dailyMood.time]]" y="[[dailyMood.sleep]]"
+         stroke="red" label="Sleep" missing="gap"
+         gap-marker="square" gap-marker-size=64
+         gap-marker-stroke="blue" gap-marker-fill="magenta"
+         gap-marker-stroke-width=1.5></lines>
 </plot>
 
 <plot-data id="dailyMood" name="dailyMood"
@@ -31,7 +42,12 @@
   <metadata name="mood" label="Mood"></metadata>
   <metadata name="sleep" label="Sleep"></metadata>
 "2014-01-02T21:40:51.293Z", 5,8
+"2014-01-02T23:22:51.293Z", 4,7
+"2014-01-03T07:53:41.744Z", 1,6
 "2014-01-03T14:53:41.744Z", 2,
-"2014-01-03T22:27:52.161Z", 5,9
+"2014-01-03T16:27:52.161Z", 4,8
+"2014-01-03T18:27:52.161Z", 5,
+"2014-01-03T20:27:52.161Z", 4,7
 "2014-01-03T22:34:26.221Z", 6,4
 </plot-data>
+
