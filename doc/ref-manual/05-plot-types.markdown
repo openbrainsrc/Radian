@@ -15,16 +15,25 @@ curves.
 
 ### Attributes
 
-|Name            |&nbsp;&nbsp;&nbsp;|Description|
-|----------------|-|----------------------------|
-|`X`             | |Data path defining x-coordinate for plot data|
-|`Y`             | |Data path defining y-coordinate for plot data|
-|`X2`            | |Data path defining x2-coordinate for plot data|
-|`Y2`            | |Data path defining y2-coordinate for plot data|
-|`STROKE`        | |Standard paint attribute|
-|`STROKE-WIDTH`  | |Standard paint attribute|
-|`STROKE-OPACITY`| |Standard paint attribute|
-|`LABEL`         | |Label for line in plot legend|
+|Name                       |&nbsp;&nbsp;&nbsp;|Description|
+|---------------------------|-|----------------------------|
+|`X`                        | |Data path defining x-coordinate for plot data|
+|`Y`                        | |Data path defining y-coordinate for plot data|
+|`X2`                       | |Data path defining x2-coordinate for plot data|
+|`Y2`                       | |Data path defining y2-coordinate for plot data|
+|`STROKE`                   | |Standard paint attribute|
+|`STROKE-WIDTH`             | |Standard paint attribute|
+|`STROKE-OPACITY`           | |Standard paint attribute|
+|`LABEL`                    | |Label for line in plot legend|
+|`MISSING`                  | |Treatment of missing values: one of `interpolate` (default) or `gap`|
+|`GAP-MARKER`               | |Marker to use for isolated points due to missing data|
+|`GAP-MARKER-SIZE`          | |Marker size to use for isolated points due to missing data|
+|`GAP-MARKER-STROKE`        | |Marker stroke to use for isolated points due to missing data|
+|`GAP-MARKER-STROKE-WIDTH`  | |Marker stroke width to use for isolated points due to missing data|
+|`GAP-MARKER-FILL`          | |Marker fill to use for isolated points due to missing data|
+|`GAP-MARKER-STROKE-OPACITY`| |Marker stroke opacity to use for isolated points due to missing data|
+|`GAP-MARKER-FILL-OPACITY`  | |Marker fill opacity to use for isolated points due to missing data|
+
 
 ### Body
 
@@ -33,6 +42,11 @@ None
 ### Interpretation
 
 Produces a line plot from the given x and y coordinate data.
+
+Missing `Y` values are treated either by interpolation (the default)
+or by leaving gaps.  In the latter case, isolated data points
+(i.e. those with a missing value to either side of them) are rendered
+as points, with styling controlled by the `GAP-MARKER-...` attributes.
 
 ### Examples
 
