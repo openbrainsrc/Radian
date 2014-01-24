@@ -1,0 +1,31 @@
+<h3>Example 80 (Tom's area plots)</h3>
+
+<plot-data id="bscl" name="popTScore" format="csv" cols="scale,popmin,popmax">
+1, 40, 60
+2, 40, 60
+3, 40, 60
+4, 40, 60
+5, 40, 60
+6, 40, 60
+7, 40, 60
+8, 40, 60
+9, 40, 60
+10, 40, 60
+</plot-data>
+<plot-data id="bscl" name="bscl" format="csv" cols="scale,score">
+1, 40
+2, 61
+3, 40
+4, 54
+5, 40
+6, 40
+7, 61
+8, 40
+9, 40
+10, 49
+</plot-data>
+<plot width="620" height="300" axis-y-label="T-Score" range-y="20,80">   <area x="[[popTScore.scale]]" ymin="[[popTScore.popmin]]" 
+        y="[[popTScore.popmax]]" fill="lightgreen">
+<lines x="[[bscl.scale]]" y="[[bscl.score]]" stroke="red"></lines>
+<points x="[[bscl.scale]]" y="[[bscl.score]]" fill="red" marker-size="20" stroke="none"></points>
+</plot>

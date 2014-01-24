@@ -65,7 +65,7 @@ function EgCtrl(plotLib, $http, $scope, $location) {
 }
 EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
-var negs = 79;
+var negs = 80;
 
 var eggrps = [ { title: "Plot types",
                  items: [["Basic plot; CSV data",   1],
@@ -163,7 +163,8 @@ var eggrps = [ { title: "Plot types",
                          ["Test",                  22],
                          ["plot-options bug",      31],
                          ["Palettes & ng-repeat",  48],
-                         ["Histogram nonsense",    75]] } ];
+                         ["Histogram nonsense",    75],
+                         ["Tom's area plots",      80]] } ];
 
 
 angular.module('myApp', ['radian']).

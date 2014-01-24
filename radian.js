@@ -5210,7 +5210,7 @@ radian.directive('area',
 {
   'use strict';
 
-  function draw(svg, x, xs, y, ys, s, axis) {
+  function draw(svg, x, xs, y, ys, s, w, h, axis) {
     var opacity = s.fillOpacity || 1.0;
     var fill = s.fill || '#000';
     var yminv = axis == 1 ? 'ymin' : 'y2min';
