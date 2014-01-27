@@ -337,6 +337,19 @@ radian.directive('plot',
         if (scope.inStack)
           while (!s.hasOwnProperty('inStack')) s = s.$parent;
         s.sizeviewgroup = mainviewgroup;
+        s.getTextSize = function(t, attrs) {
+          var g = s.sizeviewgroup.append('g').attr('visibility', 'hidden');
+          var tstel = g.append('text').attr('x', 0).attr('y', 0)
+            .style('font-size', attrs ? attrs.size : s.fontSize)
+            .style('font-family', attrs ? attrs.family : s.fontFamily)
+            .style('font-style', attrs ? attrs.style : s.fontStyle)
+            .style('font-weight', attrs ? attrs.weight : s.fontWeight)
+            .style('font-variant', attrs ? attrs.variant : s.fontVariant)
+            .text(t);
+          var bbox = tstel[0][0].getBBox();
+          g.remove();
+          return bbox;
+        };
       }
       scope.uivisible = false;
       if (scope.hasOwnProperty('zoomX')) {
@@ -642,14 +655,6 @@ radian.directive('plot',
   };
 
   function setup(scope, viewgroup, idx, nviews, suppressProcessRanges) {
-    scope.getTextSize = function(t) {
-      var g = scope.sizeviewgroup.append('g').attr('visibility', 'hidden');
-      var tstel = g.append('text').attr('x', 0).attr('y', 0)
-        .style('font-size', scope.fontSize).text(tst);
-      var bbox = tstel[0][0].getBBox();
-      g.remove();
-      return bbox;
-    };
     var plotgroup = viewgroup.append('g').classed('radian-plot', true);
     var v = { group: viewgroup, plotgroup: plotgroup };
     if (viewgroup.hasOwnProperty('zoomer'))
@@ -4838,23 +4843,46 @@ radian.directive('points',
   return {
     restrict: 'E',
     scope: true,
-    link: function(scope, elm, as) {
-      scope.$on('setupExtra', function() {
-        var width = scope.strokeWidth instanceof Array &&
-                    scope.strokeWidth.length > 0 ?
-          scope.strokeWidth.reduce(function(x,y) {
-            return Math.max(Number(x), Number(y));
-          }) : (Number(scope.strokeWidth) || 1);
-        if (scope.stroke == 'none') width = 0;
-        var size = scope.markerSize instanceof Array &&
-                   scope.markerSize.length > 0 ?
-          scope.markerSize.reduce(function(x,y) {
-            return Math.max(Number(x), Number(y));
-          }) : (Number(scope.markerSize) || 1);
-        var delta = (width + Math.sqrt(size)) / 2;
-        scope.rangeExtendPixels([delta, delta], [delta, delta]);
+    link: function(s, elm, as) {
+      s.$on('setupExtra', function() {
+        if (s.marker != 'text') {
+          var width = s.strokeWidth instanceof Array &&
+            s.strokeWidth.length > 0 ?
+            s.strokeWidth.reduce(function(x,y) {
+              return Math.max(Number(x), Number(y));
+            }) : (Number(s.strokeWidth) || 1);
+          if (s.stroke == 'none') width = 0;
+          var size = s.markerSize instanceof Array &&
+            s.markerSize.length > 0 ?
+            s.markerSize.reduce(function(x,y) {
+              return Math.max(Number(x), Number(y));
+            }) : (Number(s.markerSize) || 1);
+          var delta = (width + Math.sqrt(size)) / 2;
+          s.rangeExtendPixels([delta, delta], [delta, delta]);
+        } else {
+          var markerText = s.markerText;
+          if (!markerText) {
+            markerText = new Array(x.length);
+            for (var i = 0; i < x.length; ++i) markerText[i] = 'X';
+          }
+          var fattrs = {
+            size: s.markerFontSize || 12,
+            family: s.markerFontFamily || (s.fontFamily || null),
+            style: s.markerFontStyle || (s.fontStyle || null),
+            weight: s.markerFontWeight || (s.fontWeight || null),
+            variant: s.markerFontVariant || (s.fontVariant || null)
+          };
+          var maxw = 0, maxh = 0;
+          markerText.forEach(function(t) {
+            var sz = s.getTextSize(t, fattrs);
+            maxw = Math.max(maxw, sz.width);
+            maxh = Math.max(maxh, sz.height);
+          });
+          s.rangeExtendPixels([maxw, maxw], [maxh, maxh]);
+        }
       });
-      plotTypeLink('points', scope, elm, as, draw);
+
+      plotTypeLink('points', s, elm, as, draw);
     }
   };
 }]);

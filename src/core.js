@@ -335,6 +335,19 @@ radian.directive('plot',
         if (scope.inStack)
           while (!s.hasOwnProperty('inStack')) s = s.$parent;
         s.sizeviewgroup = mainviewgroup;
+        s.getTextSize = function(t, attrs) {
+          var g = s.sizeviewgroup.append('g').attr('visibility', 'hidden');
+          var tstel = g.append('text').attr('x', 0).attr('y', 0)
+            .style('font-size', attrs ? attrs.size : s.fontSize)
+            .style('font-family', attrs ? attrs.family : s.fontFamily)
+            .style('font-style', attrs ? attrs.style : s.fontStyle)
+            .style('font-weight', attrs ? attrs.weight : s.fontWeight)
+            .style('font-variant', attrs ? attrs.variant : s.fontVariant)
+            .text(t);
+          var bbox = tstel[0][0].getBBox();
+          g.remove();
+          return bbox;
+        };
       }
       scope.uivisible = false;
       if (scope.hasOwnProperty('zoomX')) {
@@ -640,14 +653,6 @@ radian.directive('plot',
   };
 
   function setup(scope, viewgroup, idx, nviews, suppressProcessRanges) {
-    scope.getTextSize = function(t) {
-      var g = scope.sizeviewgroup.append('g').attr('visibility', 'hidden');
-      var tstel = g.append('text').attr('x', 0).attr('y', 0)
-        .style('font-size', scope.fontSize).text(tst);
-      var bbox = tstel[0][0].getBBox();
-      g.remove();
-      return bbox;
-    };
     var plotgroup = viewgroup.append('g').classed('radian-plot', true);
     var v = { group: viewgroup, plotgroup: plotgroup };
     if (viewgroup.hasOwnProperty('zoomer'))
