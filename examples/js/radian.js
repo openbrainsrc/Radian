@@ -4745,17 +4745,27 @@ radian.directive('points',
     var marker = s.marker || "circle";
     var markerSize = s.markerSize || 1;
     var markerFontSize = s.markerFontSize || 12;
+    var markerFontFamily = s.markerFontFamily || (s.fontFamily || null);
+    var markerFontStyle = s.markerFontStyle || (s.fontStyle || null);
+    var markerFontWeight = s.markerFontWeight || (s.fontWeight || null);
+    var markerFontVariant = s.markerFontVariant || (s.fontVariant || null);
     var markerText = s.markerText;
     if (marker == 'text' && !markerText) {
       markerText = new Array(x.length);
       for (var i = 0; i < x.length; ++i) markerText[i] = 'X';
     }
-    var stroke = s.stroke || '#000';
     var strokeWidth = s.strokeWidth || 1.0;
     var strokeOpacity = s.strokeOpacity || 1.0;
-    var fill = s.fill || 'none';
     var fillOpacity = s.fillOpacity || 1.0;
     var orientation = s.orientation || 0.0;
+    var stroke, fill;
+    if (marker != 'text') {
+      stroke = s.stroke || '#000';
+      fill = s.fill || 'none';
+    } else {
+      stroke = s.stroke || 'none';
+      fill = s.fill || '#000';
+    }
 
     // Plot points: plot attributes are either single values or arrays
     // of values, one per point.
@@ -4813,6 +4823,10 @@ radian.directive('points',
         .text(function(d, i) { return markerText[i]; })
         .attr('text-anchor', 'middle')
         .style('font-size', sty(markerFontSize))
+        .style('font-family', sty(markerFontFamily))
+        .style('font-style', sty(markerFontStyle))
+        .style('font-weight', sty(markerFontWeight))
+        .style('font-variant', sty(markerFontVariant))
         .style('fill', sty(plotfill))
         .style('fill-opacity', sty(plotfopa))
         .style('stroke-width', sty(plotwid))

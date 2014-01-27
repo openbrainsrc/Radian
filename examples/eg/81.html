@@ -1,15 +1,20 @@
 <h3>Example 81 (points plot with textual markers)</h3>
 
 <plot height=600 aspect=1
-      axis-x-label="Age" axis-y-label="Height"
-      stroke="black" fill="none">
+      axis-x-label="Age" axis-y-label="Height">
+  <points x="[[fam.age]]" y="[[fam.height]]" marker="text"
+          marker-text="[[fam.name]]"></points>
+</plot>
+
+<plot height=600 aspect=1
+      axis-x-label="Age" axis-y-label="Height">
   <points x="[[fam.age]]" y="[[fam.height]]" marker="text"
           marker-text="[[fam.name]]"></points>
 </plot>
 
 <plot height=600 aspect=1
       axis-x-label="Age" axis-y-label="Height"
-      stroke="black" fill="none" marker-font-size=8>
+      marker-font-weight="bold" marker-font-style="italic">
   <points x="[[fam.age]]" y="[[fam.height]]" marker="text"
           marker-text="[[fam.name]]"></points>
 </plot>
