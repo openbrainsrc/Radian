@@ -282,6 +282,12 @@ radian.directive('points',
   function draw(svg, x, xs, y, ys, s) {
     var marker = s.marker || "circle";
     var markerSize = s.markerSize || 1;
+    var markerFontSize = s.markerFontSize || 12;
+    var markerText = s.markerText;
+    if (marker == 'text' && !markerText) {
+      markerText = new Array(x.length);
+      for (var i = 0; i < x.length; ++i) markerText[i] = 'X';
+    }
     var stroke = s.stroke || '#000';
     var strokeWidth = s.strokeWidth || 1.0;
     var strokeOpacity = s.strokeOpacity || 1.0;
@@ -320,18 +326,37 @@ radian.directive('points',
         if (strokeOpacity instanceof Array) plotsopa.push(strokeOpacity[i]);
       }
     }
-    var points = d3.svg.symbol().type(sty(plotmark)).size(sty(plotsize));
-    svg.selectAll('path').data(d3.zip(plotx, ploty))
-      .enter().append('path')
-      .attr('transform', function(d, i) {
-        return 'translate(' + apSc(xs, d[0], i) + ',' + apSc(ys, d[1], i) + ')';
-      })
-      .attr('d', points)
-      .style('fill', sty(plotfill))
-      .style('fill-opacity', sty(plotfopa))
-      .style('stroke-width', sty(plotwid))
-      .style('stroke-opacity', sty(plotsopa))
-      .style('stroke', sty(plotstr));
+    if (marker != 'text') {
+      var points = d3.svg.symbol().type(sty(plotmark)).size(sty(plotsize));
+      svg.selectAll('path').data(d3.zip(plotx, ploty))
+        .enter().append('path')
+        .attr('transform', function(d, i) {
+          return 'translate(' + apSc(xs, d[0], i) + ',' +
+                                apSc(ys, d[1], i) + ')';
+        })
+        .attr('d', points)
+        .style('fill', sty(plotfill))
+        .style('fill-opacity', sty(plotfopa))
+        .style('stroke-width', sty(plotwid))
+        .style('stroke-opacity', sty(plotsopa))
+        .style('stroke', sty(plotstr));
+    } else {
+      var points = d3.svg.symbol().type(sty(plotmark)).size(sty(plotsize));
+      svg.selectAll('text').data(d3.zip(plotx, ploty))
+        .enter().append('text')
+        .attr('transform', function(d, i) {
+          return 'translate(' + apSc(xs, d[0], i) + ',' +
+                                apSc(ys, d[1], i) + ')';
+        })
+        .text(function(d, i) { return markerText[i]; })
+        .attr('text-anchor', 'middle')
+        .style('font-size', sty(markerFontSize))
+        .style('fill', sty(plotfill))
+        .style('fill-opacity', sty(plotfopa))
+        .style('stroke-width', sty(plotwid))
+        .style('stroke-opacity', sty(plotsopa))
+        .style('stroke', sty(plotstr));
+    }
   };
 
   return {

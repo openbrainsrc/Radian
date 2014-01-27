@@ -65,7 +65,7 @@ function EgCtrl(plotLib, $http, $scope, $location) {
 }
 EgCtrl.$inject = ['plotLib', '$http', '$scope', '$location'];
 
-var negs = 80;
+var negs = 81;
 
 var eggrps = [ { title: "Plot types",
                  items: [["Basic plot; CSV data",   1],
@@ -74,6 +74,7 @@ var eggrps = [ { title: "Plot types",
                          ["Func. plots",           12],
                          ["Func. plots",           13],
                          ["Basic points plot",     17],
+                         ["Textual points plot",   81],
                          ["Range attributes",      18],
                          ["Log axes",              19],
                          ["Second axes",           20],
