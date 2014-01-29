@@ -238,7 +238,7 @@
 <tr class="odd">
 <td align="left"><code>MARKER</code></td>
 <td align="left"></td>
-<td align="left">Standard paint attribute</td>
+<td align="left">Standard paint attribute or <code>text</code></td>
 </tr>
 <tr class="even">
 <td align="left"><code>MARKER-SIZE</code></td>
@@ -280,12 +280,48 @@
 <td align="left"></td>
 <td align="left">Label for points in plot legend</td>
 </tr>
+<tr class="even">
+<td align="left"><code>MARKER-FONT-SIZE</code></td>
+<td align="left"></td>
+<td align="left">Font attribute for textual markers</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MARKER-FONT-FAMILY</code></td>
+<td align="left"></td>
+<td align="left">Font attribute for textual markers</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER-FONT-STYLE</code></td>
+<td align="left"></td>
+<td align="left">Font attribute for textual markers</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MARKER-FONT-WEIGHT</code></td>
+<td align="left"></td>
+<td align="left">Font attribute for textual markers</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER-FONT-VARIANT</code></td>
+<td align="left"></td>
+<td align="left">Font attribute for textual markers</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>MARKER-TEXT</code></td>
+<td align="left"></td>
+<td align="left">Array of text values for textual markers</td>
+</tr>
+<tr class="even">
+<td align="left"><code>MARKER-ALIGNMENT</code></td>
+<td align="left"></td>
+<td align="left">Alignment for textual markers</td>
+</tr>
 </tbody>
 </table>
 <h3 id="body-2">Body</h3>
 <p>None</p>
 <h3 id="interpretation-2">Interpretation</h3>
 <p>Produces a scatter/bubble plot from the given <em>x</em>- and <em>y</em>-coordinate data. Points are placed at the positions given by the <code>X</code> and <code>Y</code> attributes, using markers of the type specified by the <code>MARKER</code> attribute <span class="nyi">oriented according to the <code>ORIENTATION</code> attribute</span>, coloured according to the <code>STROKE</code> and <code>FILL</code> attributes (which are not necessarily appropriate for all marker types) and sized according to the <code>MARKER-SIZE</code> attribute (which is an area-based size measure whose exact interpretation depends on the marker used). All of the paint attributes can either be fixed or be functions of arbitrary variables that are in scope in Radian expressions defining the attributes.</p>
+<p>Textual marker plots are supported by specifying the value “<code>text</code>” for the <code>MARKER</code> attribute and an array of textual marker values (of the same length as the plot coordinate data) for the <code>MARKER-TEXT</code> attribute. The font used for the markers is controlled by the <code>MARKER-FONT-...</code> attributes and the alignment of textual markers relative to the data points is controlled by the <code>MARKER-ALIGNMENT</code> attribute. This is either a single value (“<code>left</code>”, “<code>centre</code>” or “<code>right</code>”) or a comma-separated pair of values, the first giving the horizontal alignment and the second the vertical alignment (one of “<code>top</code>”, “<code>centre</code>” or “<code>bottom</code>”).</p>
 <h3 id="examples-2">Examples</h3>
 <h4 id="simple-scatter-plot-with-fixed-styling">Simple scatter plot with fixed styling</h4>
 <pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;plot</span><span class="ot"> height=</span><span class="st">300</span><span class="ot"> marker-size=</span><span class="st">1.5</span><span class="ot"> marker=</span><span class="st">&quot;circle&quot;</span><span class="ot"> stroke=</span><span class="st">&quot;none&quot;</span><span class="kw">&gt;</span>
