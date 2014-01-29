@@ -5322,7 +5322,7 @@ radian.directive('area',
     if (!(opacity instanceof Array || fill instanceof Array)) {
       // Normal area; single path.
       var area = d3.svg.area()
-        .x(function(d) { return xs(d[0], i); })
+        .x(function(d) { return xs.ap(d[0], i); })
         .y0(function(d) { return ys(d[1], i); })
         .y1(function(d) { return ys(d[2], i); });
       svg.append('path').datum(d3.zip(x, ymin, y))

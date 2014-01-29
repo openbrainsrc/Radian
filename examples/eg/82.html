@@ -1,4 +1,4 @@
-<h3>Example 82 (categorical points and lines)</h3>
+<h3>Example 82 (categorical lines and area)</h3>
 
 <palette name="irispal" type="discrete">
   "I. setosa" red
@@ -12,6 +12,19 @@
   <lines x="[[unique(iris.species)]]"
          y="[[meanBy(iris.petal_length,iris.species)]]"
          stroke-width=3 stroke="black"></lines>
+  <points x="[[iris.species]]"
+          jitter-x y="[[iris.petal_length]]"
+          fill="[[irispal(iris.species)]]">
+  </points>
+</plot>
+
+<plot height=600 aspect=1 order-x="I. virginica;I. versicolor;I. setosa"
+      axis-x-label="Species" axis-y-label="Petal length"
+      marker="circle" marker-size=10 stroke="none">
+  <area x="[[unique(iris.species)]]"
+        ymin="[[minBy(iris.petal_length,iris.species)]]"
+        y="[[maxBy(iris.petal_length,iris.species)]]"
+        fill="lightblue" fill-opacity=0.3></area>
   <points x="[[iris.species]]"
           jitter-x y="[[iris.petal_length]]"
           fill="[[irispal(iris.species)]]">
