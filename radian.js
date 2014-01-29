@@ -4748,20 +4748,10 @@ radian.directive('points',
 
   function draw(svg, x, xs, y, ys, s) {
     var marker = s.marker || "circle";
-    var markerSize = s.markerSize || 1;
-    var markerFontSize = s.markerFontSize || 12;
-    var markerFontFamily = s.markerFontFamily || (s.fontFamily || null);
-    var markerFontStyle = s.markerFontStyle || (s.fontStyle || null);
-    var markerFontWeight = s.markerFontWeight || (s.fontWeight || null);
-    var markerFontVariant = s.markerFontVariant || (s.fontVariant || null);
-    var markerText = s.markerText;
-    if (marker == 'text' && !markerText) {
-      markerText = new Array(x.length);
-      for (var i = 0; i < x.length; ++i) markerText[i] = 'X';
-    }
     var strokeWidth = s.strokeWidth || 1.0;
     var strokeOpacity = s.strokeOpacity || 1.0;
     var fillOpacity = s.fillOpacity || 1.0;
+    var markerSize = s.markerSize || 1;
     var orientation = s.orientation || 0.0;
     var stroke, fill;
     if (marker != 'text') {
@@ -4818,6 +4808,32 @@ radian.directive('points',
         .style('stroke-opacity', sty(plotsopa))
         .style('stroke', sty(plotstr));
     } else {
+      var fontSize = s.markerFontSize || 12;
+      var fontFamily = s.markerFontFamily || (s.fontFamily || null);
+      var fontStyle = s.markerFontStyle || (s.fontStyle || null);
+      var fontWeight = s.markerFontWeight || (s.fontWeight || null);
+      var fontVariant = s.markerFontVariant || (s.fontVariant || null);
+      var markerText = s.markerText;
+      if (marker == 'text' && !markerText) {
+        markerText = new Array(x.length);
+        for (var i = 0; i < x.length; ++i) markerText[i] = 'X';
+      }
+      var markerAlignment = s.markerAlignment || 'center,center';
+      var as = markerAlignment.split(/,/);
+      var textAnchor = as[0];
+      var baselineShift = as.length > 1 ? as[1] : '0';
+      switch (textAnchor) {
+      case 'center': textAnchor = 'middle'; break;
+      case 'left':   textAnchor = 'start';  break;
+      case 'right':  textAnchor = 'end';    break;
+      default:       textAnchor = 'middle'; break;
+      }
+      switch (baselineShift) {
+      case 'center': baselineShift = '0';    break;
+      case 'top':    baselineShift = '-50%'; break;
+      case 'bottom': baselineShift = '50%';  break;
+      default:       baselineShift = '0';    break;
+      }
       var points = d3.svg.symbol().type(sty(plotmark)).size(sty(plotsize));
       svg.selectAll('text').data(d3.zip(plotx, ploty))
         .enter().append('text')
@@ -4826,12 +4842,14 @@ radian.directive('points',
                                 apSc(ys, d[1], i) + ')';
         })
         .text(function(d, i) { return markerText[i]; })
-        .attr('text-anchor', 'middle')
-        .style('font-size', sty(markerFontSize))
-        .style('font-family', sty(markerFontFamily))
-        .style('font-style', sty(markerFontStyle))
-        .style('font-weight', sty(markerFontWeight))
-        .style('font-variant', sty(markerFontVariant))
+        .attr('text-anchor', textAnchor)
+        .style('baseline-shift', baselineShift)
+        .style('dominant-baseline', 'middle')
+        .style('font-size', sty(fontSize))
+        .style('font-family', sty(fontFamily))
+        .style('font-style', sty(fontStyle))
+        .style('font-weight', sty(fontWeight))
+        .style('font-variant', sty(fontVariant))
         .style('fill', sty(plotfill))
         .style('fill-opacity', sty(plotfopa))
         .style('stroke-width', sty(plotwid))

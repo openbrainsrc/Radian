@@ -19,6 +19,33 @@
           marker-text="[[fam.name]]"></points>
 </plot>
 
+<plot height=600 aspect=1
+      axis-x-label="Age" axis-y-label="Height"
+      marker-font-weight="bold" marker-font-style="italic">
+  <points x="[[fam.age]]" y="[[fam.height]]" marker="circle"
+          marker-size=25 fill="red"></points>
+  <points x="[[fam.age]]" y="[[fam.height]]" marker="text"
+          marker-text="[[fam.name]]"></points>
+</plot>
+
+<plot height=600 aspect=1
+      axis-x-label="Age" axis-y-label="Height"
+      marker-font-weight="bold" marker-font-style="italic">
+  <points x="[[fam.age]]" y="[[fam.height]]" marker="circle"
+          marker-size=25 fill="red"></points>
+  <points x="[[fam.age]]" y="[[fam.height]]" marker="text"
+          marker-text="[[fam.name]]" marker-alignment="left,top"></points>
+</plot>
+
+<plot height=600 aspect=1
+      axis-x-label="Age" axis-y-label="Height"
+      marker-font-weight="bold" marker-font-style="italic">
+  <points x="[[fam.age]]" y="[[fam.height]]" marker="circle"
+          marker-size=25 fill="red"></points>
+  <points x="[[fam.age]]" y="[[fam.height]]" marker="text"
+          marker-text="[[fam.name]]" marker-alignment="right,bottom"></points>
+</plot>
+
 <plot-data name="fam" format="csv" cols="name,age,height,sex,salaryhr">
 Tom,35.1,6.3,male,20
 Harriet,1.5,2.1,female,10
