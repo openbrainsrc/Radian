@@ -11,6 +11,11 @@ radian.factory('drawLinesGeneric', function()
     function sty0(v) {
       return (v instanceof Array) ? function(d, i) { return v[0]; } : v;
     };
+    function apSc(sc, d, i) {
+      var dtmp = d;
+      if (sc.oton) dtmp = sc.oton(d);
+      return sc(dtmp, i);
+    };
     var width   = s.strokeWidth || 1;
     var opacity = s.strokeOpacity || 1.0;
     var stroke = s.stroke || '#000';
@@ -93,8 +98,8 @@ radian.factory('drawLinesGeneric', function()
           stroke instanceof Array)) {
       // Normal lines; one path per segment, potentially with gaps.
       var line = d3.svg.line()
-        .x(function (d, i) { return xs(d[0], i); })
-        .y(function (d, i) { return ys(d[1], i); });
+        .x(function (d, i) { return xs.ap(d[0], i); })
+        .y(function (d, i) { return apSc(ys, d[1], i); });
       var points =
         d3.svg.symbol().type(sty0(gapMarker)).size(sty0(gapMarkerSize));
       for (var seg = 0; seg < plotx.length; ++seg) {
@@ -112,7 +117,8 @@ radian.factory('drawLinesGeneric', function()
           svg.append('g').selectAll('path').data(d3.zip(segx, segy))
             .enter().append('path')
             .attr('transform', function(d, i) {
-              return 'translate(' + xs(d[0], i) + ',' + ys(d[1], i) + ')';
+              return 'translate(' + xs.ap(d[0], i) + ',' +
+                                    apSc(ys, d[1], i) + ')';
             })
             .attr('d', points)
             .style('fill', sty0(gapMarkerFill))
@@ -152,13 +158,14 @@ radian.factory('drawLinesGeneric', function()
             .style('stroke', function(d, i) { return strokes[i]; })
             .style('fill', 'none')
             .attr('d', d3.svg.line()
-                  .x(function (d, i) { return xs(d[0], i); })
-                  .y(function (d, i) { return ys(d[1], i); }));
+                  .x(function (d, i) { return xs.ap(d[0], i); })
+                  .y(function (d, i) { return apSc(ys, d[1], i); }));
         } else {
           svg.append('g').selectAll('path').data(d3.zip(segx, segy))
             .enter().append('path')
             .attr('transform', function(d, i) {
-              return 'translate(' + xs(d[0], i) + ',' + ys(d[1], i) + ')';
+              return 'translate(' + xs.ap(d[0], i) + ',' +
+                                    apSc(ys, d[1], i) + ')';
             })
             .attr('d', points)
             .style('fill', sty0(gapMarkerFill))
@@ -331,7 +338,7 @@ radian.directive('points',
       svg.selectAll('path').data(d3.zip(plotx, ploty))
         .enter().append('path')
         .attr('transform', function(d, i) {
-          return 'translate(' + apSc(xs, d[0], i) + ',' +
+          return 'translate(' + xs.ap(d[0], i) + ',' +
                                 apSc(ys, d[1], i) + ')';
         })
         .attr('d', points)
@@ -371,7 +378,7 @@ radian.directive('points',
       svg.selectAll('text').data(d3.zip(plotx, ploty))
         .enter().append('text')
         .attr('transform', function(d, i) {
-          return 'translate(' + apSc(xs, d[0], i) + ',' +
+          return 'translate(' + xs.ap(d[0], i) + ',' +
                                 apSc(ys, d[1], i) + ')';
         })
         .text(function(d, i) { return markerText[i]; })
@@ -532,7 +539,7 @@ radian.directive('bars',
       .attr('class', 'bar')
       .attr('x', function(d, i) {
         if (d.length == 3)
-          return apSc(xs, d[0], i);
+          return xs(d[0], i);
         else if (pxWidth && pxSpacing && s.axisXTransform == 'log') {
           var xc = s.x[i];
           var xb = i > 0 ? s.x[i-1] : xc / (s.x[i+1] / xc);
@@ -566,7 +573,7 @@ radian.directive('bars',
           } else
             ret = pxBarWidth;
         } else if (d.length == 3)
-          ret = apSc(xs, d[1], i) - apSc(xs, d[0], i);
+          ret = xs(d[1], i) - xs(d[0], i);
         else
           ret = d[0] instanceof Date ?
             xs(new Date(d[0].valueOf() + s.barWidths[i] * barWidth / 2.0), i) -

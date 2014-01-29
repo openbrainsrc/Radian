@@ -501,8 +501,6 @@ radian.directive('plot',
           var ss = s.split(/ *, */);
           return ss.length == 1 ? s : ss;
         });
-      v.x =
-        d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
       var offsets;
       if (discvals[0] instanceof Array) {
         var nd = discvals[0].length;
@@ -534,6 +532,9 @@ radian.directive('plot',
         for (var i = 0; i < discvals.length; ++i)
           offsets[i] = offsets[i] / rescale + 1;
       }
+      v.x =
+        d3.scale.linear().range([b,t]).domain([0.5, discvals.length+0.5]);
+      v.x.ap = function(d, i) { return v.x(v.x.oton(d), i); };
       v.x.oton = function(x) {
         if (x instanceof Array) {
           for (var i = 0; i < discvals.length; ++i)
@@ -552,6 +553,7 @@ radian.directive('plot',
       else
         v.x = d3.scale.linear().range([b,t]).domain(scope.xextent);
       v.x.oton = function(x) { return x; };
+      v.x.ap = function(d, i) { return v.x(d, i); };
     }
   };
   function makeX2Scaler(scope, v, hasdate, discvals, discorder) {
@@ -1174,6 +1176,7 @@ radian.directive('plot',
     xs.forEach(function(x) { j.push((Math.random() * 2 - 1) * jsize); });
     var ret = function(d, i) { return scale(d + j[i]); };
     ret.oton = scale.oton;
+    ret.ap = function(d, i) { return scale(scale.oton(d) + j[i], i); };
     return ret;
   };
 
