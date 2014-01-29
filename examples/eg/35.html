@@ -1,4 +1,4 @@
-<h3>Example 35 (area plot)</h3>
+<h3>Example 35 (area plots)</h3>
 
 <plot height=300 aspect=3 stroke-width=2 range-y2="-10"
       axis-y2-label="Precipitation (mm/month)"
@@ -16,6 +16,36 @@
   standard plot library, but is instead set up in the Angular
   controller for this partial.  This is an easy way to bring
   functions into scope for plotting expressions.</p>
+
+<plot height=400 aspect=1 range-x="-3,21">
+  <area xmin="[[xarea.x0]]" x="[[xarea.x1]]" y="[[xarea.y]]"
+        fill="blue" fill-opacity=0.3></area>
+  <lines x="[[xarea.x]]" y="[[xarea.y]]" stroke-width=2 stroke="blue"></lines>
+</plot>
+
+<plot-data name="xarea" format="csv" cols="x,x0,x1,y">
+0.000,0.000,0.000,0.0
+0.025,-0.475,0.525,0.5
+0.100,-0.900,1.100,1.0
+0.225,-1.275,1.725,1.5
+0.400,-1.600,2.400,2.0
+0.625,-1.875,3.125,2.5
+0.900,-2.100,3.900,3.0
+1.225,-2.275,4.725,3.5
+1.600,-2.400,5.600,4.0
+2.025,-2.475,6.525,4.5
+2.500,-2.500,7.500,5.0
+3.025,-2.475,8.525,5.5
+3.600,-2.400,9.600,6.0
+4.225,-2.275,10.725,6.5
+4.900,-2.100,11.900,7.0
+5.625,-1.875,13.125,7.5
+6.400,-1.600,14.400,8.0
+7.225,-1.275,15.725,8.5
+8.100,-0.900,17.100,9.0
+9.025,-0.475,18.525,9.5
+10.000,0.000,20.000,10.0
+</plot-data>
 
 <plot-data name="vic2012ooa" format="csv" cols="date,tmp,prc">
   <metadata name="date" format="date"></metadata>

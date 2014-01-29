@@ -839,26 +839,54 @@ radian.directive('area',
     var opacity = s.fillOpacity || 1.0;
     var fill = s.fill || '#000';
     var yminv = axis == 1 ? 'ymin' : 'y2min';
-    var ymin, ymintmp = 0;
-    if (s.hasOwnProperty(yminv)) ymintmp = s[yminv];
-    if (ymintmp instanceof Array)
-      ymin = ymintmp;
-    else {
-      ymin = new Array(x.length);
-      for (var i = 0; i < ymin.length; ++i) ymin[i] = Number(ymintmp);
+    var xminv = axis == 1 ? 'xmin' : 'x2min';
+    var yarea = false, ymin, ymintmp = 0;
+    var xarea = false, xmin, xmintmp = 0;
+    if (s.hasOwnProperty(yminv)) {
+      ymintmp = s[yminv];
+      yarea = true;
+      if (ymintmp instanceof Array)
+        ymin = ymintmp;
+      else {
+        ymin = new Array(x.length);
+        for (var i = 0; i < ymin.length; ++i) ymin[i] = Number(ymintmp);
+      }
     }
+    if (s.hasOwnProperty(xminv)) {
+      xmintmp = s[xminv];
+      xarea = true;
+      if (xmintmp instanceof Array)
+        xmin = xmintmp;
+      else {
+        xmin = new Array(y.length);
+        for (var i = 0; i < xmin.length; ++i) xmin[i] = Number(xmintmp);
+      }
+    }
+    if (!xarea && !yarea) throw Error("No ranges specified for <area>")
+    if (xarea && yarea) throw Error("Inconsistent ranges specified for <area>")
 
     // Switch on type of stroke...
     if (!(opacity instanceof Array || fill instanceof Array)) {
       // Normal area; single path.
-      var area = d3.svg.area()
-        .x(function(d) { return xs.ap(d[0], i); })
-        .y0(function(d) { return ys(d[1], i); })
-        .y1(function(d) { return ys(d[2], i); });
-      svg.append('path').datum(d3.zip(x, ymin, y))
-        .attr('class', 'area').attr('d', area)
-        .style('fill-opacity', opacity)
-        .style('fill', fill);
+      if (yarea) {
+        var area = d3.svg.area()
+          .x(function(d) { return xs.ap(d[0], i); })
+          .y0(function(d) { return ys(d[1], i); })
+          .y1(function(d) { return ys(d[2], i); });
+        svg.append('path').datum(d3.zip(x, ymin, y))
+          .attr('class', 'area').attr('d', area)
+          .style('fill-opacity', opacity)
+          .style('fill', fill);
+      } else {
+        var area = d3.svg.area()
+          .y(function(d) { return ys(d[2], i); })
+          .x0(function(d) { return xs.ap(d[0], i); })
+          .x1(function(d) { return xs.ap(d[1], i); });
+        svg.append('path').datum(d3.zip(xmin, x, y))
+          .attr('class', 'area').attr('d', area)
+          .style('fill-opacity', opacity)
+          .style('fill', fill);
+      }
     } else throw Error("<area> plots require singular paint attributes")
   };
 
