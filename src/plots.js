@@ -351,18 +351,18 @@ radian.directive('points',
         markerText = new Array(x.length);
         for (var i = 0; i < x.length; ++i) markerText[i] = 'X';
       }
-      var markerAlignment = s.markerAlignment || 'center,center';
+      var markerAlignment = s.markerAlignment || 'centre,centre';
       var as = markerAlignment.split(/,/);
       var textAnchor = as[0];
       var baselineShift = as.length > 1 ? as[1] : '0';
       switch (textAnchor) {
-      case 'center': textAnchor = 'middle'; break;
+      case 'centre': textAnchor = 'middle'; break;
       case 'left':   textAnchor = 'start';  break;
       case 'right':  textAnchor = 'end';    break;
       default:       textAnchor = 'middle'; break;
       }
       switch (baselineShift) {
-      case 'center': baselineShift = '0';    break;
+      case 'centre': baselineShift = '0';    break;
       case 'top':    baselineShift = '-50%'; break;
       case 'bottom': baselineShift = '50%';  break;
       default:       baselineShift = '0';    break;
