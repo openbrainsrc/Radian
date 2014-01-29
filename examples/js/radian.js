@@ -6234,9 +6234,13 @@ radian.directive('legend',
       var psw = psc.legendSwitches;
       sc.implicitEntries = [ ];
       dft(psc, function(s) {
-        if (s.hasOwnProperty('label') && s.hasOwnProperty('plotType')) {
+        var label = s.label;
+        if (!label && s.y && s.y.metadata &&
+            s.y.metadata.hasOwnProperty('label'))
+          label = s.y.metadata.label;
+        if (s.hasOwnProperty('plotType') && label) {
           var attrs = paintAttrsFromPlotType(s.plotType);
-          var entry = { label: s.label, type: s.plotType,
+          var entry = { label: label, type: s.plotType,
                         switchable: s.hasOwnProperty('legendSwitch') || psw };
           attrs.forEach(function(a) { if (s[a]) entry[a] = s[a]; });
           s.legendEntry = entry;
