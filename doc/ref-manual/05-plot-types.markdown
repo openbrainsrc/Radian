@@ -123,19 +123,26 @@ positions.
 
 ### Attributes
 
-|Name            |&nbsp;&nbsp;&nbsp;|Description|
-|----------------|-|----------------------------|
-|`X`             | |Data path defining x-coordinate for plot data|
-|`Y`             | |Data path defining y-coordinate for plot data|
-|`MARKER`        | |Standard paint attribute|
-|`MARKER-SIZE`   | |Standard paint attribute|
-|`STROKE`        | |Standard paint attribute|
-|`STROKE-WIDTH`  | |Standard paint attribute|
-|`STROKE-OPACITY`| |Standard paint attribute|
-|`FILL`          | |Standard paint attribute|
-|`FILL-OPACITY`  | |Standard paint attribute|
+|Name                 |&nbsp;&nbsp;&nbsp;|Description|
+|---------------------|-|----------------------------|
+|`X`                  | |Data path defining x-coordinate for plot data|
+|`Y`                  | |Data path defining y-coordinate for plot data|
+|`MARKER`             | |Standard paint attribute or `text`|
+|`MARKER-SIZE`        | |Standard paint attribute|
+|`STROKE`             | |Standard paint attribute|
+|`STROKE-WIDTH`       | |Standard paint attribute|
+|`STROKE-OPACITY`     | |Standard paint attribute|
+|`FILL`               | |Standard paint attribute|
+|`FILL-OPACITY`       | |Standard paint attribute|
 |<span class="nyi">`ORIENTATION`</span>| |<span class="nyi">Standard paint attribute</span>|
-|`LABEL`         | |Label for points in plot legend|
+|`LABEL`              | |Label for points in plot legend|
+|`MARKER-FONT-SIZE`   | |Font attribute for textual markers|
+|`MARKER-FONT-FAMILY` | |Font attribute for textual markers|
+|`MARKER-FONT-STYLE`  | |Font attribute for textual markers|
+|`MARKER-FONT-WEIGHT` | |Font attribute for textual markers|
+|`MARKER-FONT-VARIANT`| |Font attribute for textual markers|
+|`MARKER-TEXT`        | |Array of text values for textual markers|
+|`MARKER-ALIGNMENT`   | |Alignment for textual markers|
 
 ### Body
 
@@ -154,6 +161,17 @@ area-based size measure whose exact interpretation depends on the
 marker used).  All of the paint attributes can either be fixed or be
 functions of arbitrary variables that are in scope in Radian
 expressions defining the attributes.
+
+Textual marker plots are supported by specifying the value "`text`"
+for the `MARKER` attribute and an array of textual marker values (of
+the same length as the plot coordinate data) for the `MARKER-TEXT`
+attribute.  The font used for the markers is controlled by the
+`MARKER-FONT-...` attributes and the alignment of textual markers
+relative to the data points is controlled by the `MARKER-ALIGNMENT`
+attribute.  This is either a single value ("`left`", "`centre`" or
+"`right`") or a comma-separated pair of values, the first giving the
+horizontal alignment and the second the vertical alignment (one of
+"`top`", "`centre`" or "`bottom`").
 
 ### Examples
 
