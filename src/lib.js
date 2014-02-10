@@ -292,6 +292,8 @@ radian.factory('plotLib', function()
     return ret;
   };
 
+  // Date conversion from strings.
+  function parseDate(d) { return new Date(d); };
 
   // Library -- used for bringing useful names into scope for
   // plotting data access expressions.
@@ -347,6 +349,7 @@ radian.factory('plotLib', function()
            invgamma: invgamma,
            histogram: histogram,
            interpolate: interpolate,
+           parseDate: vect(parseDate),
            rad$$neg: vect(function(a) { return -a; }),
            rad$$add: vectOp(function(a, b) { return a + b; }),
            rad$$sub: vectOp(function(a, b) { return a - b; }),

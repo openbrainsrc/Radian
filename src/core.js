@@ -739,7 +739,8 @@ radian.directive('plot',
                                        scope.xextent[0], scope.xextent[1]));
         else y2exts = y2exts.concat(aext(s.y2));
       }
-      if (s.x && s.x.metadata && s.x.metadata.format == 'date')
+      if (s.x && (s.x.metadata && s.x.metadata.format == 'date' ||
+                  s.x instanceof Array && s.x[0] instanceof Date))
         hasdate = true;
       if (s.x && s.x instanceof Array) {
         // There are three possible cases where we want to treat the
@@ -773,7 +774,8 @@ radian.directive('plot',
           anyxdisc = true;
         } else anyxcont = true;
       }
-      if (s.x2 && s.x2.metadata && s.x2.metadata.format == 'date')
+      if (s.x2 && (s.x2.metadata && s.x2.metadata.format == 'date' ||
+                   s.x2 instanceof Array && s.x2[0] instanceof Date))
         hasdate2 = true;
       if (s.x2 && s.x2 instanceof Array) {
         if (typeof s.x2[0] == 'string' ||  // Case #1
@@ -1086,8 +1088,10 @@ radian.directive('plot',
     var has_date = false;
     dft(sc, function(s) {
       var d = s[ax];
-      if (d && d.metadata && d.metadata.format == 'date') {
-        if (d.metadata.dateFormat) dformat = d.metadata.dateFormat;
+      if (d && (d.metadata && d.metadata.format == 'date' ||
+                d instanceof Array && d[0] instanceof Date)) {
+        if (d.metadata && d.metadata.dateFormat)
+          dformat = d.metadata.dateFormat;
         has_date = true;
       }
     });
