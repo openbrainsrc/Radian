@@ -120,7 +120,7 @@ radian.directive('legend',
     sc.getTextSize = function(t) {
       var g = lg.append('g').attr('visibility', 'hidden');
       var tstel = g.append('text').attr('x', 0).attr('y', 0)
-        .style('font-size', sc.fontSize).text(t);
+        .style('font-size', sc.fontSize + 'px').text(t);
       var bbox = tstel[0][0].getBBox();
       g.remove();
       return bbox;
@@ -162,7 +162,7 @@ radian.directive('legend',
       //   attr('width', sc.ew).attr('height', sc.eh).attr('fill', '#DDD');
       eg.append('text').attr('x', sc.labelx).attr('y', sc.eh/2).
         style('dominant-baseline', 'middle').
-        style('font-size', sc.plotScope.fontSize).text(e.label);
+        style('font-size', sc.plotScope.fontSize + 'px').text(e.label);
 
       // Draw entry segment.
       switch (e.type) {

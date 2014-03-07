@@ -307,6 +307,10 @@ radian.directive('points',
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
+    function fssty(v) {
+      return ((v instanceof Array) ? function(d, i) { return v[i]; } : v) +
+        'px';
+    };
     function apSc(sc, d, i) {
       var dtmp = d;
       if (sc.oton) dtmp = sc.oton(d);
@@ -385,7 +389,7 @@ radian.directive('points',
         .attr('text-anchor', textAnchor)
         .style('baseline-shift', baselineShift)
         .style('dominant-baseline', 'middle')
-        .style('font-size', sty(fontSize))
+        .style('font-size', fssty(fontSize))
         .style('font-family', sty(fontFamily))
         .style('font-style', sty(fontStyle))
         .style('font-weight', sty(fontWeight))

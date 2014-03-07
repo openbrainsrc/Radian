@@ -340,7 +340,7 @@ radian.directive('plot',
         s.getTextSize = function(t, attrs) {
           var g = s.sizeviewgroup.append('g').attr('visibility', 'hidden');
           var tstel = g.append('text').attr('x', 0).attr('y', 0)
-            .style('font-size', attrs ? attrs.size : s.fontSize)
+            .style('font-size', (attrs ? attrs.size : s.fontSize) + 'px')
             .style('font-family', attrs ? attrs.family : s.fontFamily)
             .style('font-style', attrs ? attrs.style : s.fontStyle)
             .style('font-weight', attrs ? attrs.weight : s.fontWeight)
@@ -1205,7 +1205,7 @@ radian.directive('plot',
       var ax = makeAxis(scope, v, 'x', v.plotgroup.attr('width') / 100);
       var axis = ax[0], padding_delta = ax[1];
       v.plotgroup.append('g').attr('class', 'axis')
-        .style('font-size', scope.fontSize)
+        .style('font-size', scope.fontSize + 'px')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.realheight + v.margin.top + del1) + ')')
         .call(axis);
@@ -1216,7 +1216,7 @@ radian.directive('plot',
                 ',' + (+v.realheight + v.margin.top) + ')')
           .append('text')
           .attr('x', 0).attr('y', del2 + padding_delta)
-          .style('font-size', scope.fontSize)
+          .style('font-size', scope.fontSize + 'px')
           .attr('text-anchor', 'middle').text(v.xlabel);
         setFont(lab, scope);
       }
@@ -1225,7 +1225,7 @@ radian.directive('plot',
       var ax = makeAxis(scope, v, 'x2', v.plotgroup.attr('width') / 100);
       var axis = ax[0], padding_delta = ax[1];
       v.plotgroup.append('g').attr('class', 'axis')
-        .style('font-size', scope.fontSize)
+        .style('font-size', scope.fontSize + 'px')
         .attr('transform', 'translate(' + v.margin.left + ',' +
               (+v.margin.top + del1) + ')')
         .call(axis);
@@ -1236,7 +1236,7 @@ radian.directive('plot',
                 (+v.margin.top) + ')')
           .append('text')
           .attr('x', 0).attr('y', del2 - padding_delta)
-          .style('font-size', scope.fontSize)
+          .style('font-size', scope.fontSize + 'px')
           .attr('text-anchor', 'middle').text(v.x2label);
         setFont(lab, scope);
       }
@@ -1245,7 +1245,7 @@ radian.directive('plot',
       var ax = makeAxis(scope, v, 'y', v.plotgroup.attr('height') / 36);
       var axis = ax[0], padding_delta = ax[1];
       v.plotgroup.append('g').attr('class', 'axis')
-        .style('font-size', scope.fontSize)
+        .style('font-size', scope.fontSize + 'px')
         .attr('transform', 'translate(' + (+v.margin.left - del1) + ',' +
               (+v.margin.top) + ')')
         .call(axis);
@@ -1255,7 +1255,7 @@ radian.directive('plot',
         .append('text')
         .attr('x', xpos - padding_delta).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
-        .style('font-size', scope.fontSize)
+        .style('font-size', scope.fontSize + 'px')
         .attr('text-anchor', 'middle').text(v.ylabel);
         setFont(lab, scope);
       }
@@ -1264,7 +1264,7 @@ radian.directive('plot',
       var ax = makeAxis(scope, v, 'y2', v.plotgroup.attr('height') / 36);
       var axis = ax[0], padding_delta = ax[1];
       v.plotgroup.append('g').attr('class', 'axis')
-        .style('font-size', scope.fontSize)
+        .style('font-size', scope.fontSize + 'px')
         .attr('transform', 'translate(' +
               (+v.realwidth + v.margin.left) + ',' +
               (+v.margin.top) + ')')
@@ -1277,7 +1277,7 @@ radian.directive('plot',
         .append('text')
         .attr('x', xpos + padding_delta).attr('y', ypos)
         .attr('transform', 'rotate(-90,' + xpos + ',' + ypos + ')')
-        .style('font-size', scope.fontSize)
+        .style('font-size', scope.fontSize + 'px')
         .attr('text-anchor', 'middle').text(v.y2label);
         setFont(lab, scope);
       }
@@ -1296,7 +1296,7 @@ radian.directive('plot',
               (+v.margin.left + v.realwidth / 2) + ',0)')
         .append('text')
         .attr('x', 0).attr('y', Math.floor(1.35 * scope.titleFontSize))
-        .style('font-size', Math.floor(scope.titleFontSize))
+        .style('font-size', Math.floor(scope.titleFontSize) + 'px')
         .attr('text-anchor', 'middle').text(v.title);
       if (scope.titleFontFamily) t.style('font-family', scope.titleFontFamily);
       if (scope.titleFontStyle) t.style('font-style', scope.titleFontStyle);
@@ -4781,6 +4781,10 @@ radian.directive('points',
     function sty(v) {
       return (v instanceof Array) ? function(d, i) { return v[i]; } : v;
     };
+    function fssty(v) {
+      return ((v instanceof Array) ? function(d, i) { return v[i]; } : v) +
+        'px';
+    };
     function apSc(sc, d, i) {
       var dtmp = d;
       if (sc.oton) dtmp = sc.oton(d);
@@ -4859,7 +4863,7 @@ radian.directive('points',
         .attr('text-anchor', textAnchor)
         .style('baseline-shift', baselineShift)
         .style('dominant-baseline', 'middle')
-        .style('font-size', sty(fontSize))
+        .style('font-size', fssty(fontSize))
         .style('font-family', sty(fontFamily))
         .style('font-style', sty(fontStyle))
         .style('font-weight', sty(fontWeight))
@@ -6163,7 +6167,7 @@ radian.directive('legend',
     sc.getTextSize = function(t) {
       var g = lg.append('g').attr('visibility', 'hidden');
       var tstel = g.append('text').attr('x', 0).attr('y', 0)
-        .style('font-size', sc.fontSize).text(t);
+        .style('font-size', sc.fontSize + 'px').text(t);
       var bbox = tstel[0][0].getBBox();
       g.remove();
       return bbox;
@@ -6205,7 +6209,7 @@ radian.directive('legend',
       //   attr('width', sc.ew).attr('height', sc.eh).attr('fill', '#DDD');
       eg.append('text').attr('x', sc.labelx).attr('y', sc.eh/2).
         style('dominant-baseline', 'middle').
-        style('font-size', sc.plotScope.fontSize).text(e.label);
+        style('font-size', sc.plotScope.fontSize + 'px').text(e.label);
 
       // Draw entry segment.
       switch (e.type) {
