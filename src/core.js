@@ -752,9 +752,9 @@ radian.directive('plot',
         //     -- this is needed to deal with the case where we have
         //     integer values and want to treat them as discrete
         //     values.
-        if (typeof s.x[0] == 'string' ||  // Case #1
-            s.x[0] instanceof Array ||    // Case #2
-            s.discreteX) {                // Case #3
+        if (typeof s.x[0] == 'string' ||      // Case #1
+            s.x[0] instanceof Array ||        // Case #2
+            s.hasOwnProperty('discreteX')) {  // Case #3
           // The unique function in the Radian library will work with
           // array-valued entries without a problem.
           var vals = lib.unique(s.x);
@@ -778,9 +778,9 @@ radian.directive('plot',
                    s.x2 instanceof Array && s.x2[0] instanceof Date))
         hasdate2 = true;
       if (s.x2 && s.x2 instanceof Array) {
-        if (typeof s.x2[0] == 'string' ||  // Case #1
-            s.x2[0] instanceof Array ||    // Case #2
-            s.discreteX2) {                // Case #3
+        if (typeof s.x2[0] == 'string' ||     // Case #1
+            s.x2[0] instanceof Array ||       // Case #2
+            s.hasOwnProperty('discreteX2')) { // Case #3
           var vals = lib.unique(s.x2);
           vals.sort();
           if (discx2) {

@@ -3,7 +3,7 @@
 YUICOMPRESSOR = tools/yuicompressor-2.4.8pre.jar
 UGLIFYJS = uglifyjs
 
-all: radian.js radian.min.js radian.css examples
+all: radian.js radian.min.js radian.css radian.min.css examples
 
 .INTERMEDIATE radian.js: \
 	src/start.js \
@@ -39,6 +39,10 @@ radian%js: Makefile
 
 radian.css: src/radian.css
 	@cp src/radian.css radian.css
+
+radian.min.css: radian.css Makefile
+	@rm -f $@
+	java -jar $(YUICOMPRESSOR) radian.css -o $@
 
 examples: radian.js src/radian.css
 	@cp radian.js examples/js

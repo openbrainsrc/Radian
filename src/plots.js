@@ -458,6 +458,7 @@ radian.directive('bars',
   'use strict';
 
   function draw(svg, xin, xs, yin, ys, s, w, h) {
+    console.log(xin);
     var x = xin, y = yin;
     var style = s.style || 'simple';
     var aggregation = s.aggregation || 'none';
@@ -538,6 +539,7 @@ radian.directive('bars',
       dat = d3.zip(barMin, barMax, y);
     else
       dat = d3.zip(x, y);
+    console.log(JSON.stringify(s.barWidths));
     svg.selectAll('rect').data(dat)
       .enter().append('rect')
       .attr('class', 'bar')
@@ -552,12 +554,13 @@ radian.directive('bars',
           var phi = xs(xhi), plo = xs(xlo);
           return plo + pxBarWidth;
         } else {
-          return d[0] instanceof Date ?
+          var ret = d[0] instanceof Date ?
             xs(new Date(d[0].valueOf() - bw(i) / 2.0 +
                         (pxOffset ? barOffset :
                          s.barWidths[i] * barOffset)), i) :
           xs(xs.oton(d[0]) - bw(i) / 2.0 +
              (pxOffset ? barOffset : s.barWidths[i] * barOffset), i);
+          console.log('d=' + JSON.stringify(d) + ' ret=' + JSON.stringify(ret));
         }
       })
       .attr('y', function(d, i) { return ys(d[d.length-1], i); })
